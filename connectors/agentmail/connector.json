@@ -1,0 +1,223 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "agentmail",
+  "display_name": "AgentMail",
+  "base_url": "https://api.agentmail.to",
+  "description": "Email inboxes, messages and drafts for your Sprites",
+  "long_description": "Bring an existing AgentMail API key, including organization-, pod-, or inbox-scoped keys. Saving, replacing and testing only read the authenticated key identity; no email is sent. Send and reply operations use your AgentMail account allowance. Use polling for incoming mail. Key/domain administration, AgentID, webhooks and WebSockets are not supported. Only the US API endpoint is supported. Inline message attachments must fit AgentMail's 6 MB request limit.",
+  "website_url": "https://console.agentmail.to",
+  "auth": "bearer",
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v0/auth/me"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "pattern": "/v0/inboxes"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "pattern": "/v0/inboxes/:inbox"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v0/inboxes/:inbox/messages"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v0/inboxes/:inbox/threads"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "pattern": "/v0/inboxes/:inbox/drafts"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v0/inboxes/:inbox/messages/send"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "pattern": "/v0/inboxes/:inbox/messages/:message"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "pattern": "/v0/inboxes/:inbox/threads/:thread"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "pattern": "/v0/inboxes/:inbox/drafts/:draft"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v0/inboxes/:inbox/messages/:message/reply"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v0/inboxes/:inbox/messages/:message/reply-all"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v0/inboxes/:inbox/messages/:message/forward"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v0/inboxes/:inbox/drafts/:draft/send"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v0/threads"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "pattern": "/v0/threads/:thread"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v0/drafts"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v0/drafts/:draft"
+    }
+  ],
+  "forward_request_headers": [
+    "idempotency-key"
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "gateway_error_messages": false,
+  "account_id_hash_length": 64,
+  "path_param": "\\A[A-Za-z0-9._%+@<>-]+\\z",
+  "probe": {
+    "method": "GET",
+    "path": "/v0/auth/me",
+    "label": "key identity",
+    "receive_timeout": 10000,
+    "expect": [
+      [
+        "scope_type",
+        "in",
+        [
+          "organization",
+          "pod",
+          "inbox"
+        ]
+      ],
+      [
+        "scope_id",
+        "text"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Discover the scope of this key (safe for inbox- and pod-scoped keys)",
+      "path": "/v0/auth/me"
+    },
+    {
+      "title": "Poll an inbox; replace INBOX_ID with an inbox in this key's scope",
+      "path": "/v0/inboxes/INBOX_ID/messages"
+    },
+    {
+      "title": "Send email (uses your AgentMail allowance); replace the inbox and recipient",
+      "method": "POST",
+      "path": "/v0/inboxes/INBOX_ID/messages/send",
+      "json": {
+        "subject": "Hello",
+        "text": "Sent from my Sprite",
+        "to": [
+          "recipient@example.com"
+        ]
+      }
+    }
+  ],
+  "messages": {
+    "402": "AgentMail requires available credits or an active subscription",
+    "403": "AgentMail denied access; check the key, permissions and subscription",
+    "429": "AgentMail rate limit reached; try again later",
+    "provider_unreachable": "AgentMail could not be reached; try again",
+    "unexpected_response": "Unexpected AgentMail response; credential could not be verified"
+  },
+  "discovery": {
+    "categories": [
+      "communication"
+    ],
+    "keywords": [
+      "email",
+      "inbox",
+      "messages",
+      "drafts",
+      "attachments"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-sky-500/20",
+  "presentation": {
+    "tagline": "Send and receive email from a Sprite without exposing your AgentMail key.",
+    "setup": "Use an API key from your existing AgentMail account.",
+    "notices": [
+      "Email resources only, with polling for incoming mail. Sending messages has real external effects and may consume AgentMail usage. Domain, API-key and AgentID administration are not supported. The gateway stores the key; do not copy it into your Sprite."
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

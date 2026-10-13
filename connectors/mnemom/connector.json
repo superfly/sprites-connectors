@@ -1,0 +1,192 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "mnemom",
+  "display_name": "Mnemom",
+  "base_url": "https://api.mnemom.ai/v1",
+  "description": "Inspect agent trust, alignment, and checkpoints",
+  "long_description": "Bring a Mnemom API key for agent trust, alignment, and checkpoint inspection. This connector is read-only: it does not install enforcement middleware, submit checkpoints, manage keys, or change organization settings. Saving and testing only inspect the authenticated key. Only GET requests are supported; HEAD is not forwarded.",
+  "website_url": "https://mnemom.ai",
+  "auth": {
+    "header": "x-mnemom-api-key"
+  },
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/api-keys/whoami"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/agents"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/agents/:id"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/agents/:id/state"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/agents/:id/checkpoints"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/agents/:id/checkpoints/:checkpoint"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/agents/:id/trust-edges"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/alignment/agent/:id"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/alignment/agent/:id/effective"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/protection/agent/:id"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/checkpoints/:id/certificate"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/checkpoints/:id/inclusion-proof"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/checkpoints/:id/proof"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/trust/advisories"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/trust/advisories/:slug"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/trust/iocs"
+    }
+  ],
+  "forward_request_headers": [
+    "accept"
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "test_request_headers": [
+    {
+      "name": "accept",
+      "value": "application/json"
+    }
+  ],
+  "gateway_error_messages": false,
+  "account_id_hash_length": 64,
+  "probe": {
+    "method": "GET",
+    "path": "/api-keys/whoami",
+    "label": "key identity",
+    "expect": [
+      [
+        "user_id",
+        "text"
+      ],
+      [
+        "auth_method",
+        "eq",
+        "api_key"
+      ],
+      [
+        "key_id",
+        "text"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List agents",
+      "path": "/agents"
+    }
+  ],
+  "playground": {
+    "path": "/agents",
+    "method": "GET",
+    "body": ""
+  },
+  "messages": {
+    "403": "Mnemom key does not have permission for this request",
+    "429": "Mnemom rate limit reached; retry later",
+    "provider_unreachable": "Mnemom could not be reached; try again",
+    "unexpected_response": "Unexpected Mnemom response; credential could not be verified"
+  },
+  "discovery": {
+    "categories": [
+      "developer-tools"
+    ],
+    "keywords": [
+      "agent trust",
+      "alignment",
+      "checkpoints",
+      "governance"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-violet-500/20",
+  "presentation": {
+    "tagline": "Read Mnemom trust and agent information without storing the API key on a Sprite.",
+    "setup": "Use an API key from your existing Mnemom account.",
+    "notices": [
+      "Read-only Mnemom agent, state, alignment/protection card, checkpoint, trust-edge, proof/certificate and trust advisory/IOC APIs. Enforcement setup and governance mutations are not supported. Saving and testing verify the key identity without changing agent data. The gateway supplies `X-Mnemom-Api-Key`; authorize only trusted Sprites."
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "fireworks",
+  "display_name": "Fireworks",
+  "base_url": "https://api.fireworks.ai",
+  "description": "OpenAI-compatible inference via Fireworks",
+  "long_description": "Bring your Fireworks inference API key. Inference is charged to your Fireworks account. Saving, replacing and testing keys read one account name and require account-list access; they do not verify inference permissions or credit balance. The gateway keeps the key off your Sprite. Supports chat completions, completions and embeddings, including SSE responses. GET /v1/accounts also lets authorized Sprites read all account metadata visible to the key, with caller-selected query parameters, not just the test's single account name. Account writes, model administration, deployments, files and batches are not supported.",
+  "website_url": "https://app.fireworks.ai/settings/users/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/accounts"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/inference/v1/chat/completions"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/inference/v1/completions"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/inference/v1/embeddings"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/accounts?pageSize=1&readMask=name",
+    "label": "account",
+    "expect": [
+      [
+        "accounts",
+        "nonempty_list"
+      ],
+      [
+        "accounts[].name",
+        "prefix",
+        "accounts/"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Chat completion (charged to your Fireworks account)",
+      "method": "POST",
+      "path": "/inference/v1/chat/completions",
+      "json": {
+        "messages": [
+          {
+            "content": "Hello!",
+            "role": "user"
+          }
+        ],
+        "model": "<fireworks-model-id>",
+        "stream": false
+      },
+      "notes": [
+        "Replace the placeholder with a model ID from the Fireworks model catalog."
+      ]
+    }
+  ],
+  "messages": {
+    "403": "Fireworks key requires account-list permission; inference-only keys cannot be verified"
+  },
+  "discovery": {
+    "categories": [
+      "ai-inference"
+    ],
+    "keywords": [
+      "llm",
+      "language models"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-orange-500/20",
+  "presentation": {
+    "tagline": "OpenAI-compatible inference without storing your Fireworks key on a Sprite.",
+    "setup": "Create an inference key at app.fireworks.ai/settings/users/api-keys.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Inference is charged to your Fireworks account. Saving, replacing and testing read one account name and require account-list permission; they do not verify inference permission or balance."
+      },
+      {
+        "title": "Scope",
+        "body": "Supports `POST` chat/completions, completions and embeddings under `/inference/v1`, including SSE, plus `GET /v1/accounts`, which lets authorized Sprites list account metadata visible to the key, not only the name read during validation. No account writes, deployments, files or batches."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

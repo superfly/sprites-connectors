@@ -1,0 +1,21 @@
+name: Validate connectors
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Manifests match the schema
+        run: >-
+          npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false
+          -s v1/schema.json -d "connectors/*/connector.json"
+      - name: Directories, icons and marks
+        run: node scripts/check-connectors.mjs

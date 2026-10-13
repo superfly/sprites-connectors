@@ -1,0 +1,135 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "blotato",
+  "display_name": "Blotato",
+  "base_url": "https://backend.blotato.com",
+  "description": "Publish posts to your connected social accounts",
+  "long_description": "Bring an API key from an existing paid Blotato account. Generating a Blotato API key ends the free trial and activates a paid subscription. Connect social accounts in Blotato first. Saving, replacing and testing only list connected accounts; they never publish. Publishing posts uses your Blotato subscription and posts publicly. Public media URLs are supported; direct uploads, social OAuth, account/key/billing administration and video generation are excluded.",
+  "website_url": "https://my.blotato.com/settings",
+  "auth": {
+    "header": "blotato-api-key"
+  },
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v2/users/me/accounts"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v2/users/me/accounts/:account/subaccounts"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v2/posts"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v2/posts/:submission"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v2/social/pinterest/boards"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "gateway_error_messages": false,
+  "account_id_hash_length": 64,
+  "probe": {
+    "method": "GET",
+    "path": "/v2/users/me/accounts",
+    "label": "accounts",
+    "receive_timeout": 10000,
+    "expect": [
+      [
+        "items",
+        "list"
+      ],
+      [
+        "items[].id",
+        "text"
+      ],
+      [
+        "items[].platform",
+        "text"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List social accounts already connected in Blotato",
+      "path": "/v2/users/me/accounts"
+    },
+    {
+      "title": "Publish externally (uses your paid subscription); replace ACCOUNT_ID",
+      "method": "POST",
+      "path": "/v2/posts",
+      "json": {
+        "post": {
+          "accountId": "ACCOUNT_ID",
+          "content": {
+            "mediaUrls": [],
+            "platform": "twitter",
+            "text": "Hello from my Sprite"
+          },
+          "target": {
+            "targetType": "twitter"
+          }
+        }
+      }
+    },
+    {
+      "title": "Poll an existing post submission; replace POST_SUBMISSION_ID",
+      "path": "/v2/posts/POST_SUBMISSION_ID"
+    }
+  ],
+  "messages": {
+    "402": "Blotato requires available credits or an active subscription",
+    "403": "Blotato denied access; check the key, permissions and subscription",
+    "429": "Blotato rate limit reached; try again later",
+    "provider_unreachable": "Blotato could not be reached; try again",
+    "unexpected_response": "Unexpected Blotato response; credential could not be verified"
+  },
+  "discovery": {
+    "categories": [
+      "communication"
+    ],
+    "keywords": [
+      "social media",
+      "publishing",
+      "posts",
+      "scheduling"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-sky-500/20",
+  "presentation": {
+    "tagline": "Publish to existing social accounts through Blotato without exposing its API key.",
+    "setup": "Connect social accounts in Blotato first, then provide your Blotato API key.",
+    "notices": [
+      "Creating a Blotato API key ends the free trial and starts a paid subscription. Use existing social accounts connected in Blotato; account authorization is not performed here. Publishing has real external effects and consumes your Blotato plan. Keep the API key off your Sprite."
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

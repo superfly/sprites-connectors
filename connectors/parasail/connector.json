@@ -1,0 +1,129 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "parasail",
+  "display_name": "Parasail",
+  "base_url": "https://api.parasail.io",
+  "description": "OpenAI-compatible inference via Parasail",
+  "long_description": "Bring a standard Parasail inference key; read-only management keys cannot run inference. Inference is charged to your Parasail account. Saving, replacing and testing keys only list models and do not verify inference permissions or credit balance. The gateway keeps the key off your Sprite. Supports chat completions, completions, embeddings and model discovery, including SSE responses. Deployment management, files and batches are not supported.",
+  "website_url": "https://www.saas.parasail.io/keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/models"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/chat/completions"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/completions"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/embeddings"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models",
+    "label": "models",
+    "expect": [
+      [
+        "object",
+        "eq",
+        "list"
+      ],
+      [
+        "data",
+        "list"
+      ],
+      [
+        "data[].id",
+        "text"
+      ],
+      [
+        "data[].object",
+        "eq",
+        "model"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List models",
+      "path": "/v1/models"
+    },
+    {
+      "title": "Chat completion (charged to your Parasail account)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "messages": [
+          {
+            "content": "Hello!",
+            "role": "user"
+          }
+        ],
+        "model": "<model-id-from-list>",
+        "stream": false
+      },
+      "notes": [
+        "Replace the model placeholder with an inference model from the list."
+      ]
+    }
+  ],
+  "messages": {
+    "402": "Parasail credits exhausted or spending limit reached",
+    "403": "Parasail key lacks permission to list models; check the key's access permissions",
+    "429": "Parasail rate limit reached; retry later"
+  },
+  "discovery": {
+    "categories": [
+      "ai-inference"
+    ],
+    "keywords": [
+      "llm",
+      "language models"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-sky-500/20",
+  "presentation": {
+    "tagline": "OpenAI-compatible inference without storing your Parasail key on a Sprite.",
+    "setup": "Create a standard inference key at www.saas.parasail.io/keys.",
+    "notices": [
+      {
+        "title": "Key",
+        "body": "Use a standard inference key, not a read-only management key. Saving, replacing and testing only list models; a successful check does not verify inference permissions or credit balance."
+      },
+      {
+        "title": "Billing and scope",
+        "body": "Inference is charged to your Parasail account. Only `POST` chat/completions, completions, embeddings and `GET` models under `/v1` are forwarded. SSE streaming is supported; deployment management, files and batches are not."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

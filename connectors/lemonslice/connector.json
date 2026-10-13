@@ -1,0 +1,132 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "lemonslice",
+  "display_name": "LemonSlice",
+  "base_url": "https://lemonslice.com/api",
+  "description": "Monitor existing avatar sessions and their usage",
+  "long_description": "Bring an existing LemonSlice API key to read session history, status and reported usage. Saving, replacing and testing list sessions and never start a billable session. This read-only connector does not create or control avatars, generate videos, or transport WebRTC/WebSocket audio and video. Create sessions separately through your existing LemonSlice integration.",
+  "website_url": "https://lemonslice.com/developers",
+  "auth": {
+    "header": "x-api-key"
+  },
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/liveai/sessions"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/liveai/sessions/:id"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "gateway_error_messages": false,
+  "account_id_hash_length": 64,
+  "probe": {
+    "method": "GET",
+    "path": "/liveai/sessions?limit=1",
+    "label": "sessions",
+    "receive_timeout": 10000,
+    "expect": [
+      [
+        "sessions",
+        "list"
+      ],
+      [
+        "sessions[].session_id",
+        "text"
+      ],
+      [
+        "sessions[].created_at",
+        "string"
+      ],
+      [
+        "sessions[].session_status",
+        "string"
+      ],
+      [
+        "pagination.page",
+        "min",
+        1
+      ],
+      [
+        "pagination.limit",
+        "min",
+        1
+      ],
+      [
+        "pagination.total",
+        "min",
+        0
+      ],
+      [
+        "pagination.total_pages",
+        "min",
+        0
+      ],
+      [
+        "pagination.has_more",
+        "boolean"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Read session history without creating or controlling an avatar",
+      "path": "/liveai/sessions?limit=10"
+    },
+    {
+      "title": "Poll an existing session; replace SESSION_ID",
+      "path": "/liveai/sessions/SESSION_ID"
+    }
+  ],
+  "playground": {
+    "path": "/liveai/sessions?limit=10",
+    "method": "GET",
+    "body": ""
+  },
+  "messages": {
+    "402": "LemonSlice requires available credits or an active subscription",
+    "403": "LemonSlice denied access; check the key, permissions and subscription",
+    "429": "LemonSlice rate limit reached; try again later",
+    "provider_unreachable": "LemonSlice could not be reached; try again",
+    "unexpected_response": "Unexpected LemonSlice response; credential could not be verified"
+  },
+  "discovery": {
+    "categories": [
+      "media"
+    ],
+    "keywords": [
+      "avatar",
+      "video",
+      "session history",
+      "session status"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-sky-500/20",
+  "presentation": {
+    "tagline": "Read the history and status of existing LemonSlice sessions.",
+    "setup": "Create sessions outside the gateway first, then supply a LemonSlice API key from the developers dashboard.",
+    "notices": [
+      "Read-only session history and status for existing LemonSlice sessions. This connector does not create or control sessions, generate video, or support WebRTC or WebSockets. Saving, replacing and testing a key only read session history; they do not start a paid session. Sessions must already be created outside the gateway."
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "era",
+  "display_name": "Era",
+  "base_url": "https://forge.era.app/api",
+  "description": "Read linked bank accounts and transactions",
+  "long_description": "Use an Era fmk_ API key with only banking:read enabled. Read account balances, transactions, categories, and tags from already-linked accounts. No account linking, writes, or money movement. These keys expire; replace the key before expiry (there is no automatic refresh). Saving and testing read account metadata and consume API rate-limit budget, but do not move money. Only GET requests are supported; HEAD is not forwarded.",
+  "website_url": "https://era.app",
+  "auth": {
+    "header": "x-api-key"
+  },
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/banking/accounts"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/banking/accounts/summary"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/banking/accounts/:id/balance"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/banking/transactions"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/banking/categories"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/banking/tags"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "test_request_headers": [
+    {
+      "name": "accept",
+      "value": "application/json"
+    }
+  ],
+  "gateway_error_messages": false,
+  "account_id_hash_length": 64,
+  "probe": {
+    "method": "GET",
+    "path": "/banking/accounts",
+    "label": "accounts",
+    "expect": [
+      [
+        "accounts",
+        "list"
+      ],
+      [
+        "accounts[]",
+        "map"
+      ],
+      [
+        "excludedAccountCount",
+        "min",
+        0
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List linked accounts",
+      "path": "/banking/accounts"
+    }
+  ],
+  "messages": {
+    "403": "Era key does not have permission for this request; enable banking:read",
+    "429": "Era rate limit reached; retry later",
+    "provider_unreachable": "Era could not be reached; try again",
+    "unexpected_response": "Unexpected Era response; credential could not be verified"
+  },
+  "discovery": {
+    "categories": [
+      "finance"
+    ],
+    "keywords": [
+      "banking",
+      "finance",
+      "accounts",
+      "transactions",
+      "read-only"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-emerald-500/20",
+  "presentation": {
+    "tagline": "Read linked banking data through Era without exposing a banking API key.",
+    "setup": "Link your accounts in Era first and create an fmk key scoped to banking:read.",
+    "notices": [
+      "Read-only banking REST access to accounts already linked in Era: accounts, summaries, balances, transactions, categories and tags. Use an fmk key with banking:read permission, monitor its expiry and rotate it before it expires. Money movement, transfers, payments and account linking are not supported. Authorized Sprites can read the financial data visible to this key."
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    },
+    "key_label": "Banking read API key",
+    "key_placeholder": "fmk..."
+  }
+}

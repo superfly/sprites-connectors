@@ -1,0 +1,143 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "firecrawl",
+  "display_name": "Firecrawl",
+  "base_url": "https://api.firecrawl.dev",
+  "description": "Scrape, search, and map websites",
+  "long_description": "Bring an API key from your existing Firecrawl account. Scrape, search, and map requests use your Firecrawl credits. Saving, replacing, and testing a key only read credit usage and do not start a scrape. Only POST /v2/scrape, /v2/search, /v2/map and GET /v2/team/credit-usage are forwarded. Crawl, batch jobs, browser sessions and agents are not supported. Keep requests under the gateway's 120-second timeout.",
+  "website_url": "https://www.firecrawl.dev/app/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v2/scrape"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v2/search"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v2/map"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v2/team/credit-usage"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v2/team/credit-usage",
+    "label": "credit usage",
+    "expect": [
+      [
+        "success",
+        "eq",
+        true
+      ],
+      [
+        "data.remainingCredits",
+        "number"
+      ],
+      [
+        "data.planCredits",
+        "number"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Scrape a page (uses your Firecrawl credits)",
+      "method": "POST",
+      "path": "/v2/scrape",
+      "json": {
+        "formats": [
+          "markdown"
+        ],
+        "url": "https://sprites.dev"
+      }
+    },
+    {
+      "title": "Search the web",
+      "method": "POST",
+      "path": "/v2/search",
+      "json": {
+        "limit": 1,
+        "query": "Sprites documentation"
+      }
+    },
+    {
+      "title": "Map a website",
+      "method": "POST",
+      "path": "/v2/map",
+      "json": {
+        "limit": 10,
+        "url": "https://sprites.dev"
+      }
+    }
+  ],
+  "playground": {
+    "path": "/v2/scrape",
+    "method": "POST",
+    "body": "{\"formats\":[\"markdown\"],\"url\":\"https://sprites.dev\"}"
+  },
+  "messages": {
+    "402": "Firecrawl credits exhausted or spending limit reached",
+    "403": "Firecrawl key does not have access to this request",
+    "429": "Firecrawl rate limit reached; try again later",
+    "provider_unreachable": "Could not reach Firecrawl; try again later",
+    "unexpected_response": "Unexpected Firecrawl credit usage response; try again later"
+  },
+  "discovery": {
+    "categories": [
+      "search",
+      "web-scraping"
+    ],
+    "keywords": [
+      "web search",
+      "scrape",
+      "scraping",
+      "website map",
+      "markdown"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-orange-500/20",
+  "presentation": {
+    "tagline": "Scrape, search, and map websites without putting your key on a Sprite.",
+    "setup": "Create a key at firecrawl.dev/app/api-keys.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Scrape, search, and map requests use your Firecrawl credits. Saving, replacing, and testing a key only read credit usage and do not start a scrape."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /v2/scrape`, `/v2/search`, `/v2/map` and `GET /v2/team/credit-usage` are forwarded. Crawl, batch jobs, browser sessions and agents are not supported. Keep requests under the gateway's 120-second timeout."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    },
+    "key_placeholder": "fc-..."
+  }
+}

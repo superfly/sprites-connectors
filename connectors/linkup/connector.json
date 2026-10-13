@@ -1,0 +1,110 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "linkup",
+  "display_name": "Linkup",
+  "base_url": "https://api.linkup.so",
+  "description": "Search the web and fetch page contents",
+  "long_description": "Bring an API key from your existing Linkup account. Searches and page fetches use your Linkup credits. Saving, replacing, and testing a key only read credit balance and do not run a search. Only POST /v1/search, POST /v1/fetch and GET /v1/credits/balance are forwarded. Research and extraction jobs are not supported. Keep requests under the gateway's 120-second timeout.",
+  "website_url": "https://app.linkup.so",
+  "auth": "bearer",
+  "allowed_paths": [
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/search"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/fetch"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/credits/balance"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/credits/balance",
+    "label": "balance",
+    "expect": [
+      [
+        "balance",
+        "number"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Search the web (uses your Linkup credits)",
+      "method": "POST",
+      "path": "/v1/search",
+      "json": {
+        "depth": "fast",
+        "outputType": "searchResults",
+        "q": "Sprites documentation"
+      }
+    },
+    {
+      "title": "Fetch page contents",
+      "method": "POST",
+      "path": "/v1/fetch",
+      "json": {
+        "url": "https://sprites.dev"
+      }
+    }
+  ],
+  "playground": {
+    "path": "/v1/search",
+    "method": "POST",
+    "body": "{\"depth\":\"fast\",\"outputType\":\"searchResults\",\"q\":\"Sprites documentation\"}"
+  },
+  "messages": {
+    "403": "Linkup key does not have access to this request",
+    "429": "Linkup rate limit reached or insufficient credits; check your account"
+  },
+  "discovery": {
+    "categories": [
+      "search"
+    ],
+    "keywords": [
+      "web search",
+      "page contents",
+      "retrieval"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-lime-500/20",
+  "presentation": {
+    "tagline": "Search the web and fetch pages without putting your key on a Sprite.",
+    "setup": "Create an API key at app.linkup.so.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Searches and page fetches use your Linkup credits. Saving, replacing, and testing a key only read credit balance and do not run a search."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /v1/search`, `POST /v1/fetch` and `GET /v1/credits/balance` are forwarded. Research and extraction jobs are not supported. Keep requests under the gateway's 120-second timeout."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

@@ -1,0 +1,689 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "title": "Sprites gateway connector manifest",
+  "description": "Format version 1 of a bring-your-own-key connector for the Sprites gateway: the options of `use Sprites.Gateway.Connector` as JSON. An omitted option takes its version-1 default. See Sprites.Gateway.Connector.Manifest for the full rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "name",
+    "display_name",
+    "base_url",
+    "description",
+    "long_description",
+    "website_url",
+    "auth",
+    "allowed_paths",
+    "probe",
+    "icon_svg",
+    "icon_bg_class",
+    "presentation"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional pointer at this schema, for editors; ignored by the loader."
+    },
+    "format_version": {
+      "const": 1,
+      "description": "The manifest format version; this schema describes version 1."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Provider name: lower-case letters, digits and underscores, starting with a letter."
+    },
+    "display_name": {
+      "$ref": "#/$defs/text"
+    },
+    "base_url": {
+      "type": "string",
+      "pattern": "^https?://"
+    },
+    "description": {
+      "$ref": "#/$defs/text"
+    },
+    "long_description": {
+      "$ref": "#/$defs/text"
+    },
+    "website_url": {
+      "type": "string",
+      "pattern": "^https?://"
+    },
+    "auth": {
+      "$ref": "#/$defs/auth"
+    },
+    "allowed_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/route"
+      },
+      "description": "Routes the gateway forwards; at least one. Everything else is refused."
+    },
+    "forward_request_headers": {
+      "$ref": "#/$defs/header_names"
+    },
+    "forward_response_headers": {
+      "$ref": "#/$defs/header_names"
+    },
+    "test_request_headers": {
+      "$ref": "#/$defs/headers"
+    },
+    "playground": {
+      "$ref": "#/$defs/playground"
+    },
+    "gateway_error_messages": {
+      "type": "boolean"
+    },
+    "validation": {
+      "const": "probe",
+      "description": "Only \"probe\": a manifest cannot implement validate_api_key/1."
+    },
+    "messages": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/message_key"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/text"
+      },
+      "description": "User-facing text keyed by a three-digit status code or a reason name; %{status} interpolates the status."
+    },
+    "discovery": {
+      "$ref": "#/$defs/discovery"
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/example"
+      }
+    },
+    "path_param": {
+      "type": "string",
+      "pattern": "^\\\\A.*\\\\z$",
+      "description": "Source of an Elixir (PCRE) regex matching one path segment, with no flags, anchored with \\A and \\z. Not a portable JSON Schema regex."
+    },
+    "hooks": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of a module registered in Sprites.Gateway.ConnectorHooks that exports optional callbacks."
+    },
+    "account_id_hash_length": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64,
+      "description": "Hex characters of the key's SHA-256 kept in account ids, 1 to 64."
+    },
+    "probe": {
+      "$ref": "#/$defs/probe"
+    },
+    "icon_svg": {
+      "$ref": "#/$defs/svg"
+    },
+    "icon_bg_class": {
+      "$ref": "#/$defs/text"
+    },
+    "presentation": {
+      "$ref": "#/$defs/presentation"
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "line": {
+      "type": "string",
+      "pattern": "^[^\\n\\r]+$"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^/[^\\s\"'\\\\$`]*$"
+    },
+    "method": {
+      "enum": [
+        "GET",
+        "POST"
+      ]
+    },
+    "reason": {
+      "enum": [
+        "server_error",
+        "invalid_api_key",
+        "unexpected_response",
+        "provider_unreachable",
+        "agent_key_required",
+        "admin_key_not_supported"
+      ]
+    },
+    "message_key": {
+      "type": "string",
+      "anyOf": [
+        {
+          "pattern": "^[1-5][0-9][0-9]$"
+        },
+        {
+          "$ref": "#/$defs/reason"
+        }
+      ]
+    },
+    "auth": {
+      "oneOf": [
+        {
+          "const": "bearer"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "header"
+          ],
+          "properties": {
+            "header": {
+              "$ref": "#/$defs/text"
+            },
+            "prefix": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      ]
+    },
+    "route": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^/"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "methods",
+            "pattern"
+          ],
+          "properties": {
+            "methods": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "HEAD",
+                  "OPTIONS"
+                ]
+              }
+            },
+            "pattern": {
+              "type": "string",
+              "pattern": "^/"
+            }
+          }
+        }
+      ],
+      "description": "A pattern allowing every method, or {methods, pattern} allowing only the listed upper-case methods. Patterns are exact paths, prefixes with a trailing *, or paths with :name segments."
+    },
+    "header_names": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/header_token"
+      }
+    },
+    "headers": {
+      "type": "array",
+      "description": "Request headers sent with the probe: a header token name and a one-line value.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "value"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/header_token"
+          },
+          "value": {
+            "$ref": "#/$defs/line"
+          }
+        }
+      }
+    },
+    "playground": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "method",
+        "body"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "body": {
+          "type": "string"
+        }
+      },
+      "description": "Default request for the API playground."
+    },
+    "json": {
+      "type": [
+        "object",
+        "array"
+      ]
+    },
+    "expectation_path": {
+      "type": "string",
+      "pattern": "^[^.\\[\\]]+(\\[\\])?(\\.[^.\\[\\]]+(\\[\\])?)*$",
+      "description": "Dotted key path; a [] suffix on a segment applies the rest of the path to every element of the list there."
+    },
+    "expectation": {
+      "type": "array",
+      "oneOf": [
+        {
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/expectation_path"
+            },
+            {
+              "enum": [
+                "present",
+                "absent",
+                "map",
+                "list",
+                "nonempty_list",
+                "boolean",
+                "integer",
+                "number",
+                "string",
+                "text"
+              ]
+            }
+          ],
+          "description": "[path, check]: present (exists, not null), absent (missing or null), or a JSON type: map, list, nonempty_list, boolean, integer, number, string (any string), text (non-empty string)."
+        },
+        {
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/expectation_path"
+            },
+            {
+              "const": "eq"
+            },
+            true
+          ],
+          "description": "[path, \"eq\", value]: equal to the JSON value."
+        },
+        {
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/expectation_path"
+            },
+            {
+              "const": "in"
+            },
+            {
+              "type": "array"
+            }
+          ],
+          "description": "[path, \"in\", [values]]: equal to one of the JSON values."
+        },
+        {
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/expectation_path"
+            },
+            {
+              "enum": [
+                "min",
+                "gt"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "[path, \"min\", n]: a number >= n; [path, \"gt\", n]: a number > n."
+        },
+        {
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/expectation_path"
+            },
+            {
+              "const": "between"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "[path, \"between\", lo, hi]: a number from lo to hi inclusive, lo <= hi."
+        },
+        {
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/expectation_path"
+            },
+            {
+              "enum": [
+                "prefix",
+                "contains"
+              ]
+            },
+            {
+              "$ref": "#/$defs/text"
+            }
+          ],
+          "description": "[path, \"prefix\", s]: a string starting with the non-empty s and longer than it; [path, \"contains\", s]: a string containing s."
+        }
+      ],
+      "description": "One assertion over the decoded JSON body; see Sprites.Gateway.Connector.Expect."
+    },
+    "expectations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/expectation"
+      },
+      "description": "Assertions that must all hold; only a JSON object satisfies them."
+    },
+    "error_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "expect": {
+          "$ref": "#/$defs/expectations"
+        },
+        "reason": {
+          "$ref": "#/$defs/reason"
+        }
+      },
+      "description": "Classifies a non-200 probe response with this status (and body matching expect, if given) as the reason."
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "path",
+        "label"
+      ],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/method"
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "label": {
+          "$ref": "#/$defs/line"
+        },
+        "json": {
+          "$ref": "#/$defs/json"
+        },
+        "receive_timeout": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expect": {
+          "$ref": "#/$defs/expectations"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/error_rule"
+          }
+        }
+      },
+      "description": "The one request that verifies a key."
+    },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "path"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/line"
+        },
+        "method": {
+          "$ref": "#/$defs/method"
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "json": {
+          "$ref": "#/$defs/json"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/line"
+          }
+        },
+        "headers": {
+          "$ref": "#/$defs/example_headers"
+        }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "notice": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/text"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "body"
+          ],
+          "properties": {
+            "title": {
+              "$ref": "#/$defs/text"
+            },
+            "body": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      ]
+    },
+    "guide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "body"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/text"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "body": {
+          "$ref": "#/$defs/text"
+        },
+        "note": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "svg": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "<svg",
+          "description": "The SVG inline."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+\\.svg$"
+            }
+          },
+          "description": "A .svg file beside the manifest, by plain name."
+        }
+      ]
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tagline",
+        "setup",
+        "notices"
+      ],
+      "properties": {
+        "tagline": {
+          "$ref": "#/$defs/text"
+        },
+        "setup": {
+          "$ref": "#/$defs/text"
+        },
+        "kind": {
+          "$ref": "#/$defs/text"
+        },
+        "notices": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/notice"
+          }
+        },
+        "guides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/guide"
+          }
+        },
+        "usage_notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/notice"
+          }
+        },
+        "mark_svg": {
+          "$ref": "#/$defs/svg"
+        },
+        "directory_name": {
+          "$ref": "#/$defs/text"
+        },
+        "icon_style": {
+          "type": "string",
+          "description": "Plain CSS declarations added to the icon element; nothing that loads a resource.",
+          "pattern": "^(?!.*([uU][rR][lL]|[eE][xX][pP][rR][eE][sS][sS][iI][oO][nN]|[iI][mM][aA][gG][eE]-[sS][eE][tT])\\()[a-zA-Z0-9\\s.,:;%()#-]+$"
+        },
+        "key_label": {
+          "$ref": "#/$defs/text"
+        },
+        "key_placeholder": {
+          "$ref": "#/$defs/text"
+        },
+        "heading": {
+          "$ref": "#/$defs/text"
+        },
+        "test_label": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "header_token": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]+$"
+    },
+    "example_headers": {
+      "type": "array",
+      "description": "Headers shown in a curl example; name and value contain no whitespace, quotes, backslashes, $ or backticks.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "value"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/curl_part"
+          },
+          "value": {
+            "$ref": "#/$defs/curl_part"
+          }
+        }
+      }
+    },
+    "curl_part": {
+      "type": "string",
+      "pattern": "^[^\\s\"'\\\\$`]+$"
+    }
+  }
+}

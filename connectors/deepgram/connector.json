@@ -1,0 +1,134 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "deepgram",
+  "display_name": "Deepgram",
+  "base_url": "https://api.deepgram.com",
+  "description": "Prerecorded speech recognition and text-to-speech",
+  "long_description": "Bring your Deepgram project API key; the gateway keeps it off your Sprite. Saving or replacing a key and each connection test run a roughly 18-second sample transcription charged to your Deepgram account. Other transcription and synthesis requests are also charged by Deepgram. Supports POST /v1/listen for prerecorded audio and POST /v1/speak for HTTP synthesis. Audio responses are buffered, not incremental. WebSocket realtime speech and Voice Agent are not supported. Request bodies are limited to 8 MB with a 120-second upstream timeout; prefer a publicly reachable audio URL for larger input.",
+  "website_url": "https://console.deepgram.com",
+  "auth": {
+    "header": "authorization",
+    "prefix": "Token"
+  },
+  "allowed_paths": [
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/listen"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/speak"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "POST",
+    "path": "/v1/listen?model=nova-3",
+    "label": "transcription",
+    "json": {
+      "url": "https://static.deepgram.com/examples/Bueller-Life-moves-pretty-fast.wav"
+    },
+    "receive_timeout": 30000,
+    "expect": [
+      [
+        "metadata.request_id",
+        "text"
+      ],
+      [
+        "metadata.duration",
+        "gt",
+        0
+      ],
+      [
+        "results.channels",
+        "nonempty_list"
+      ],
+      [
+        "results.channels[].alternatives",
+        "nonempty_list"
+      ],
+      [
+        "results.channels[].alternatives[].transcript",
+        "string"
+      ],
+      [
+        "error",
+        "absent"
+      ],
+      [
+        "err_code",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Transcribe a provider-hosted sample (roughly 18 seconds, charged by Deepgram)",
+      "method": "POST",
+      "path": "/v1/listen?model=nova-3",
+      "json": {
+        "url": "https://static.deepgram.com/examples/Bueller-Life-moves-pretty-fast.wav"
+      }
+    },
+    {
+      "title": "Synthesize speech (charged by Deepgram; audio is buffered until complete)",
+      "method": "POST",
+      "path": "/v1/speak?model=aura-2-thalia-en&encoding=linear16&container=wav",
+      "json": {
+        "text": "Hello from a Sprite."
+      },
+      "notes": [
+        "Save the audio response to a file, for example with --output speech.wav."
+      ]
+    }
+  ],
+  "messages": {
+    "402": "Deepgram credits exhausted or spending limit reached",
+    "403": "Deepgram key does not have access to this request",
+    "429": "Deepgram rate limit reached; try again later",
+    "provider_unreachable": "Could not reach Deepgram; retry later",
+    "unexpected_response": "Deepgram returned an unexpected validation response; retry later"
+  },
+  "discovery": {
+    "categories": [
+      "media"
+    ],
+    "keywords": [
+      "transcription",
+      "speech recognition",
+      "text to speech",
+      "speech to text",
+      "tts",
+      "stt"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-emerald-500/20",
+  "presentation": {
+    "tagline": "Prerecorded speech recognition and HTTP text-to-speech with your own Deepgram key.",
+    "setup": "Create a project key at console.deepgram.com.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or replacing a key and each connection test run a roughly 18-second sample transcription charged to your Deepgram account. Transcription and synthesis are also charged by Deepgram."
+      },
+      {
+        "title": "Scope",
+        "body": "Supports `POST /v1/listen` for prerecorded audio and `POST /v1/speak` for HTTP synthesis. Audio responses are buffered until complete; WebSocket realtime speech and Voice Agent are not supported. Request bodies are limited to 8 MB and the upstream timeout is 120 seconds; prefer a publicly reachable audio URL for larger inputs."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}

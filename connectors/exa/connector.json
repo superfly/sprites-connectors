@@ -1,0 +1,124 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "exa",
+  "display_name": "Exa",
+  "base_url": "https://api.exa.ai",
+  "description": "Web search and page contents for agents",
+  "long_description": "Bring an API key from your existing Exa account to search the web and retrieve page contents. The gateway keeps the key off your Sprites. Saving or replacing a key and each connection test run a one-result search charged to your Exa account. Only POST /search and POST /contents are forwarded.",
+  "website_url": "https://dashboard.exa.ai/api-keys",
+  "auth": {
+    "header": "x-api-key"
+  },
+  "allowed_paths": [
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/search"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/contents"
+    }
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "POST",
+    "path": "/search",
+    "label": "search",
+    "json": {
+      "numResults": 1,
+      "query": "Sprites documentation",
+      "stream": false,
+      "type": "auto"
+    },
+    "expect": [
+      [
+        "requestId",
+        "text"
+      ],
+      [
+        "results",
+        "list"
+      ],
+      [
+        "results[].id",
+        "text"
+      ],
+      [
+        "results[].url",
+        "text"
+      ],
+      [
+        "error",
+        "absent"
+      ]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Search the web (uses your Exa credits)",
+      "method": "POST",
+      "path": "/search",
+      "json": {
+        "numResults": 1,
+        "query": "Sprites documentation",
+        "stream": false,
+        "type": "auto"
+      }
+    },
+    {
+      "title": "Retrieve page contents",
+      "method": "POST",
+      "path": "/contents",
+      "json": {
+        "ids": [
+          "https://sprites.dev"
+        ],
+        "text": true
+      }
+    }
+  ],
+  "messages": {
+    "402": "Exa credits exhausted or spending limit reached",
+    "403": "Exa key does not have access to this request",
+    "429": "Exa rate limit reached; try again later"
+  },
+  "discovery": {
+    "categories": [
+      "search"
+    ],
+    "keywords": [
+      "web search",
+      "page contents",
+      "retrieval"
+    ]
+  },
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-blue-500/20",
+  "presentation": {
+    "tagline": "Search the web and retrieve page contents without storing your Exa key on a Sprite.",
+    "setup": "Create an API key at dashboard.exa.ai/api-keys.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or replacing a key and each connection test run a one-result search charged to your Exa account. Searches and page content requests also use your Exa credits."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /search` and `POST /contents` are forwarded. The gateway supplies your stored key; do not copy it into your Sprite."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}
