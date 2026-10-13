@@ -1,6 +1,6 @@
 # Sprites connectors
 
-A connector lets a [Sprite](https://sprites.dev) call a third-party API with
+A connector lets a [Sprite](https://fly.io/sprites) call a third-party API with
 an API key that Sprites holds for the user, so the key never lands on the
 Sprite. A connector is one JSON file plus two icons. There is no code to
 write.
