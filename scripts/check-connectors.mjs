@@ -2,10 +2,13 @@
 // Checks every connector directory (or the ones named on the command line)
 // for the things the JSON Schema cannot express: directory and manifest
 // names agree, referenced SVG files exist and are safe to inline, the mark
-// is one ink, and no stray files are committed. Schema validation itself is
+// is one ink, no stray files are committed, the probe and every example are
+// routes the manifest forwards, expectations are well-formed and path_param
+// compiles (see scripts/lib/manifest.mjs). Schema validation itself is
 // ajv-cli (see CONTRIBUTING.md); both run in CI.
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join, basename } from "node:path";
+import { manifestProblems } from "./lib/manifest.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const connectorsDir = join(root, "connectors");
@@ -90,6 +93,7 @@ for (const name of names) {
   }
   if (manifest.presentation && manifest.presentation.mark_svg === undefined && existsSync(join(dir, "mark.svg")))
     fail(name, "mark.svg exists but presentation.mark_svg does not reference it");
+  for (const problem of manifestProblems(manifest)) fail(name, problem);
 }
 
 if (failures) {

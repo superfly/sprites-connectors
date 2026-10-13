@@ -15,13 +15,18 @@ connectors/exa/
   connector.json   the manifest (schema: v1/schema.json)
   icon.svg         brand mark, as the vendor draws it
   mark.svg         the same mark in one ink (currentColor)
+  fixtures/        optional recorded probe responses (probe_<status>.json),
+                   written by scripts/probe.mjs --write-fixture and redacted
 ```
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to write, check and submit one.
 - [v1/schema.json](v1/schema.json): the JSON Schema of the manifest format.
   Editors that honour `$schema` validate and autocomplete `connector.json`
   against it; `.vscode/settings.json` maps the local file.
-- [template/connector](template/connector): a starting point for a new one.
+- [template/connector](template/connector): a starting point for a new one;
+  `node scripts/new.mjs <name>` copies it into place.
+- [v1/vectors.json](v1/vectors.json): the parity contract for route matching
+  and probe expectations, run by both sprites-api and the scripts here.
 
 The eleven connectors committed first (AgentMail, Blotato, Deepgram, Era, Exa,
 Firecrawl, Fireworks, LemonSlice, Linkup, Mnemom, Parasail) are exports of

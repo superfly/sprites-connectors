@@ -32,8 +32,9 @@ These are enforced by the format, not just by review.
 
 ## Steps
 
-1. Copy `template/connector` to `connectors/<name>/`. `<name>` is
-   `[a-z][a-z0-9_]*` and must equal `"name"` in the manifest.
+1. Run `node scripts/new.mjs <name>`, which copies `template/connector` to
+   `connectors/<name>/` and sets the names. `<name>` is `[a-z][a-z0-9_]*`
+   and must equal `"name"` in the manifest.
 2. Fill in `connector.json`. Every field is described in `v1/schema.json`;
    the eleven committed connectors show each one in use. The probe must be
    the cheapest request that proves the key works, and must be safe to run
@@ -44,9 +45,9 @@ These are enforced by the format, not just by review.
    inside either file must start with `<name>-`. Record where the icon came
    from and under what licence in the pull request.
 4. Run the checks locally (see below) until they are clean.
-5. Run the probe against the real API with your own key and confirm the
-   assertions hold, for example with curl and the `expect` list in hand. Do
-   not commit your key or any response that contains it.
+5. Run the probe against the real API with your own key (see Checks) and
+   confirm every assertion holds. Do not commit your key or any response
+   that contains it; `--write-fixture` redacts the recording for you.
 6. Open a pull request. Say whether you work for the vendor
    (`owner: vendor`) or not (`owner: community`), and link the API docs for
    the probe and every forwarded route.
@@ -66,14 +67,45 @@ These are enforced by the format, not just by review.
 
 ## Checks
 
+Everything runs on Node 22 with no dependencies to install.
+
 ```sh
 node scripts/check-connectors.mjs            # all connectors
 node scripts/check-connectors.mjs exa        # one
 npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false \
   -s v1/schema.json -d "connectors/*/connector.json"
+node --test "scripts/test/*.test.mjs"        # the scripts and the parity vectors
 ```
 
-CI runs both on every pull request.
+`check-connectors.mjs` covers what the schema cannot: the directory and
+manifest names agree, the icons are safe and the mark is one ink, the probe
+and every example are routes `allowed_paths` forwards (the gateway's route
+matcher is ported in `scripts/lib/routes.mjs`), every `expect` list in the
+probe and its `errors` rules is well-formed, and `path_param` compiles.
+CI runs all three on every pull request.
+
+### Probe
+
+```sh
+EXAMPLE_API_KEY=... node scripts/probe.mjs example --key-env EXAMPLE_API_KEY
+```
+
+sends the manifest's probe exactly as the gateway does (auth header,
+`test_request_headers`, no redirects, no retries, `receive_timeout`, default
+10 s), prints each `expect` assertion's result and, for a non-200 response,
+the reason the `errors` rules and the 401 default give it. The key is read
+from the named environment variable and never printed. Add `--write-fixture`
+to record the response as `connectors/<name>/fixtures/probe_<status>.json`
+with every string containing the key and every credential header removed;
+check the file before committing it. Fixtures are optional; when present
+they show reviewers the response shape the assertions were written against.
+
+### Parity
+
+`v1/vectors.json` is the contract between sprites-api and these scripts for
+route matching and probe expectations: both run every case in it. A change
+to those semantics lands in sprites-api first and is mirrored here with its
+vector.
 
 ## Fields that are ours to set
 

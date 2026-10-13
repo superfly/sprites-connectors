@@ -9,6 +9,7 @@
   "website_url": "https://example.com/settings/api-keys",
   "auth": {"header": "x-api-key"},
   "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/me"},
     {"methods": ["POST"], "pattern": "/v1/search"},
     {"methods": ["GET"], "pattern": "/v1/items/:id"}
   ],
@@ -36,7 +37,7 @@
     "setup": "Create an API key at example.com/settings/api-keys.",
     "notices": [
       {"title": "Billing", "body": "Saving or testing a key reads your account; searches use your Example credits."},
-      {"title": "Scope", "body": "Only `POST /v1/search` and `GET /v1/items/:id` are forwarded."}
+      {"title": "Scope", "body": "Only `GET /v1/me`, `POST /v1/search` and `GET /v1/items/:id` are forwarded."}
     ],
     "mark_svg": {"file": "mark.svg"}
   }

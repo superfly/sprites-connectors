@@ -17,5 +17,8 @@ jobs:
         run: >-
           npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false
           -s v1/schema.json -d "connectors/*/connector.json"
-      - name: Directories, icons and marks
+          -d template/connector/connector.json
+      - name: Directories, icons, marks, routes and expectations
         run: node scripts/check-connectors.mjs
+      - name: Scripts and parity vectors
+        run: node --test "scripts/test/*.test.mjs"
