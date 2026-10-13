@@ -24,9 +24,9 @@ node scripts/new.mjs acme
 ```
 
 This copies `template/connector` to `connectors/acme/` and sets the names.
-`connectors/` holds community connectors only; every directory in it is
-vendored into Sprites at a tag of this repository, so what you merge here
-ships. The first-party connectors live in `examples/` as worked examples.
+`connectors/` holds community connectors; every connector in it ships to
+Sprites users with a tagged release of this repository. Complete, working
+connectors to copy from live in `examples/`.
 The name is the directory, the `"name"` in the manifest and the id users see,
 so pick it carefully: lower-case letters, digits and underscores, starting
 with a letter (`acme`, `acme_search`). It cannot be changed later without
@@ -327,9 +327,11 @@ These are limits of the format, so a reviewer cannot waive them:
   `:param` matches one identifier.
 - Forward arbitrary request headers.
 - Report usage or billing.
+- Reach Sprites immediately. A merged connector ships with the next release.
 
-If your API genuinely needs something outside the format, open an issue
-describing the request and response shapes before writing the manifest.
+A connector is data only. If a provider's responses cannot be described with
+the manifest's assertions, open an issue describing the response shape
+before writing the manifest.
 
 ## Checking the scripts themselves
 

@@ -136,7 +136,7 @@ export async function runProbe(manifest, key, { fetch = globalThis.fetch } = {})
     return { ok: false, status: response.status, reason: classify(manifest, response.status, body), results: [], fixture, note };
   }
   if (!Array.isArray(manifest.probe.expect)) {
-    return { ok: false, status: 200, reason: "probe has no expect list; a manifest without one relies on hooks", results: [], fixture, note };
+    return { ok: false, status: 200, reason: "probe has no expect list, so the response cannot be judged", results: [], fixture, note };
   }
   const results = evaluate(manifest.probe.expect, body);
   const ok = results.every((r) => r.ok);

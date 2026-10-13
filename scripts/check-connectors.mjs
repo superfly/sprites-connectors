@@ -12,9 +12,8 @@ import { join, basename } from "node:path";
 import { manifestProblems } from "./lib/manifest.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
-// connectors/ holds community connectors, vendored into sprites-api by tag;
-// examples/ holds the first-party ones as worked examples. Both are checked
-// so the examples stay valid fixtures.
+// connectors/ holds community connectors; examples/ holds complete
+// connectors to copy from. Both are checked so the examples stay valid.
 export const ROOTS = ["connectors", "examples"];
 const wanted = process.argv.slice(2);
 const entries = wanted.length
