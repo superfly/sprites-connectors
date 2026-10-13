@@ -8,11 +8,11 @@
 //
 //   node scripts/probe.mjs <name> --key-env VAR [--write-fixture]
 //
-// --write-fixture records the response as connectors/<name>/fixtures/
-// probe_<status>.json after redaction: every string equal to or containing
+// <name> is looked up under connectors/ and then examples/. --write-fixture
+// records the response as <dir>/fixtures/probe_<status>.json after redaction: every string equal to or containing
 // the key is dropped, as is any header named authorization or the manifest's
 // auth header. Exits non-zero when the probe fails.
-import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { evaluate, ok as expectOk } from "./lib/expect.mjs";
 
@@ -150,6 +150,15 @@ export function writeFixture(name, fixture, { dir = join(root, "connectors", nam
   return file;
 }
 
+// connectors/<name> first (community connectors), then examples/<name>.
+export function connectorDir(name) {
+  for (const base of ["connectors", "examples"]) {
+    const dir = join(root, base, name);
+    if (existsSync(dir)) return dir;
+  }
+  return join(root, "connectors", name);
+}
+
 function usage(message) {
   console.error(message);
   console.error("usage: node scripts/probe.mjs <name> --key-env VAR [--write-fixture]");
@@ -173,11 +182,12 @@ export async function main(argv) {
   const key = (process.env[keyEnv] ?? "").trim();
   if (!key) usage(`${keyEnv} is not set`);
 
+  const dir = connectorDir(name);
   let manifest;
   try {
-    manifest = JSON.parse(readFileSync(join(root, "connectors", name, "connector.json"), "utf8"));
+    manifest = JSON.parse(readFileSync(join(dir, "connector.json"), "utf8"));
   } catch (error) {
-    usage(`cannot read connectors/${name}/connector.json: ${error.message}`);
+    usage(`cannot read ${dir.replace(root, "")}/connector.json: ${error.message}`);
   }
   const request = buildProbeRequest(manifest, key);
   console.log(`${request.method} ${request.url} (timeout ${request.timeout} ms)`);
@@ -189,7 +199,7 @@ export async function main(argv) {
   console.log(`HTTP ${result.status}`);
   if (result.note) console.log(`note: ${result.note}`);
   for (const { expectation, ok } of result.results) console.log(`  ${ok ? "ok  " : "FAIL"} ${JSON.stringify(expectation)}`);
-  if (write) console.log(`wrote ${writeFixture(name, result.fixture).replace(root, "")}`);
+  if (write) console.log(`wrote ${writeFixture(name, result.fixture, { dir: join(dir, "fixtures") }).replace(root, "")}`);
   if (result.ok) {
     console.log("probe ok");
   } else {

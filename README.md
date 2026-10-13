@@ -18,17 +18,20 @@ You need Node 22, an account with the API you are connecting, and its API
 documentation. Nothing else is installed.
 
 ```
-connectors/<name>/
-  connector.json   what the API is, how the key is sent, which routes are
-                   allowed, which request proves a key works, what users see
-  icon.svg         the vendor's logo
-  mark.svg         the same logo in one colour (currentColor)
-  fixtures/        optional: a redacted recording of the probe response
+connectors/<name>/   community connectors; every directory here is vendored
+                     into Sprites at a tag of this repository
+  connector.json     what the API is, how the key is sent, which routes are
+                     allowed, which request proves a key works, what users see
+  icon.svg           the vendor's logo
+  mark.svg           the same logo in one colour (currentColor)
+  fixtures/          optional: a redacted recording of the probe response
+examples/<name>/     the first-party connectors, same layout, as worked
+                     examples of the format
 ```
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): every step, field by field.
 - [template/connector](template/connector): the starting point.
-- [connectors/](connectors): eleven live connectors to copy from. Exa and
+- [examples/](examples): eleven live connectors to copy from. Exa and
   Firecrawl are the simplest; AgentMail shows routes with parameters;
   Deepgram shows a probe with a JSON body.
 - [v1/schema.json](v1/schema.json): the formal definition of every field.

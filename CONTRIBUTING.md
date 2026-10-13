@@ -24,6 +24,9 @@ node scripts/new.mjs acme
 ```
 
 This copies `template/connector` to `connectors/acme/` and sets the names.
+`connectors/` holds community connectors only; every directory in it is
+vendored into Sprites at a tag of this repository, so what you merge here
+ships. The first-party connectors live in `examples/` as worked examples.
 The name is the directory, the `"name"` in the manifest and the id users see,
 so pick it carefully: lower-case letters, digits and underscores, starting
 with a letter (`acme`, `acme_search`). It cannot be changed later without
@@ -44,7 +47,7 @@ connectors/acme/
 Work through the file top to bottom. Every field is also described in
 `v1/schema.json`, and your editor will validate and autocomplete the file if
 it honours the `$schema` line at the top. The eleven connectors under
-`connectors/` show every field in real use; copy from the one closest to
+`examples/` show every field in real use; copy from the one closest to
 your API.
 
 ### Identity
@@ -266,9 +269,10 @@ npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false \
 
 The first checks everything the schema cannot: the names agree, the icons are
 safe and the mark is one colour, the probe and every example are allowed
-routes, every `expect` list is well-formed and `path_param` compiles. The
-second checks the manifest against the schema. Fix what they report and run
-them again until both are clean. Both run in CI on your pull request.
+routes, every `expect` list is well-formed and `path_param` compiles. Run it
+with no name to check every connector under `connectors/` and `examples/`.
+The second checks the manifest against the schema. Fix what they report and
+run them again until both are clean. Both run in CI on your pull request.
 
 ## Step 5: try the probe with your own key
 
@@ -277,7 +281,8 @@ ACME_KEY=... node scripts/probe.mjs acme --key-env ACME_KEY
 ```
 
 This sends the probe exactly as Sprites will and prints each `expect`
-assertion with its result. The key is read from the environment variable
+assertion with its result. The name is looked up under `connectors/` and
+then `examples/`. The key is read from the environment variable
 you name and is never printed. If the response is not 200, it prints the
 reason the `errors` rules give it.
 

@@ -6,7 +6,7 @@ import { createServer } from "node:http";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildProbeRequest, runProbe, classify, redact, redactHeaders, writeFixture, authHeader } from "../probe.mjs";
+import { buildProbeRequest, runProbe, classify, redact, redactHeaders, writeFixture, authHeader, connectorDir } from "../probe.mjs";
 
 const KEY = "sk-live-SECRET123";
 let last;
@@ -183,6 +183,12 @@ test("connection errors are unreachable, never thrown", async () => {
   const result = await runProbe(manifest({}, { base_url: "http://127.0.0.1:1" }), KEY);
   assert.equal(result.status, null);
   assert.match(result.reason, /provider_unreachable/);
+});
+
+test("connectorDir looks in connectors/ then examples/", () => {
+  const repo = new URL("../../", import.meta.url).pathname;
+  assert.equal(connectorDir("exa"), join(repo, "examples", "exa"));
+  assert.equal(connectorDir("no_such"), join(repo, "connectors", "no_such"));
 });
 
 test("redaction drops strings holding the key and the auth headers", () => {

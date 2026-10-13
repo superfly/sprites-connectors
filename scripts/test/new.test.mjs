@@ -54,5 +54,14 @@ test("displayName", () => {
 test("the CLI exits non-zero on a bad name without touching the repo", () => {
   assert.throws(() => execFileSync(process.execPath, [join(repo, "scripts/new.mjs"), "Bad"], { stdio: "pipe" }));
   assert.throws(() => execFileSync(process.execPath, [join(repo, "scripts/new.mjs")], { stdio: "pipe" }));
-  assert.throws(() => execFileSync(process.execPath, [join(repo, "scripts/new.mjs"), "exa"], { stdio: "pipe" }), /already exists/);
+});
+
+test("createConnector always creates under connectors/, even when examples/ has the name", () => {
+  const root = sandbox();
+  try {
+    mkdirSync(join(root, "examples", "exa"), { recursive: true });
+    assert.equal(createConnector("exa", { root }), join(root, "connectors", "exa"));
+  } finally {
+    rmSync(root, { recursive: true });
+  }
 });

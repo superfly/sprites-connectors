@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Checks every connector directory (or the ones named on the command line)
-// for the things the JSON Schema cannot express: directory and manifest
+// Checks every connector directory under connectors/ and examples/ (or the
+// ones named on the command line, found in either root) for the things the
+// JSON Schema cannot express: directory and manifest
 // names agree, referenced SVG files exist and are safe to inline, the mark
 // is one ink, no stray files are committed, the probe and every example are
 // routes the manifest forwards, expectations are well-formed and path_param
@@ -11,11 +12,21 @@ import { join, basename } from "node:path";
 import { manifestProblems } from "./lib/manifest.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
-const connectorsDir = join(root, "connectors");
+// connectors/ holds community connectors, vendored into sprites-api by tag;
+// examples/ holds the first-party ones as worked examples. Both are checked
+// so the examples stay valid fixtures.
+export const ROOTS = ["connectors", "examples"];
 const wanted = process.argv.slice(2);
-const names = wanted.length
-  ? wanted
-  : readdirSync(connectorsDir).filter((n) => statSync(join(connectorsDir, n)).isDirectory());
+const entries = wanted.length
+  ? wanted.map((name) => [name, ROOTS.map((r) => join(root, r, name)).find((d) => existsSync(d)) ?? join(root, "connectors", name)])
+  : ROOTS.flatMap((r) => {
+      const dir = join(root, r);
+      if (!existsSync(dir)) return [];
+      return readdirSync(dir)
+        .filter((n) => statSync(join(dir, n)).isDirectory())
+        .map((n) => [n, join(dir, n)]);
+    });
+const names = entries.map(([name]) => name);
 
 const allowedFiles = new Set(["connector.json", "icon.svg", "mark.svg", "README.md"]);
 let failures = 0;
@@ -43,8 +54,7 @@ function svgChecks(name, file, svg, { singleInk }) {
   }
 }
 
-for (const name of names) {
-  const dir = join(connectorsDir, name);
+for (const [name, dir] of entries) {
   if (!existsSync(dir)) {
     fail(name, "no such connector directory");
     continue;

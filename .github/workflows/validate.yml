@@ -14,10 +14,14 @@ jobs:
         with:
           node-version: "22"
       - name: Manifests match the schema
-        run: >-
-          npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false
-          -s v1/schema.json -d "connectors/*/connector.json"
-          -d template/connector/connector.json
+        # ajv exits non-zero on a glob with no matches, and connectors/ may
+        # hold no community connector yet.
+        run: |
+          args=(-d "examples/*/connector.json" -d template/connector/connector.json)
+          if compgen -G "connectors/*/connector.json" > /dev/null; then
+            args+=(-d "connectors/*/connector.json")
+          fi
+          npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false -s v1/schema.json "${args[@]}"
       - name: Directories, icons, marks, routes and expectations
         run: node scripts/check-connectors.mjs
       - name: Scripts and parity vectors

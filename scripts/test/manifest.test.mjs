@@ -1,22 +1,30 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { manifestProblems, stripQuery } from "../lib/manifest.mjs";
 
 const root = new URL("../../", import.meta.url);
 const read = (path) => JSON.parse(readFileSync(new URL(path, root), "utf8"));
-const names = readdirSync(new URL("connectors/", root));
+const dirs = (base) => {
+  const url = new URL(`${base}/`, root);
+  return existsSync(url) ? readdirSync(url).filter((n) => statSync(new URL(n, url)).isDirectory()).map((n) => `${base}/${n}`) : [];
+};
+const examples = dirs("examples");
+const all = [...dirs("connectors"), ...examples];
 
-test("every committed connector and the template pass the manifest checks", () => {
-  assert.ok(names.length >= 11);
-  for (const name of names) assert.deepEqual(manifestProblems(read(`connectors/${name}/connector.json`)), [], name);
+test("every example, community connector and the template pass the manifest checks", () => {
+  assert.ok(examples.length >= 11);
+  for (const dir of all) assert.deepEqual(manifestProblems(read(`${dir}/connector.json`)), [], dir);
   assert.deepEqual(manifestProblems(read("template/connector/connector.json")), []);
 });
 
-test("check-connectors.mjs passes on the committed connectors", () => {
-  const out = execFileSync(process.execPath, [new URL("scripts/check-connectors.mjs", root).pathname], { encoding: "utf8" });
-  assert.match(out, new RegExp(`^${names.length} connector\\(s\\) ok$`, "m"));
+test("check-connectors.mjs passes on both roots and finds one connector in either", () => {
+  const script = new URL("scripts/check-connectors.mjs", root).pathname;
+  const out = execFileSync(process.execPath, [script], { encoding: "utf8" });
+  assert.match(out, new RegExp(`^${all.length} connector\\(s\\) ok$`, "m"));
+  assert.match(execFileSync(process.execPath, [script, "exa"], { encoding: "utf8" }), /^1 connector\(s\) ok$/m);
+  assert.throws(() => execFileSync(process.execPath, [script, "no_such"], { stdio: "pipe" }), /no such connector directory/);
 });
 
 test("stripQuery", () => {
