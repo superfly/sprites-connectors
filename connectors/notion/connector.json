@@ -1,0 +1,145 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "notion",
+  "display_name": "Notion",
+  "base_url": "https://api.notion.com",
+  "description": "Read and write Notion pages, databases, data sources, blocks and comments",
+  "long_description": "Bring an internal connection token (ntn_...) from your own Notion workspace; the gateway keeps it off your Sprite. Saving, replacing or testing the token reads the token's bot user and nothing else. A Sprite can then search, read, create and update pages, blocks, databases, data sources, views, comments and file uploads that you have shared with the connection, including reading and writing page content as Markdown. Every request must carry a Notion-Version header, which is forwarded as sent. OAuth, token exchange, Notion Agents and Sessions, Notion AI meeting notes, workspace analytics and Admin APIs are not forwarded. Notion's API is free; its rate limit of 180 requests per minute per connection (600 on Business and Enterprise plans) applies.",
+  "website_url": "https://app.notion.com/developers/connections",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/users"},
+    {"methods": ["GET"], "pattern": "/v1/users/me"},
+    {"methods": ["GET"], "pattern": "/v1/users/:user_id"},
+    {"methods": ["POST"], "pattern": "/v1/search"},
+    {"methods": ["POST"], "pattern": "/v1/pages"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v1/pages/:page_id"},
+    {"methods": ["GET"], "pattern": "/v1/pages/:page_id/properties/:property_id"},
+    {"methods": ["POST"], "pattern": "/v1/pages/:page_id/move"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v1/pages/:page_id/markdown"},
+    {"methods": ["GET"], "pattern": "/v1/async_tasks/:task_id"},
+    {"methods": ["GET", "PATCH", "DELETE"], "pattern": "/v1/blocks/:block_id"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v1/blocks/:block_id/children"},
+    {"methods": ["POST"], "pattern": "/v1/databases"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v1/databases/:database_id"},
+    {"methods": ["POST"], "pattern": "/v1/data_sources"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v1/data_sources/:data_source_id"},
+    {"methods": ["POST"], "pattern": "/v1/data_sources/:data_source_id/query"},
+    {"methods": ["GET"], "pattern": "/v1/data_sources/:data_source_id/templates"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/views"},
+    {"methods": ["GET", "PATCH", "DELETE"], "pattern": "/v1/views/:view_id"},
+    {"methods": ["POST"], "pattern": "/v1/views/:view_id/queries"},
+    {"methods": ["GET", "DELETE"], "pattern": "/v1/views/:view_id/queries/:query_id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/comments"},
+    {"methods": ["PATCH", "DELETE"], "pattern": "/v1/comments/:comment_id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/file_uploads"},
+    {"methods": ["GET"], "pattern": "/v1/file_uploads/:file_upload_id"},
+    {"methods": ["POST"], "pattern": "/v1/file_uploads/:file_upload_id/send"},
+    {"methods": ["POST"], "pattern": "/v1/file_uploads/:file_upload_id/complete"},
+    {"methods": ["GET"], "pattern": "/v1/custom_emojis"}
+  ],
+  "path_param": "\\A[A-Za-z0-9_%-]+\\z",
+  "forward_request_headers": ["notion-version"],
+  "forward_response_headers": ["x-notion-request-id", "retry-after"],
+  "test_request_headers": [
+    {"name": "notion-version", "value": "2026-03-11"},
+    {"name": "accept", "value": "application/json"}
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/users/me",
+    "label": "bot user",
+    "expect": [
+      ["object", "eq", "user"],
+      ["id", "text"],
+      ["type", "in", ["bot", "person"]],
+      ["code", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Show the token's bot user",
+      "path": "/v1/users/me",
+      "headers": [{"name": "Notion-Version", "value": "2026-03-11"}]
+    },
+    {
+      "title": "Search pages and data sources shared with the connection",
+      "method": "POST",
+      "path": "/v1/search",
+      "json": {"query": "roadmap", "page_size": 5},
+      "headers": [{"name": "Notion-Version", "value": "2026-03-11"}],
+      "notes": ["Omit query to list everything the connection can see; add {\"filter\": {\"property\": \"object\", \"value\": \"data_source\"}} for data sources only."]
+    },
+    {
+      "title": "Read a page as Markdown; replace PAGE_ID",
+      "path": "/v1/pages/PAGE_ID/markdown",
+      "headers": [{"name": "Notion-Version", "value": "2026-03-11"}]
+    },
+    {
+      "title": "List a page's child blocks; replace PAGE_ID",
+      "path": "/v1/blocks/PAGE_ID/children?page_size=50",
+      "headers": [{"name": "Notion-Version", "value": "2026-03-11"}]
+    },
+    {
+      "title": "Query a data source; replace DATA_SOURCE_ID",
+      "method": "POST",
+      "path": "/v1/data_sources/DATA_SOURCE_ID/query",
+      "json": {"page_size": 10},
+      "headers": [{"name": "Notion-Version", "value": "2026-03-11"}],
+      "notes": ["Find data source ids with GET /v1/databases/DATABASE_ID or POST /v1/search."]
+    },
+    {
+      "title": "Create a page under another page; replace PARENT_PAGE_ID",
+      "method": "POST",
+      "path": "/v1/pages",
+      "json": {
+        "parent": {"page_id": "PARENT_PAGE_ID"},
+        "properties": {"title": [{"text": {"content": "Hello from a Sprite"}}]},
+        "children": [{"object": "block", "type": "paragraph", "paragraph": {"rich_text": [{"text": {"content": "Created through the Sprites Notion connector."}}]}}]
+      },
+      "headers": [{"name": "Notion-Version", "value": "2026-03-11"}]
+    }
+  ],
+  "messages": {
+    "400": "Notion rejected the request (%{status}); check the body and that a Notion-Version header is set",
+    "403": "The Notion token cannot access this resource; share the page or database with the connection",
+    "404": "Not found in Notion, or not shared with the connection",
+    "409": "Notion reported a conflict; refresh and retry",
+    "429": "Notion rate limit reached; wait for the Retry-After header and try again",
+    "529": "Notion is temporarily overloaded; retry after the Retry-After header",
+    "provider_unreachable": "Could not reach Notion; retry later"
+  },
+  "discovery": {
+    "categories": ["productivity"],
+    "keywords": ["notion", "notes", "wiki", "docs", "knowledge base", "database", "pages", "markdown"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Read and write your Notion workspace from a Sprite without putting the token on it.",
+    "setup": "Create an internal connection at app.notion.com/developers/connections, copy its token from the Configuration tab, then share the pages or databases it may use (page menu, Connections, Add connection) or grant them under the connection's Content access tab.",
+    "key_label": "Internal connection token",
+    "key_placeholder": "ntn_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Notion's API has no per-request charge. Saving or testing the token reads the token's bot user (`GET /v1/users/me`). Notion rate limits each connection to 180 requests per minute (600 on Business and Enterprise plans) and answers with 429 and a `Retry-After` header when exceeded."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwards the Notion data APIs: users, search, pages (including `/markdown` and `/move`), blocks, databases, data sources and queries, views and view queries, comments, file uploads, custom emojis and async tasks. The connection only sees content shared with it. OAuth, Notion Agents and Sessions, AI meeting notes, workspace analytics and Admin APIs are not forwarded."
+      },
+      {
+        "title": "Notion-Version header",
+        "body": "Every request must include a `Notion-Version` header (currently `2026-03-11`); the gateway forwards it as sent and Notion returns 400 `missing_version` without it. Writes and deletes have real effects in your workspace; deleting a block or trashing a page moves it to Notion's trash."
+      }
+    ],
+    "usage_notes": [
+      "Set `Notion-Version: 2026-03-11` on every request; see developers.notion.com/reference/versioning for the version list.",
+      "Page, block, database and data source ids are UUIDs; property ids may be URL-encoded (for example `%3Bu%3D`). Both pass the connector's path rules.",
+      "`POST /v1/file_uploads/:id/send` takes a multipart body; keep it within the gateway's request body limit, or use `mode: \"external_url\"` when creating the upload."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
