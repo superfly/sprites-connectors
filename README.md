@@ -1,34 +1,36 @@
 # Sprites connectors
 
-Connector manifests for the [Sprites](https://sprites.dev) API gateway. A
-connector lets a Sprite call a third-party API through the gateway with a key
-the gateway holds, so the key never reaches the Sprite.
+A connector lets a [Sprite](https://sprites.dev) call a third-party API with
+an API key that Sprites holds for the user, so the key never lands on the
+Sprite. A connector is one JSON file plus two icons. There is no code to
+write.
 
-Each connector is a directory under `connectors/` holding a `connector.json`
-manifest and two SVG icons. Nothing here is code: the manifest declares where
-the API lives, how the key is sent, which routes are forwarded, which request
-verifies a key and what the dashboard shows. sprites-api compiles the
-manifests in a tagged release of this repository into gateway providers.
+To add one, follow [CONTRIBUTING.md](CONTRIBUTING.md). The short version:
 
-```
-connectors/exa/
-  connector.json   the manifest (schema: v1/schema.json)
-  icon.svg         brand mark, as the vendor draws it
-  mark.svg         the same mark in one ink (currentColor)
-  fixtures/        optional recorded probe responses (probe_<status>.json),
-                   written by scripts/probe.mjs --write-fixture and redacted
+```sh
+node scripts/new.mjs <name>                  # start from the template
+# edit connectors/<name>/connector.json, add icon.svg and mark.svg
+node scripts/check-connectors.mjs <name>     # check it
+MY_KEY=... node scripts/probe.mjs <name> --key-env MY_KEY   # try it with your key
 ```
 
-- [CONTRIBUTING.md](CONTRIBUTING.md): how to write, check and submit one.
-- [v1/schema.json](v1/schema.json): the JSON Schema of the manifest format.
+You need Node 22, an account with the API you are connecting, and its API
+documentation. Nothing else is installed.
+
+```
+connectors/<name>/
+  connector.json   what the API is, how the key is sent, which routes are
+                   allowed, which request proves a key works, what users see
+  icon.svg         the vendor's logo
+  mark.svg         the same logo in one colour (currentColor)
+  fixtures/        optional: a redacted recording of the probe response
+```
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): every step, field by field.
+- [template/connector](template/connector): the starting point.
+- [connectors/](connectors): eleven live connectors to copy from. Exa and
+  Firecrawl are the simplest; AgentMail shows routes with parameters;
+  Deepgram shows a probe with a JSON body.
+- [v1/schema.json](v1/schema.json): the formal definition of every field.
   Editors that honour `$schema` validate and autocomplete `connector.json`
-  against it; `.vscode/settings.json` maps the local file.
-- [template/connector](template/connector): a starting point for a new one;
-  `node scripts/new.mjs <name>` copies it into place.
-- [v1/vectors.json](v1/vectors.json): the parity contract for route matching
-  and probe expectations, run by both sprites-api and the scripts here.
-
-The eleven connectors committed first (AgentMail, Blotato, Deepgram, Era, Exa,
-Firecrawl, Fireworks, LemonSlice, Linkup, Mnemom, Parasail) are exports of
-connectors that already run in production, so they are worked examples of
-every part of the format.
+  against it.
