@@ -1,0 +1,48 @@
+{
+  "probe": {
+    "method": "GET",
+    "path": "/v1/users/me"
+  },
+  "status": 200,
+  "headers": {
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a4a147183a4ad8f3-ATL",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-security-policy": "default-src 'none'",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 13 Oct 2026 21:01:07 GMT",
+    "etag": "W/\"177-MJuwWsOorDeNmw7oWFEwEbeTXss\"",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Origin, Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-dns-prefetch-control": "off",
+    "x-download-options": "noopen",
+    "x-frame-options": "SAMEORIGIN",
+    "x-notion-request-id": "220f717f-e397-45e0-a8f8-c00cf9abb5a7",
+    "x-permitted-cross-domain-policies": "none",
+    "x-xss-protection": "0"
+  },
+  "body": {
+    "object": "user",
+    "id": "3f867a95-2550-8154-b997-0027d1ec2c6e",
+    "name": "Sprites Connector Probe",
+    "avatar_url": null,
+    "type": "bot",
+    "bot": {
+      "owner": {
+        "type": "workspace",
+        "workspace": true
+      },
+      "workspace_name": "alexezell",
+      "workspace_id": "bd8c2fa0-f578-4699-b055-fceca2e6a04d",
+      "workspace_limits": {
+        "max_file_upload_size_in_bytes": 5242880
+      }
+    },
+    "request_id": "220f717f-e397-45e0-a8f8-c00cf9abb5a7"
+  }
+}
