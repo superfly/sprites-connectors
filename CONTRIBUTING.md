@@ -42,6 +42,10 @@ connectors/acme/
   README.md        optional notes for reviewers
 ```
 
+These four files are all a connector directory may hold; the checks refuse
+anything else in it. A probe recording (step 5) goes under `fixtures/` at
+the repository root instead.
+
 ## Step 2: fill in connector.json
 
 Work through the file top to bottom. Every field is also described in
@@ -293,10 +297,14 @@ every line reads `ok`. Then try a wrong key and confirm the probe fails.
 ACME_KEY=... node scripts/probe.mjs acme --key-env ACME_KEY --write-fixture
 ```
 
-also records the response as `connectors/acme/fixtures/probe_200.json` with
-your key and any credential headers removed. Committing it is optional but
-helps reviewers see what the assertions were written against. Read the file
-before committing it. Never commit your key or any response that contains it.
+also records the response as `fixtures/acme/probe_200.json` at the
+repository root, with your key and any credential headers removed. A
+recording is optional and is not part of the connector: a connector
+directory holds only its four files, and the checks refuse anything else in
+it. When present, a recording shows reviewers what the assertions were
+written against, and the checks confirm it is named `probe_<status>.json`
+and parses as JSON. Read the file before committing it. Never commit your
+key or any response that contains it.
 
 ## Step 6: open a pull request
 

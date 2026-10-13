@@ -9,7 +9,8 @@
 //   node scripts/probe.mjs <name> --key-env VAR [--write-fixture]
 //
 // <name> is looked up under connectors/ and then examples/. --write-fixture
-// records the response as <dir>/fixtures/probe_<status>.json after redaction: every string equal to or containing
+// records the response as fixtures/<name>/probe_<status>.json at the
+// repository root (never inside a connector directory) after redaction: every string equal to or containing
 // the key is dropped, as is any header named authorization or the manifest's
 // auth header. Exits non-zero when the probe fails.
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
@@ -143,7 +144,13 @@ export async function runProbe(manifest, key, { fetch = globalThis.fetch } = {})
   return { ok, status: 200, reason: ok ? undefined : "unexpected_response", results, fixture, note };
 }
 
-export function writeFixture(name, fixture, { dir = join(root, "connectors", name, "fixtures") } = {}) {
+// Recordings live at the repository root, outside the connector directory,
+// which holds only the manifest and icons.
+export function fixtureDir(name) {
+  return join(root, "fixtures", name);
+}
+
+export function writeFixture(name, fixture, { dir = fixtureDir(name) } = {}) {
   mkdirSync(dir, { recursive: true });
   const file = join(dir, `probe_${fixture.status}.json`);
   writeFileSync(file, JSON.stringify(fixture, null, 2) + "\n");
@@ -199,7 +206,7 @@ export async function main(argv) {
   console.log(`HTTP ${result.status}`);
   if (result.note) console.log(`note: ${result.note}`);
   for (const { expectation, ok } of result.results) console.log(`  ${ok ? "ok  " : "FAIL"} ${JSON.stringify(expectation)}`);
-  if (write) console.log(`wrote ${writeFixture(name, result.fixture, { dir: join(dir, "fixtures") }).replace(root, "")}`);
+  if (write) console.log(`wrote ${writeFixture(name, result.fixture).replace(root, "")}`);
   if (result.ok) {
     console.log("probe ok");
   } else {

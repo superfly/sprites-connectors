@@ -6,7 +6,7 @@ import { createServer } from "node:http";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildProbeRequest, runProbe, classify, redact, redactHeaders, writeFixture, authHeader, connectorDir } from "../probe.mjs";
+import { buildProbeRequest, runProbe, classify, redact, redactHeaders, writeFixture, authHeader, connectorDir, fixtureDir } from "../probe.mjs";
 
 const KEY = "sk-live-SECRET123";
 let last;
@@ -113,6 +113,11 @@ test("a 200 whose body satisfies expect passes, and the fixture is redacted", as
   try {
     const file = writeFixture("stub", result.fixture, { dir });
     assert.equal(file, join(dir, "probe_200.json"));
+    // The default location is fixtures/<name>/ at the repository root, never
+    // inside the connector directory.
+    const repo = new URL("../../", import.meta.url).pathname;
+    assert.equal(fixtureDir("exa"), join(repo, "fixtures", "exa"));
+    assert.equal(fixtureDir("stub"), join(repo, "fixtures", "stub"));
     assert.deepEqual(JSON.parse(readFileSync(file, "utf8")), result.fixture);
   } finally {
     rmSync(dir, { recursive: true });

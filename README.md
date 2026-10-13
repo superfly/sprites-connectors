@@ -24,9 +24,11 @@ connectors/<name>/   community connectors; each ships to Sprites users with
                      allowed, which request proves a key works, what users see
   icon.svg           the vendor's logo
   mark.svg           the same logo in one colour (currentColor)
-  fixtures/          optional: a redacted recording of the probe response
 examples/<name>/     complete, working connectors in the same layout, to
                      copy from
+fixtures/<name>/     optional redacted recordings of a connector's probe
+                     response (probe_<status>.json), for reviewers and the
+                     checks; not part of the connector
 ```
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): every step, field by field.
