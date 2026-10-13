@@ -49,6 +49,11 @@ const routes = {
     res.end("<html>");
   },
   "/slow": (res) => setTimeout(() => res.end("{}"), 2_000),
+  "/stall": (res) => {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.write("{");
+    setTimeout(() => res.end("}"), 2_000);
+  },
 };
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const base_url = `http://127.0.0.1:${server.address().port}`;
@@ -67,7 +72,7 @@ test("buildProbeRequest mirrors the gateway's request", () => {
   const r = buildProbeRequest(manifest({ method: "POST", path: "/search?x=1", json: { q: "x" }, receive_timeout: 5000 }, { auth: "bearer" }), KEY);
   assert.equal(r.method, "POST");
   assert.equal(r.url, `${base_url}/search?x=1`);
-  assert.deepEqual(r.headers, [["authorization", `Bearer ${KEY}`], ["user-agent", "Sprites-API-Gateway"], ["content-type", "application/json"]]);
+  assert.deepEqual(r.headers, [["authorization", `Bearer ${KEY}`], ["user-agent", "Sprites-API-Gateway"], ["content-type", "application/json"], ["accept", "application/json"]]);
   assert.equal(r.body, '{"q":"x"}');
   assert.equal(r.timeout, 5000);
 
@@ -75,6 +80,13 @@ test("buildProbeRequest mirrors the gateway's request", () => {
   assert.deepEqual(g.headers, [["authorization", `Token ${KEY}`], ["user-agent", "Sprites-API-Gateway"], ["accept", "application/json"]]);
   assert.equal(g.body, undefined);
   assert.equal(g.timeout, 10_000);
+
+  // Custom test_request_headers on a JSON probe: Req still adds content-type
+  // and accept application/json unless they are given; an explicit value wins.
+  const j = buildProbeRequest(manifest({ method: "POST", json: {} }, { test_request_headers: [{ name: "x-extra", value: "1" }] }), KEY);
+  assert.deepEqual(j.headers.slice(2), [["x-extra", "1"], ["content-type", "application/json"], ["accept", "application/json"]]);
+  const o = buildProbeRequest(manifest({ method: "POST", json: {} }, { test_request_headers: [{ name: "Accept", value: "application/vnd.api+json" }] }), KEY);
+  assert.deepEqual(o.headers.slice(2), [["Accept", "application/vnd.api+json"], ["content-type", "application/json"]]);
   assert.deepEqual(authHeader({ header: "x-key" }, KEY), ["x-key", KEY]);
   assert.throws(() => authHeader("basic", KEY), TypeError);
 });
@@ -114,6 +126,7 @@ test("a JSON body is sent with the default content-type", async () => {
   assert.deepEqual(result.results.map((r) => r.ok), [false]);
   assert.equal(last.method, "POST");
   assert.equal(last.headers["content-type"], "application/json");
+  assert.equal(last.headers["accept"], "application/json");
   assert.equal(last.body, '{"q":"x"}');
 });
 
@@ -158,6 +171,12 @@ test("the receive_timeout aborts a slow probe as unreachable", async () => {
   const result = await runProbe(manifest({ path: "/slow", receive_timeout: 100 }), KEY);
   assert.equal(result.status, null);
   assert.match(result.reason, /provider_unreachable/);
+});
+
+test("a server that sends headers and then stalls is unreachable, never thrown", async () => {
+  const result = await runProbe(manifest({ path: "/stall", receive_timeout: 100 }), KEY);
+  assert.equal(result.status, null);
+  assert.match(result.reason, /provider_unreachable \(TimeoutError\)/);
 });
 
 test("connection errors are unreachable, never thrown", async () => {

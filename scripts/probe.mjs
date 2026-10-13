@@ -31,7 +31,9 @@ export function authHeader(auth, key) {
 
 // Headers the gateway sends with the probe: auth, user-agent, then the
 // manifest's test_request_headers or their default (content-type json iff
-// the probe has a JSON body).
+// the probe has a JSON body). For a JSON body Req also sets content-type and
+// accept to application/json unless the request already carries them; fetch
+// would otherwise send text/plain and */*.
 export function buildProbeRequest(manifest, key) {
   const probe = manifest.probe;
   const testHeaders =
@@ -39,6 +41,11 @@ export function buildProbeRequest(manifest, key) {
     (probe.json !== undefined ? [{ name: "content-type", value: "application/json" }] : []);
   const headers = [authHeader(manifest.auth, key), ["user-agent", USER_AGENT]];
   for (const { name, value } of testHeaders) headers.push([name, value]);
+  if (probe.json !== undefined) {
+    for (const name of ["content-type", "accept"]) {
+      if (!headers.some(([h]) => h.toLowerCase() === name)) headers.push([name, "application/json"]);
+    }
+  }
   return {
     method: probe.method,
     url: manifest.base_url + probe.path,
@@ -100,6 +107,7 @@ export function redactHeaders(headers, manifest, key) {
 export async function runProbe(manifest, key, { fetch = globalThis.fetch } = {}) {
   const request = buildProbeRequest(manifest, key);
   let response;
+  let text;
   try {
     response = await fetch(request.url, {
       method: request.method,
@@ -108,11 +116,13 @@ export async function runProbe(manifest, key, { fetch = globalThis.fetch } = {})
       redirect: "manual",
       signal: AbortSignal.timeout(request.timeout),
     });
+    // The timeout covers the body too: a server that sends headers and then
+    // stalls is as unreachable as one that never answers.
+    text = await response.text();
   } catch (error) {
     const cause = error?.cause?.code ?? error?.name ?? "error";
     return { ok: false, status: null, reason: `provider_unreachable (${cause})`, results: [] };
   }
-  const text = await response.text();
   const { body, json } = decodeBody(response.headers.get("content-type"), text);
   const headers = Object.fromEntries(response.headers.entries());
   const note = json ? undefined : "response is not JSON; the gateway keeps it as text, so no expectation can hold";

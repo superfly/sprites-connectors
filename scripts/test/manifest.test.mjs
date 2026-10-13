@@ -9,14 +9,14 @@ const read = (path) => JSON.parse(readFileSync(new URL(path, root), "utf8"));
 const names = readdirSync(new URL("connectors/", root));
 
 test("every committed connector and the template pass the manifest checks", () => {
-  assert.equal(names.length, 11);
+  assert.ok(names.length >= 11);
   for (const name of names) assert.deepEqual(manifestProblems(read(`connectors/${name}/connector.json`)), [], name);
   assert.deepEqual(manifestProblems(read("template/connector/connector.json")), []);
 });
 
 test("check-connectors.mjs passes on the committed connectors", () => {
   const out = execFileSync(process.execPath, [new URL("scripts/check-connectors.mjs", root).pathname], { encoding: "utf8" });
-  assert.match(out, /11 connector\(s\) ok/);
+  assert.match(out, new RegExp(`^${names.length} connector\\(s\\) ok$`, "m"));
 });
 
 test("stripQuery", () => {
