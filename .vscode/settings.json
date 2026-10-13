@@ -1,7 +1,7 @@
 {
   "json.schemas": [
     {
-      "fileMatch": ["connectors/*/connector.json", "template/connector/connector.json"],
+      "fileMatch": ["connectors/*/connector.json", "examples/*/connector.json", "template/connector/connector.json"],
       "url": "./v1/schema.json"
     }
   ]

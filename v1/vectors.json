@@ -1,0 +1,3131 @@
+{
+  "$comment": "Parity contract for the connector manifest route matcher and expectation evaluator. sprites-api (Sprites.Gateway.OAuthProvider.path_allowed?/3, Sprites.Gateway.Connector.Expect and the manifest decoding of expectations) and this repository's scripts/lib/{routes,expect}.mjs must both run every case in this file and agree with it; a change to the semantics is made in sprites-api first and then mirrored here with its vector. The cases come from sprites-api's test/sprites/gateway/oauth_provider_routes_test.exs and test/sprites/gateway/connector/expect_test.exs. routes[]: allowed_paths as in a manifest, optional path_param (PCRE source anchored with \\A and \\z), method (upper-case, any case accepted, null for any method), path, and whether the gateway forwards it. expectations[]: a probe expect list, a decoded JSON body, and whether every expectation holds. malformed_expectations[]: expect lists the manifest loader must reject. Bodies avoid integral floats such as 1.0: Elixir decodes them as floats and JSON.parse cannot tell them from integers, so `integer` is the one check whose answer depends on the decoder.",
+  "routes": [
+    {
+      "name": "parameter segment matches one identifier",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a1/balance",
+      "allowed": true
+    },
+    {
+      "name": "identifier may hold upper case, digits, - and _",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/A-1_b/balance",
+      "allowed": true
+    },
+    {
+      "name": "method list is matched case-insensitively",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "patch",
+      "path": "/inboxes/in-1",
+      "allowed": true
+    },
+    {
+      "name": "PATCH listed on the route",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "PATCH",
+      "path": "/inboxes/in-1",
+      "allowed": true
+    },
+    {
+      "name": "a null method matches any method on a bare pattern",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": null,
+      "path": "/open/x/y",
+      "allowed": true
+    },
+    {
+      "name": "a null method matches any method on a method-restricted route",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": null,
+      "path": "/inboxes/in-1",
+      "allowed": true
+    },
+    {
+      "name": "fewer segments than the pattern",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a1",
+      "allowed": false
+    },
+    {
+      "name": "more segments than the pattern",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a1/balance/extra",
+      "allowed": false
+    },
+    {
+      "name": "empty segment is not an identifier",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts//balance",
+      "allowed": false
+    },
+    {
+      "name": "trailing slash is an extra empty segment",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a1/balance/",
+      "allowed": false
+    },
+    {
+      "name": "method not listed on the route",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "POST",
+      "path": "/inboxes/in-1",
+      "allowed": false
+    },
+    {
+      "name": "bare pattern still needs every segment",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/open/x",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"..\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/../balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \".\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/./balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"%2e%2e\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/%2e%2e/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"a%2Fb\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a%2Fb/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"a.b\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a.b/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"a@b\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a@b/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"id?admin=1\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/id?admin=1/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"é\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/é/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"a b\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a b/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes \"\"",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts//balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes a backslash",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a\\b/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes %25",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a%25b/balance",
+      "allowed": false
+    },
+    {
+      "name": "identifier excludes %5C (any case)",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/a%5Cb/balance",
+      "allowed": false
+    },
+    {
+      "name": "trailing * after parameters matches an empty remainder after the slash",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/messages/",
+      "allowed": true
+    },
+    {
+      "name": "trailing * after parameters matches a deep remainder",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/messages/m1/reply",
+      "allowed": true
+    },
+    {
+      "name": "trailing * needs the separator before it",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/messages",
+      "allowed": false
+    },
+    {
+      "name": "wildcard remainder must be a safe path: dot segment",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/messages/../keys",
+      "allowed": false
+    },
+    {
+      "name": "wildcard remainder must be a safe path: encoded dot",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/messages/%2e%2e",
+      "allowed": false
+    },
+    {
+      "name": "wildcard remainder must be a safe path: empty segment",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/messages//x",
+      "allowed": false
+    },
+    {
+      "name": "exact pattern matches itself",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts",
+      "allowed": true
+    },
+    {
+      "name": "exact pattern does not match a trailing slash",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET",
+            "PATCH"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id/messages/*"
+        },
+        "/open/:kind/:id"
+      ],
+      "method": "GET",
+      "path": "/accounts/",
+      "allowed": false
+    },
+    {
+      "name": "reserved: a parameter matches an ordinary id",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "GET",
+      "path": "/jobs/job-1",
+      "allowed": true
+    },
+    {
+      "name": "reserved: the literal route takes its own method",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "POST",
+      "path": "/jobs/cancel",
+      "allowed": true
+    },
+    {
+      "name": "reserved: parameter route beside an unrelated literal",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "GET",
+      "path": "/accounts/a1/balance",
+      "allowed": true
+    },
+    {
+      "name": "reserved: a parameter never matches a literal another route uses at that position",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "GET",
+      "path": "/jobs/cancel",
+      "allowed": false
+    },
+    {
+      "name": "reserved: even for a method the literal route lacks",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "DELETE",
+      "path": "/jobs/operations",
+      "allowed": false
+    },
+    {
+      "name": "reserved: the literal route's method does not reach the parameter route",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "POST",
+      "path": "/jobs/job-1",
+      "allowed": false
+    },
+    {
+      "name": "reserved: the literal route itself still matches",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "GET",
+      "path": "/accounts/summary/balance",
+      "allowed": true
+    },
+    {
+      "name": "reserved only against routes competing for the same prefix: state",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "GET",
+      "path": "/trust/advisories/state",
+      "allowed": true
+    },
+    {
+      "name": "reserved only against routes competing for the same prefix: send",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "GET",
+      "path": "/inboxes/in-1/drafts/send",
+      "allowed": true
+    },
+    {
+      "name": "reserved: still reserved where a competing route exists",
+      "routes": [
+        {
+          "methods": [
+            "GET",
+            "DELETE"
+          ],
+          "pattern": "/jobs/:id"
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/jobs/cancel"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/jobs/operations"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/summary/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/accounts/:id/balance"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/agents/:id/state"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/trust/advisories/:slug"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/messages/send"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:inbox/drafts/:draft"
+        }
+      ],
+      "method": "DELETE",
+      "path": "/jobs/cancel",
+      "allowed": false
+    },
+    {
+      "name": "path_param widens the identifier",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/emails/:id"
+        }
+      ],
+      "path_param": "\\A[a-z0-9]+@[a-z.]+\\z",
+      "method": "GET",
+      "path": "/inboxes/inbox@example.com",
+      "allowed": true
+    },
+    {
+      "name": "path_param replaces the default identifier",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/emails/:id"
+        }
+      ],
+      "path_param": "\\A[a-z0-9]+@[a-z.]+\\z",
+      "method": "GET",
+      "path": "/inboxes/in-1",
+      "allowed": false
+    },
+    {
+      "name": "path_param cannot admit a dot segment",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/emails/:id"
+        }
+      ],
+      "path_param": "\\A[a-z0-9]+@[a-z.]+\\z",
+      "method": "GET",
+      "path": "/inboxes/..",
+      "allowed": false
+    },
+    {
+      "name": "path_param cannot admit an encoded separator",
+      "routes": [
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/inboxes/:id"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pattern": "/emails/:id"
+        }
+      ],
+      "path_param": "\\A[a-z0-9]+@[a-z.]+\\z",
+      "method": "GET",
+      "path": "/inboxes/a%2Fb@x.y",
+      "allowed": false
+    },
+    {
+      "name": "prefix pattern matches the separator alone",
+      "routes": [
+        "/v1/*",
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/legacy.*"
+        }
+      ],
+      "method": "GET",
+      "path": "/v1/",
+      "allowed": true
+    },
+    {
+      "name": "prefix pattern matches a longer path",
+      "routes": [
+        "/v1/*",
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/legacy.*"
+        }
+      ],
+      "method": "DELETE",
+      "path": "/v1/models/x",
+      "allowed": true
+    },
+    {
+      "name": "prefix pattern needs the text before *",
+      "routes": [
+        "/v1/*",
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/legacy.*"
+        }
+      ],
+      "method": "GET",
+      "path": "/v1",
+      "allowed": false
+    },
+    {
+      "name": "prefix pattern does not apply safe_path (access-policy semantics)",
+      "routes": [
+        "/v1/*",
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/legacy.*"
+        }
+      ],
+      "method": "GET",
+      "path": "/v1/../x",
+      "allowed": true
+    },
+    {
+      "name": "legacy .* suffix is a prefix match",
+      "routes": [
+        "/v1/*",
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/legacy.*"
+        }
+      ],
+      "method": "POST",
+      "path": "/legacy/anything",
+      "allowed": true
+    },
+    {
+      "name": "legacy .* suffix keeps its method list",
+      "routes": [
+        "/v1/*",
+        {
+          "methods": [
+            "POST"
+          ],
+          "pattern": "/legacy.*"
+        }
+      ],
+      "method": "GET",
+      "path": "/legacy/anything",
+      "allowed": false
+    }
+  ],
+  "expectations": [
+    {
+      "name": "type checks resolve dotted paths",
+      "expect": [
+        [
+          "success",
+          "eq",
+          true
+        ],
+        [
+          "data",
+          "map"
+        ],
+        [
+          "data.remainingCredits",
+          "number"
+        ],
+        [
+          "data.planCredits",
+          "integer"
+        ]
+      ],
+      "body": {
+        "data": {
+          "remainingCredits": 12.5,
+          "planCredits": 100
+        },
+        "success": true
+      },
+      "ok": true
+    },
+    {
+      "name": "a fraction is not an integer",
+      "expect": [
+        [
+          "data.remainingCredits",
+          "integer"
+        ]
+      ],
+      "body": {
+        "data": {
+          "remainingCredits": 12.5,
+          "planCredits": 100
+        },
+        "success": true
+      },
+      "ok": false
+    },
+    {
+      "name": "a missing nested key fails a type check",
+      "expect": [
+        [
+          "data.missing",
+          "number"
+        ]
+      ],
+      "body": {
+        "data": {
+          "remainingCredits": 12.5,
+          "planCredits": 100
+        },
+        "success": true
+      },
+      "ok": false
+    },
+    {
+      "name": "eq compares the value",
+      "expect": [
+        [
+          "success",
+          "eq",
+          false
+        ]
+      ],
+      "body": {
+        "data": {
+          "remainingCredits": 12.5,
+          "planCredits": 100
+        },
+        "success": true
+      },
+      "ok": false
+    },
+    {
+      "name": "[] on an empty list passes vacuously",
+      "expect": [
+        [
+          "results",
+          "list"
+        ],
+        [
+          "results[].url",
+          "text"
+        ]
+      ],
+      "body": {
+        "results": []
+      },
+      "ok": true
+    },
+    {
+      "name": "[] applies the rest of the path to every element",
+      "expect": [
+        [
+          "results[].url",
+          "text"
+        ],
+        [
+          "results[].id",
+          "string"
+        ]
+      ],
+      "body": {
+        "results": [
+          {
+            "url": "https://a",
+            "id": ""
+          }
+        ]
+      },
+      "ok": true
+    },
+    {
+      "name": "[] fails when one element fails",
+      "expect": [
+        [
+          "results[].url",
+          "text"
+        ]
+      ],
+      "body": {
+        "results": [
+          {
+            "url": ""
+          }
+        ]
+      },
+      "ok": false
+    },
+    {
+      "name": "[] fails when one element lacks the key",
+      "expect": [
+        [
+          "results[].url",
+          "text"
+        ]
+      ],
+      "body": {
+        "results": [
+          {}
+        ]
+      },
+      "ok": false
+    },
+    {
+      "name": "[] over a non-list is missing",
+      "expect": [
+        [
+          "results[].url",
+          "text"
+        ]
+      ],
+      "body": {
+        "results": "nope"
+      },
+      "ok": false
+    },
+    {
+      "name": "[] with no further path checks each element",
+      "expect": [
+        [
+          "results[]",
+          "map"
+        ]
+      ],
+      "body": {
+        "results": [
+          {},
+          1
+        ]
+      },
+      "ok": false
+    },
+    {
+      "name": "[] with no further path passes when every element fits",
+      "expect": [
+        [
+          "results[]",
+          "map"
+        ]
+      ],
+      "body": {
+        "results": [
+          {},
+          {
+            "a": 1
+          }
+        ]
+      },
+      "ok": true
+    },
+    {
+      "name": "absent passes when the key is missing",
+      "expect": [
+        [
+          "error",
+          "absent"
+        ]
+      ],
+      "body": {},
+      "ok": true
+    },
+    {
+      "name": "absent over an empty list passes vacuously",
+      "expect": [
+        [
+          "items[].error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "items": []
+      },
+      "ok": true
+    },
+    {
+      "name": "absent per element: missing and null both pass",
+      "expect": [
+        [
+          "items[].error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "items": [
+          {},
+          {
+            "error": null
+          }
+        ]
+      },
+      "ok": true
+    },
+    {
+      "name": "absent per element: a value in the first element fails",
+      "expect": [
+        [
+          "items[].error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "items": [
+          {
+            "error": "denied"
+          },
+          {}
+        ]
+      },
+      "ok": false
+    },
+    {
+      "name": "absent per element: a value in the last element fails",
+      "expect": [
+        [
+          "items[].error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "items": [
+          {},
+          {
+            "error": "denied"
+          }
+        ]
+      },
+      "ok": false
+    },
+    {
+      "name": "absent over a non-list passes (the fan-out is missing)",
+      "expect": [
+        [
+          "items[].error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "items": "not a list"
+      },
+      "ok": true
+    },
+    {
+      "name": "absent over a missing list passes",
+      "expect": [
+        [
+          "items[].error",
+          "absent"
+        ]
+      ],
+      "body": {},
+      "ok": true
+    },
+    {
+      "name": "absent passes on null",
+      "expect": [
+        [
+          "error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "error": null
+      },
+      "ok": true
+    },
+    {
+      "name": "absent fails on a string",
+      "expect": [
+        [
+          "error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "error": "denied"
+      },
+      "ok": false
+    },
+    {
+      "name": "absent fails on an empty list",
+      "expect": [
+        [
+          "error",
+          "absent"
+        ]
+      ],
+      "body": {
+        "error": []
+      },
+      "ok": false
+    },
+    {
+      "name": "present accepts zero",
+      "expect": [
+        [
+          "id",
+          "present"
+        ]
+      ],
+      "body": {
+        "id": 0
+      },
+      "ok": true
+    },
+    {
+      "name": "present accepts false",
+      "expect": [
+        [
+          "ok",
+          "present"
+        ]
+      ],
+      "body": {
+        "ok": false
+      },
+      "ok": true
+    },
+    {
+      "name": "present rejects null",
+      "expect": [
+        [
+          "id",
+          "present"
+        ]
+      ],
+      "body": {
+        "id": null
+      },
+      "ok": false
+    },
+    {
+      "name": "present rejects a missing key",
+      "expect": [
+        [
+          "id",
+          "present"
+        ]
+      ],
+      "body": {},
+      "ok": false
+    },
+    {
+      "name": "string accepts the empty string",
+      "expect": [
+        [
+          "a",
+          "string"
+        ]
+      ],
+      "body": {
+        "a": ""
+      },
+      "ok": true
+    },
+    {
+      "name": "text rejects the empty string",
+      "expect": [
+        [
+          "a",
+          "text"
+        ]
+      ],
+      "body": {
+        "a": ""
+      },
+      "ok": false
+    },
+    {
+      "name": "text accepts a non-empty string",
+      "expect": [
+        [
+          "a",
+          "text"
+        ]
+      ],
+      "body": {
+        "a": "x"
+      },
+      "ok": true
+    },
+    {
+      "name": "string rejects a number",
+      "expect": [
+        [
+          "a",
+          "string"
+        ]
+      ],
+      "body": {
+        "a": 1
+      },
+      "ok": false
+    },
+    {
+      "name": "list accepts an empty list",
+      "expect": [
+        [
+          "a",
+          "list"
+        ]
+      ],
+      "body": {
+        "a": []
+      },
+      "ok": true
+    },
+    {
+      "name": "nonempty_list rejects an empty list",
+      "expect": [
+        [
+          "a",
+          "nonempty_list"
+        ]
+      ],
+      "body": {
+        "a": []
+      },
+      "ok": false
+    },
+    {
+      "name": "nonempty_list accepts one element",
+      "expect": [
+        [
+          "a",
+          "nonempty_list"
+        ]
+      ],
+      "body": {
+        "a": [
+          1
+        ]
+      },
+      "ok": true
+    },
+    {
+      "name": "boolean accepts false",
+      "expect": [
+        [
+          "a",
+          "boolean"
+        ]
+      ],
+      "body": {
+        "a": false
+      },
+      "ok": true
+    },
+    {
+      "name": "boolean rejects a string",
+      "expect": [
+        [
+          "a",
+          "boolean"
+        ]
+      ],
+      "body": {
+        "a": "false"
+      },
+      "ok": false
+    },
+    {
+      "name": "map rejects a list",
+      "expect": [
+        [
+          "a",
+          "map"
+        ]
+      ],
+      "body": {
+        "a": []
+      },
+      "ok": false
+    },
+    {
+      "name": "map rejects null",
+      "expect": [
+        [
+          "a",
+          "map"
+        ]
+      ],
+      "body": {
+        "a": null
+      },
+      "ok": false
+    },
+    {
+      "name": "list rejects a map",
+      "expect": [
+        [
+          "a",
+          "list"
+        ]
+      ],
+      "body": {
+        "a": {}
+      },
+      "ok": false
+    },
+    {
+      "name": "number accepts an integer",
+      "expect": [
+        [
+          "a",
+          "number"
+        ]
+      ],
+      "body": {
+        "a": 3
+      },
+      "ok": true
+    },
+    {
+      "name": "number rejects a numeric string",
+      "expect": [
+        [
+          "a",
+          "number"
+        ]
+      ],
+      "body": {
+        "a": "3"
+      },
+      "ok": false
+    },
+    {
+      "name": "eq on a string",
+      "expect": [
+        [
+          "object",
+          "eq",
+          "list"
+        ]
+      ],
+      "body": {
+        "object": "list"
+      },
+      "ok": true
+    },
+    {
+      "name": "eq compares objects structurally",
+      "expect": [
+        [
+          "a",
+          "eq",
+          {
+            "x": [
+              1,
+              2
+            ],
+            "y": null
+          }
+        ]
+      ],
+      "body": {
+        "a": {
+          "y": null,
+          "x": [
+            1,
+            2
+          ]
+        }
+      },
+      "ok": true
+    },
+    {
+      "name": "eq compares lists element-wise",
+      "expect": [
+        [
+          "a",
+          "eq",
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "body": {
+        "a": [
+          2,
+          1
+        ]
+      },
+      "ok": false
+    },
+    {
+      "name": "eq null never matches (null is missing)",
+      "expect": [
+        [
+          "a",
+          "eq",
+          null
+        ]
+      ],
+      "body": {
+        "a": null
+      },
+      "ok": false
+    },
+    {
+      "name": "in accepts a listed value",
+      "expect": [
+        [
+          "scope",
+          "in",
+          [
+            "pod",
+            "inbox"
+          ]
+        ]
+      ],
+      "body": {
+        "scope": "pod"
+      },
+      "ok": true
+    },
+    {
+      "name": "in rejects an unlisted value",
+      "expect": [
+        [
+          "scope",
+          "in",
+          [
+            "pod",
+            "inbox"
+          ]
+        ]
+      ],
+      "body": {
+        "scope": "org"
+      },
+      "ok": false
+    },
+    {
+      "name": "min is inclusive",
+      "expect": [
+        [
+          "n",
+          "min",
+          0
+        ]
+      ],
+      "body": {
+        "n": 0
+      },
+      "ok": true
+    },
+    {
+      "name": "min rejects below",
+      "expect": [
+        [
+          "n",
+          "min",
+          1
+        ]
+      ],
+      "body": {
+        "n": 0
+      },
+      "ok": false
+    },
+    {
+      "name": "min rejects a numeric string",
+      "expect": [
+        [
+          "n",
+          "min",
+          0
+        ]
+      ],
+      "body": {
+        "n": "0"
+      },
+      "ok": false
+    },
+    {
+      "name": "gt accepts above",
+      "expect": [
+        [
+          "n",
+          "gt",
+          0
+        ]
+      ],
+      "body": {
+        "n": 0.5
+      },
+      "ok": true
+    },
+    {
+      "name": "gt rejects equal",
+      "expect": [
+        [
+          "n",
+          "gt",
+          0
+        ]
+      ],
+      "body": {
+        "n": 0
+      },
+      "ok": false
+    },
+    {
+      "name": "between is inclusive",
+      "expect": [
+        [
+          "status",
+          "between",
+          200,
+          299
+        ]
+      ],
+      "body": {
+        "status": 204
+      },
+      "ok": true
+    },
+    {
+      "name": "between accepts the bounds",
+      "expect": [
+        [
+          "status",
+          "between",
+          200,
+          299
+        ],
+        [
+          "lo",
+          "between",
+          200,
+          299
+        ]
+      ],
+      "body": {
+        "status": 299,
+        "lo": 200
+      },
+      "ok": true
+    },
+    {
+      "name": "between rejects outside",
+      "expect": [
+        [
+          "status",
+          "between",
+          200,
+          299
+        ]
+      ],
+      "body": {
+        "status": 302
+      },
+      "ok": false
+    },
+    {
+      "name": "between rejects a non-number",
+      "expect": [
+        [
+          "status",
+          "between",
+          200,
+          299
+        ]
+      ],
+      "body": {
+        "status": "204"
+      },
+      "ok": false
+    },
+    {
+      "name": "prefix needs text after the prefix",
+      "expect": [
+        [
+          "name",
+          "prefix",
+          "accounts/"
+        ]
+      ],
+      "body": {
+        "name": "accounts/x"
+      },
+      "ok": true
+    },
+    {
+      "name": "prefix rejects the prefix alone",
+      "expect": [
+        [
+          "name",
+          "prefix",
+          "accounts/"
+        ]
+      ],
+      "body": {
+        "name": "accounts/"
+      },
+      "ok": false
+    },
+    {
+      "name": "prefix rejects another string",
+      "expect": [
+        [
+          "name",
+          "prefix",
+          "accounts/"
+        ]
+      ],
+      "body": {
+        "name": "x"
+      },
+      "ok": false
+    },
+    {
+      "name": "prefix rejects a non-string",
+      "expect": [
+        [
+          "name",
+          "prefix",
+          "accounts/"
+        ]
+      ],
+      "body": {
+        "name": 1
+      },
+      "ok": false
+    },
+    {
+      "name": "contains accepts a substring",
+      "expect": [
+        [
+          "detail",
+          "contains",
+          "X-Agent-Id"
+        ]
+      ],
+      "body": {
+        "detail": "need X-Agent-Id"
+      },
+      "ok": true
+    },
+    {
+      "name": "contains rejects a non-string",
+      "expect": [
+        [
+          "detail",
+          "contains",
+          "X-Agent-Id"
+        ]
+      ],
+      "body": {
+        "detail": 1
+      },
+      "ok": false
+    },
+    {
+      "name": "contains rejects a string without it",
+      "expect": [
+        [
+          "detail",
+          "contains",
+          "X-Agent-Id"
+        ]
+      ],
+      "body": {
+        "detail": "nope"
+      },
+      "ok": false
+    },
+    {
+      "name": "every expectation must hold",
+      "expect": [
+        [
+          "a",
+          "text"
+        ],
+        [
+          "b",
+          "text"
+        ]
+      ],
+      "body": {
+        "a": "x",
+        "b": ""
+      },
+      "ok": false
+    },
+    {
+      "name": "a list body cannot satisfy expectations",
+      "expect": [
+        [
+          "a",
+          "absent"
+        ]
+      ],
+      "body": [],
+      "ok": false
+    },
+    {
+      "name": "a string body cannot satisfy expectations",
+      "expect": [
+        [
+          "a",
+          "absent"
+        ]
+      ],
+      "body": "x",
+      "ok": false
+    },
+    {
+      "name": "a null body cannot satisfy expectations",
+      "expect": [
+        [
+          "a",
+          "absent"
+        ]
+      ],
+      "body": null,
+      "ok": false
+    },
+    {
+      "name": "an empty expectation list holds on an object",
+      "expect": [],
+      "body": {},
+      "ok": true
+    },
+    {
+      "name": "an empty expectation list fails on a non-object",
+      "expect": [],
+      "body": [],
+      "ok": false
+    },
+    {
+      "name": "deep paths through nested lists",
+      "expect": [
+        [
+          "results.channels[].alternatives[].transcript",
+          "string"
+        ]
+      ],
+      "body": {
+        "results": {
+          "channels": [
+            {
+              "alternatives": [
+                {
+                  "transcript": ""
+                },
+                {
+                  "transcript": "hi"
+                }
+              ]
+            },
+            {
+              "alternatives": []
+            }
+          ]
+        }
+      },
+      "ok": true
+    },
+    {
+      "name": "deep paths: a non-object element is missing",
+      "expect": [
+        [
+          "results.channels[].alternatives[].transcript",
+          "string"
+        ]
+      ],
+      "body": {
+        "results": {
+          "channels": [
+            {
+              "alternatives": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "ok": false
+    }
+  ],
+  "malformed_expectations": [
+    {
+      "name": "unknown check",
+      "expect": [
+        [
+          "a",
+          "nonsense"
+        ]
+      ]
+    },
+    {
+      "name": "empty path",
+      "expect": [
+        [
+          "",
+          "list"
+        ]
+      ]
+    },
+    {
+      "name": "empty segment",
+      "expect": [
+        [
+          "a..b",
+          "list"
+        ]
+      ]
+    },
+    {
+      "name": "[] must end the segment",
+      "expect": [
+        [
+          "a[]b",
+          "list"
+        ]
+      ]
+    },
+    {
+      "name": "min needs a number",
+      "expect": [
+        [
+          "a",
+          "min",
+          "1"
+        ]
+      ]
+    },
+    {
+      "name": "gt needs a number",
+      "expect": [
+        [
+          "a",
+          "gt",
+          null
+        ]
+      ]
+    },
+    {
+      "name": "between needs lo <= hi",
+      "expect": [
+        [
+          "a",
+          "between",
+          2,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "between needs two numbers",
+      "expect": [
+        [
+          "a",
+          "between",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "in needs a list",
+      "expect": [
+        [
+          "a",
+          "in",
+          "x"
+        ]
+      ]
+    },
+    {
+      "name": "prefix needs a non-empty string",
+      "expect": [
+        [
+          "a",
+          "prefix",
+          ""
+        ]
+      ]
+    },
+    {
+      "name": "contains needs a string",
+      "expect": [
+        [
+          "a",
+          "contains",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "path must be a string",
+      "expect": [
+        [
+          1,
+          "list"
+        ]
+      ]
+    },
+    {
+      "name": "check must be a string",
+      "expect": [
+        [
+          "a",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "a check is required",
+      "expect": [
+        [
+          "a"
+        ]
+      ]
+    },
+    {
+      "name": "eq needs its value",
+      "expect": [
+        [
+          "a",
+          "eq"
+        ]
+      ]
+    },
+    {
+      "name": "type checks take no argument",
+      "expect": [
+        [
+          "a",
+          "text",
+          "x"
+        ]
+      ]
+    },
+    {
+      "name": "an expectation is an array",
+      "expect": [
+        {
+          "path": "a",
+          "check": "text"
+        }
+      ]
+    },
+    {
+      "name": "the list is a list",
+      "expect": "a"
+    }
+  ]
+}

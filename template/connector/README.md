@@ -1,5 +1,6 @@
 # Example
 
-Replace this with the setup steps a user follows, the billing and scope
-disclosures, and links to the vendor's API documentation for the probe and
-every forwarded route. This file becomes the connector's documentation page.
+Optional notes for reviewers and later contributors: where the icon came
+from, which vendor docs describe the probe and each route, and anything
+about the API that is not obvious from the manifest. Delete this file if
+there is nothing to say.
