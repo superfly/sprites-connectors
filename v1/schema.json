@@ -16,9 +16,22 @@
     "auth",
     "allowed_paths",
     "probe",
+    "examples",
     "icon_svg",
     "icon_bg_class",
     "presentation"
+  ],
+  "anyOf": [
+    {
+      "properties": {
+        "probe": {
+          "required": ["expect"]
+        }
+      }
+    },
+    {
+      "required": ["hooks"]
+    }
   ],
   "properties": {
     "$schema": {
@@ -96,6 +109,7 @@
     },
     "examples": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "$ref": "#/$defs/example"
       }
@@ -108,7 +122,20 @@
     "hooks": {
       "type": "string",
       "minLength": 1,
-      "description": "The name of a module registered in Sprites.Gateway.ConnectorHooks that exports optional callbacks."
+      "description": "The name of a module registered in Sprites.Gateway.ConnectorHooks that exports optional callbacks. If probe.expect is omitted, the hook must export probe_ok?/1."
+    },
+    "tier": {
+      "enum": ["first_party", "community"],
+      "description": "Connector provenance; defaults to first_party. Community connectors share a rollout flag unless a per-provider flag applies."
+    },
+    "owner": {
+      "$ref": "#/$defs/text",
+      "description": "Vendor or contributor attribution."
+    },
+    "source_url": {
+      "type": "string",
+      "pattern": "^https?://",
+      "description": "HTTP(S) URL to the manifest's home."
     },
     "account_id_hash_length": {
       "type": "integer",
@@ -188,8 +215,23 @@
               "$ref": "#/$defs/text"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "query"
+          ],
+          "properties": {
+            "query": {
+              "type": "string",
+              "pattern": "^[^\\s=&%]+$",
+              "description": "The query parameter that carries the key. The gateway removes every caller parameter of this name and appends its own."
+            }
+          }
         }
-      ]
+      ],
+      "description": "Where the key travels: \"bearer\", a header (with an optional prefix) or a query parameter."
     },
     "route": {
       "oneOf": [

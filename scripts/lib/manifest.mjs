@@ -1,10 +1,12 @@
 // Manifest checks the JSON Schema cannot express, shared by
 // scripts/check-connectors.mjs and the unit tests: the probe and every
 // example must be routes the manifest forwards, expectations must be
-// well-formed, and path_param must compile. Returns problems as strings;
-// an empty list means the manifest passes.
+// well-formed, path_param must compile and auth must be one of the forms
+// the probe runner can send. Returns problems as strings; an empty list
+// means the manifest passes.
 import { compilePathParam, pathAllowed } from "./routes.mjs";
 import { problem as expectationProblem } from "./expect.mjs";
+import { authProblem } from "./credential.mjs";
 
 // The gateway matches routes on the path alone; a probe or example may carry
 // a query string for the request.
@@ -27,6 +29,10 @@ function expectProblems(at, expectations) {
 
 export function manifestProblems(manifest) {
   const problems = [];
+  if (manifest.auth !== undefined) {
+    const why = authProblem(manifest.auth);
+    if (why) problems.push(why);
+  }
   const routes = Array.isArray(manifest.allowed_paths) ? manifest.allowed_paths : [];
   let pathParam;
   if (manifest.path_param !== undefined) {

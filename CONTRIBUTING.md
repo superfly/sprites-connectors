@@ -91,9 +91,29 @@ and if it wants a word before the key in that header:
 "auth": {"header": "authorization", "prefix": "Token"}
 ```
 
-which sends `authorization: Token <key>`. That is the whole credential: one
-key, one header. APIs that need OAuth, a browser login, token refresh, a
-signed request or a second secret cannot be connectors.
+which sends `authorization: Token <key>`. If the API takes the key only as
+a request parameter:
+
+```json
+"auth": {"query": "token"}
+```
+
+sends `?token=<key>` on every request and no credential header. Sprites
+replaces any `token` parameter the Sprite put in the query string rather
+than adding a second one, so a Sprite can never pick the value the API
+sees, and the API never receives the parameter twice. Two things follow
+from the key travelling in the URL:
+
+- Say so in a notice (step 2, last section): URLs are logged more readily
+  than headers, on the vendor's side too, and users deciding whether to
+  connect should know.
+- If the API echoes the request URL in its error bodies, add
+  `"gateway_error_messages": false` to the manifest so those bodies are not
+  shown to users. Check this against a wrong key before you submit.
+
+That is the whole credential: one key, in one header or one query parameter.
+APIs that need OAuth, a browser login, token refresh, a signed request or a
+second secret cannot be connectors.
 
 ### Which requests are allowed
 
@@ -156,8 +176,9 @@ section).
 }
 ```
 
-- `method` is `GET` or `POST`; `path` may carry a query string; `label` is a
-  short name for what the request is ("account", "balance", "search").
+- `method` is `GET` or `POST`; `path` may carry a query string (with query
+  auth, the key is added to it); `label` is a short name for what the
+  request is ("account", "balance", "search").
 - `json` is a request body for `POST` probes, sent as JSON:
   `"json": {"query": "sprites", "numResults": 1}`.
 - `expect` is what a successful response looks like. A 200 only counts when
@@ -247,8 +268,10 @@ section).
 
 `receive_timeout`, `account_id_hash_length`, `hooks`, `validation`,
 `gateway_error_messages` and `playground` are set by the Sprites team when
-needed. Leave them out unless a reviewer asks. Some of the committed
-connectors carry them; that is not a cue to copy.
+needed. Leave them out unless a reviewer asks, with one exception: a
+query-auth connector whose API echoes request URLs sets
+`gateway_error_messages` to `false` (see "How the key is sent"). Some of
+the committed connectors carry them; that is not a cue to copy.
 
 ## Step 3: add the icons
 
@@ -287,8 +310,10 @@ ACME_KEY=... node scripts/probe.mjs acme --key-env ACME_KEY
 This sends the probe exactly as Sprites will and prints each `expect`
 assertion with its result. The name is looked up under `connectors/` and
 then `examples/`. The key is read from the environment variable
-you name and is never printed. If the response is not 200, it prints the
-reason the `errors` rules give it.
+you name and is never printed; with query auth it is part of the request
+URL, and the script replaces it with `[redacted]` in everything it prints.
+If the response is not 200, it prints the reason the `errors` rules give
+it.
 
 If an assertion fails, look at the real response and adjust `expect` until
 every line reads `ok`. Then try a wrong key and confirm the probe fails.
@@ -298,8 +323,9 @@ ACME_KEY=... node scripts/probe.mjs acme --key-env ACME_KEY --write-fixture
 ```
 
 also records the response as `fixtures/acme/probe_200.json` at the
-repository root, with your key and any credential headers removed. A
-recording is optional and is not part of the connector: a connector
+repository root, with any credential headers removed and every string that
+holds your key, as typed or URL-encoded, dropped from the headers and body.
+A recording is optional and is not part of the connector: a connector
 directory holds only its four files, and the checks refuse anything else in
 it. When present, a recording shows reviewers what the assertions were
 written against, and the checks confirm it is named `probe_<status>.json`
@@ -329,7 +355,8 @@ These are limits of the format, so a reviewer cannot waive them:
 - Run code: no custom validation, request rewriting, response parsing or
   request signing.
 - OAuth or any browser flow, token refresh, JWT exchange or multi-part
-  credentials. One API key only.
+  credentials. One API key only, sent as a bearer token, a fixed header or
+  a query parameter.
 - A user-chosen hostname, or any secret beyond the key.
 - Open wildcards on resource roots. Every route is listed by method, and a
   `:param` matches one identifier.

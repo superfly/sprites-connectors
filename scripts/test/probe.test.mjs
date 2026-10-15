@@ -3,19 +3,28 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildProbeRequest, runProbe, classify, redact, redactHeaders, writeFixture, authHeader, connectorDir, fixtureDir } from "../probe.mjs";
+import { buildProbeRequest, runProbe, run, classify, redact, redactHeaders, writeFixture, authHeader, connectorDir, fixtureDir } from "../probe.mjs";
+import { encodeWwwForm } from "../lib/credential.mjs";
 
 const KEY = "sk-live-SECRET123";
+// A key that must be URL-encoded in a query string, for the query-auth cases.
+const QKEY = "qk+/=&SECRET 2";
+const QENC = encodeWwwForm(QKEY);
+// Every spelling an API might echo the key in: as typed, form-encoded,
+// URI-encoded, and those with lowercase or mixed-case percent escapes.
+const mixedCase = (text) => text.replace(/%[0-9A-F]{2}/g, (esc, i) => (i % 2 ? esc.toLowerCase() : esc));
+const SPELLINGS = [QKEY, QENC, encodeURIComponent(QKEY), QENC.toLowerCase(), mixedCase(QENC), mixedCase(encodeURIComponent(QKEY))];
+const holdsAny = (text) => SPELLINGS.find((s) => text.includes(s));
 let last;
 const server = createServer((req, res) => {
   let data = "";
   req.on("data", (chunk) => (data += chunk));
   req.on("end", () => {
     last = { method: req.method, url: req.url, headers: req.headers, body: data };
-    const route = routes[req.url] ?? routes["*"];
+    const route = routes[req.url.split("?")[0]] ?? routes["*"];
     route(res);
   });
 });
@@ -24,6 +33,13 @@ const routes = {
     res.writeHead(200, { "content-type": "application/json; charset=utf-8", "x-request-id": "r1", "x-echo": KEY });
     res.end(JSON.stringify({ id: "u1", token: `prefix ${KEY} suffix`, nested: [{ k: KEY }, { k: "fine" }], error: null }));
   },
+  // Echoes the request URL in a header and in the body, as some APIs do in
+  // their error responses.
+  "/echo": (res) => echo(res, last.url),
+  // The same, respelled the way some servers normalise URLs: lowercase
+  // percent escapes, or a mix of cases.
+  "/echo-lower": (res) => echo(res, last.url.toLowerCase()),
+  "/echo-mixed": (res) => echo(res, mixedCase(last.url)),
   "/search": (res) => {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ results: [{ url: "" }] }));
@@ -55,6 +71,10 @@ const routes = {
     setTimeout(() => res.end("}"), 2_000);
   },
 };
+function echo(res, url) {
+  res.writeHead(200, { "content-type": "application/json", "x-url": url, "x-request-id": "r2" });
+  res.end(JSON.stringify({ id: "u1", url, link: `http://api.test${url}`, params: url.split("?")[1].split("&"), error: null }));
+}
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const base_url = `http://127.0.0.1:${server.address().port}`;
 after(() => server.close());
@@ -89,6 +109,110 @@ test("buildProbeRequest mirrors the gateway's request", () => {
   assert.deepEqual(o.headers.slice(2), [["Accept", "application/vnd.api+json"], ["content-type", "application/json"]]);
   assert.deepEqual(authHeader({ header: "x-key" }, KEY), ["x-key", KEY]);
   assert.throws(() => authHeader("basic", KEY), TypeError);
+  assert.throws(() => authHeader({ query: "token" }, KEY), /query parameter, not a header/);
+  assert.throws(() => buildProbeRequest(manifest({}, { auth: { query: "a=b" } }), KEY), TypeError);
+});
+
+test("query auth puts the key in the URL, replacing the probe's own parameter, and sends no credential header", () => {
+  const q = buildProbeRequest(manifest({ path: "/me?token=wrong&v=1&%74oken=again" }, { auth: { query: "token" } }), QKEY);
+  assert.equal(q.url, `${base_url}/me?v=1&token=${QENC}`);
+  assert.deepEqual(q.headers, [["user-agent", "Sprites-API-Gateway"]]);
+  const bare = buildProbeRequest(manifest({ method: "POST", path: "/search", json: { q: "x" } }, { auth: { query: "api_key" } }), KEY);
+  assert.equal(bare.url, `${base_url}/search?api_key=${KEY}`);
+  assert.deepEqual(bare.headers, [["user-agent", "Sprites-API-Gateway"], ["content-type", "application/json"], ["accept", "application/json"]]);
+});
+
+test("a query-auth probe reaches the server with exactly one credential parameter, and nothing recorded holds the key", async () => {
+  const m = manifest({ path: "/echo?token=wrong&v=1", expect: [["id", "text"], ["error", "absent"]] }, { auth: { query: "token" } });
+  const result = await runProbe(m, QKEY);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  const seen = new URL(last.url, base_url);
+  assert.deepEqual(seen.searchParams.getAll("token"), [QKEY]);
+  assert.deepEqual(seen.searchParams.getAll("v"), ["1"]);
+  assert.equal(last.url, `/echo?v=1&token=${QENC}`);
+  assert.equal(last.headers.authorization, undefined);
+  assert.equal(last.headers["x-api-key"], undefined);
+  assert.equal(last.headers["user-agent"], "Sprites-API-Gateway");
+
+  const text = JSON.stringify(result.fixture);
+  assert.equal(holdsAny(text), undefined, text);
+  // The echoed URL strings are dropped; everything else stays.
+  assert.deepEqual(result.fixture.body, { id: "u1", params: ["v=1"], error: null });
+  assert.equal(result.fixture.headers["x-request-id"], "r2");
+  assert.equal(result.fixture.headers["x-url"], undefined);
+  assert.deepEqual(result.fixture.probe, { method: "GET", path: "/echo?token=wrong&v=1" });
+  const dir = mkdtempSync(join(tmpdir(), "probe-"));
+  try {
+    const file = writeFixture("stub", result.fixture, { dir });
+    const written = readFileSync(file, "utf8");
+    assert.equal(holdsAny(written), undefined, written);
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
+});
+
+test("a server that echoes the URL with lowercase or mixed-case escapes still leaks nothing into the fixture", async () => {
+  for (const path of ["/echo-lower", "/echo-mixed"]) {
+    const result = await runProbe(manifest({ path: `${path}?token=wrong&v=1` }, { auth: { query: "token" } }), QKEY);
+    assert.equal(result.ok, true, path);
+    const text = JSON.stringify(result.fixture);
+    assert.equal(holdsAny(text), undefined, `${path}: ${text}`);
+    assert.deepEqual(result.fixture.body, { id: "u1", params: ["v=1"], error: null }, path);
+    assert.equal(result.fixture.headers["x-url"], undefined, path);
+    assert.equal(result.fixture.headers["x-request-id"], "r2", path);
+  }
+});
+
+// The command end to end on a sandbox repository root: the request line it
+// prints and the fixture it writes carry the key neither raw nor encoded.
+test("the command redacts the key from its output and the written fixture", async () => {
+  const root = mkdtempSync(join(tmpdir(), "probe-root-"));
+  const lines = [];
+  const errors = [];
+  const options = { root, env: { STUB_KEY: QKEY }, log: (l) => lines.push(l), error: (l) => errors.push(l) };
+  const write = (name, extra) => {
+    mkdirSync(join(root, "connectors", name), { recursive: true });
+    writeFileSync(join(root, "connectors", name, "connector.json"), JSON.stringify(manifest({ path: "/echo?token=wrong" }, { auth: { query: "token" }, ...extra })));
+  };
+  try {
+    write("stub");
+    assert.equal(await run(["stub", "--key-env", "STUB_KEY", "--write-fixture"], options), 0);
+    assert.equal(lines[0], `GET ${base_url}/echo?token=[redacted] (timeout 10000 ms)`);
+    assert.ok(lines.includes("HTTP 200") && lines.includes("probe ok"), lines.join("\n"));
+    assert.ok(lines.some((l) => l === "wrote /fixtures/stub/probe_200.json"), lines.join("\n"));
+    const fixture = readFileSync(join(root, "fixtures", "stub", "probe_200.json"), "utf8");
+    for (const text of [lines.join("\n"), fixture]) assert.equal(holdsAny(text), undefined, text);
+    assert.deepEqual(JSON.parse(fixture).body, { id: "u1", params: [], error: null });
+
+    // The same when the API respells the echoed URL's percent escapes.
+    for (const [name, path] of [["lower", "/echo-lower"], ["mixed", "/echo-mixed"]]) {
+      lines.length = 0;
+      mkdirSync(join(root, "connectors", name), { recursive: true });
+      writeFileSync(join(root, "connectors", name, "connector.json"), JSON.stringify(manifest({ path: `${path}?token=wrong` }, { auth: { query: "token" } })));
+      assert.equal(await run([name, "--key-env", "STUB_KEY", "--write-fixture"], options), 0, name);
+      const written = readFileSync(join(root, "fixtures", name, "probe_200.json"), "utf8");
+      for (const text of [lines.join("\n"), written]) assert.equal(holdsAny(text), undefined, `${name}: ${text}`);
+      assert.deepEqual(JSON.parse(written).body, { id: "u1", params: [], error: null }, name);
+      assert.equal(JSON.parse(written).headers["x-url"], undefined, name);
+    }
+
+    // A transport error prints no URL either.
+    lines.length = 0;
+    write("down", { base_url: "http://127.0.0.1:1" });
+    assert.equal(await run(["down", "--key-env", "STUB_KEY"], options), 1);
+    assert.match(lines.at(-1), /^FAIL provider_unreachable/);
+    assert.ok(!lines.join("\n").includes(QKEY) && !lines.join("\n").includes(QENC));
+
+    // Usage errors go to stderr with exit code 2.
+    assert.equal(await run(["stub"], options), 2);
+    assert.match(errors.at(-1), /--key-env VAR is required/);
+    assert.equal(await run(["stub", "--key-env", "MISSING"], options), 2);
+    assert.match(errors.at(-1), /MISSING is not set/);
+    assert.equal(await run(["no_such", "--key-env", "STUB_KEY"], options), 2);
+    assert.match(errors.at(-1), /cannot read \/connectors\/no_such\/connector.json/);
+  } finally {
+    rmSync(root, { recursive: true });
+  }
 });
 
 test("a 200 whose body satisfies expect passes, and the fixture is redacted", async () => {
@@ -205,4 +329,10 @@ test("redaction drops strings holding the key and the auth headers", () => {
     { "x-other": "z" },
   );
   assert.deepEqual(redactHeaders({ authorization: "x", "x-api-key": "y" }, { auth: "bearer" }, KEY), { "x-api-key": "y" });
+  // Query auth has no credential header; strings holding the encoded key go too.
+  assert.deepEqual(
+    redactHeaders({ authorization: "x", "x-url": `/me?token=${QENC}`, "x-ok": "1" }, { auth: { query: "token" } }, QKEY),
+    { "x-ok": "1" },
+  );
+  assert.deepEqual(redact({ url: `https://api.test/me?token=${QENC}`, raw: QKEY, fine: "yes" }, QKEY), { fine: "yes" });
 });
