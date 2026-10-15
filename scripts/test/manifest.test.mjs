@@ -27,6 +27,16 @@ test("check-connectors.mjs passes on both roots and finds one connector in eithe
   assert.throws(() => execFileSync(process.execPath, [script, "no_such"], { stdio: "pipe" }), /no such connector directory/);
 });
 
+test("auth may be bearer, a header or a query parameter", () => {
+  const base = read("template/connector/connector.json");
+  for (const auth of ["bearer", { header: "x-api-key" }, { header: "authorization", prefix: "Token" }, { query: "token" }]) {
+    assert.deepEqual(manifestProblems({ ...base, auth }), [], JSON.stringify(auth));
+  }
+  assert.deepEqual(manifestProblems({ ...base, auth: { query: "a=b" } }), ['auth.query must be a parameter name without whitespace, =, & or %, got "a=b"']);
+  assert.deepEqual(manifestProblems({ ...base, auth: "basic" }), ['auth must be "bearer", {"header": name, "prefix"?: text} or {"query": name}, got "basic"']);
+  assert.deepEqual(manifestProblems({ ...base, auth: { query: "token", prefix: "x" } }).length, 1);
+});
+
 test("stripQuery", () => {
   assert.equal(stripQuery("/v1/listen?model=nova-3"), "/v1/listen");
   assert.equal(stripQuery("/v1/listen"), "/v1/listen");
