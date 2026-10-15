@@ -13,6 +13,11 @@ const KEY = "sk-live-SECRET123";
 // A key that must be URL-encoded in a query string, for the query-auth cases.
 const QKEY = "qk+/=&SECRET 2";
 const QENC = encodeWwwForm(QKEY);
+// Every spelling an API might echo the key in: as typed, form-encoded,
+// URI-encoded, and those with lowercase or mixed-case percent escapes.
+const mixedCase = (text) => text.replace(/%[0-9A-F]{2}/g, (esc, i) => (i % 2 ? esc.toLowerCase() : esc));
+const SPELLINGS = [QKEY, QENC, encodeURIComponent(QKEY), QENC.toLowerCase(), mixedCase(QENC), mixedCase(encodeURIComponent(QKEY))];
+const holdsAny = (text) => SPELLINGS.find((s) => text.includes(s));
 let last;
 const server = createServer((req, res) => {
   let data = "";
@@ -30,10 +35,11 @@ const routes = {
   },
   // Echoes the request URL in a header and in the body, as some APIs do in
   // their error responses.
-  "/echo": (res) => {
-    res.writeHead(200, { "content-type": "application/json", "x-url": last.url, "x-request-id": "r2" });
-    res.end(JSON.stringify({ id: "u1", url: last.url, link: `http://api.test${last.url}`, params: last.url.split("?")[1].split("&"), error: null }));
-  },
+  "/echo": (res) => echo(res, last.url),
+  // The same, respelled the way some servers normalise URLs: lowercase
+  // percent escapes, or a mix of cases.
+  "/echo-lower": (res) => echo(res, last.url.toLowerCase()),
+  "/echo-mixed": (res) => echo(res, mixedCase(last.url)),
   "/search": (res) => {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ results: [{ url: "" }] }));
@@ -65,6 +71,10 @@ const routes = {
     setTimeout(() => res.end("}"), 2_000);
   },
 };
+function echo(res, url) {
+  res.writeHead(200, { "content-type": "application/json", "x-url": url, "x-request-id": "r2" });
+  res.end(JSON.stringify({ id: "u1", url, link: `http://api.test${url}`, params: url.split("?")[1].split("&"), error: null }));
+}
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const base_url = `http://127.0.0.1:${server.address().port}`;
 after(() => server.close());
@@ -125,7 +135,7 @@ test("a query-auth probe reaches the server with exactly one credential paramete
   assert.equal(last.headers["user-agent"], "Sprites-API-Gateway");
 
   const text = JSON.stringify(result.fixture);
-  assert.ok(!text.includes(QKEY) && !text.includes(QENC) && !text.includes(encodeURIComponent(QKEY)), text);
+  assert.equal(holdsAny(text), undefined, text);
   // The echoed URL strings are dropped; everything else stays.
   assert.deepEqual(result.fixture.body, { id: "u1", params: ["v=1"], error: null });
   assert.equal(result.fixture.headers["x-request-id"], "r2");
@@ -135,9 +145,21 @@ test("a query-auth probe reaches the server with exactly one credential paramete
   try {
     const file = writeFixture("stub", result.fixture, { dir });
     const written = readFileSync(file, "utf8");
-    assert.ok(!written.includes(QKEY) && !written.includes(QENC), written);
+    assert.equal(holdsAny(written), undefined, written);
   } finally {
     rmSync(dir, { recursive: true });
+  }
+});
+
+test("a server that echoes the URL with lowercase or mixed-case escapes still leaks nothing into the fixture", async () => {
+  for (const path of ["/echo-lower", "/echo-mixed"]) {
+    const result = await runProbe(manifest({ path: `${path}?token=wrong&v=1` }, { auth: { query: "token" } }), QKEY);
+    assert.equal(result.ok, true, path);
+    const text = JSON.stringify(result.fixture);
+    assert.equal(holdsAny(text), undefined, `${path}: ${text}`);
+    assert.deepEqual(result.fixture.body, { id: "u1", params: ["v=1"], error: null }, path);
+    assert.equal(result.fixture.headers["x-url"], undefined, path);
+    assert.equal(result.fixture.headers["x-request-id"], "r2", path);
   }
 });
 
@@ -159,10 +181,20 @@ test("the command redacts the key from its output and the written fixture", asyn
     assert.ok(lines.includes("HTTP 200") && lines.includes("probe ok"), lines.join("\n"));
     assert.ok(lines.some((l) => l === "wrote /fixtures/stub/probe_200.json"), lines.join("\n"));
     const fixture = readFileSync(join(root, "fixtures", "stub", "probe_200.json"), "utf8");
-    for (const text of [lines.join("\n"), fixture]) {
-      assert.ok(!text.includes(QKEY) && !text.includes(QENC) && !text.includes(encodeURIComponent(QKEY)), text);
-    }
+    for (const text of [lines.join("\n"), fixture]) assert.equal(holdsAny(text), undefined, text);
     assert.deepEqual(JSON.parse(fixture).body, { id: "u1", params: [], error: null });
+
+    // The same when the API respells the echoed URL's percent escapes.
+    for (const [name, path] of [["lower", "/echo-lower"], ["mixed", "/echo-mixed"]]) {
+      lines.length = 0;
+      mkdirSync(join(root, "connectors", name), { recursive: true });
+      writeFileSync(join(root, "connectors", name, "connector.json"), JSON.stringify(manifest({ path: `${path}?token=wrong` }, { auth: { query: "token" } })));
+      assert.equal(await run([name, "--key-env", "STUB_KEY", "--write-fixture"], options), 0, name);
+      const written = readFileSync(join(root, "fixtures", name, "probe_200.json"), "utf8");
+      for (const text of [lines.join("\n"), written]) assert.equal(holdsAny(text), undefined, `${name}: ${text}`);
+      assert.deepEqual(JSON.parse(written).body, { id: "u1", params: [], error: null }, name);
+      assert.equal(JSON.parse(written).headers["x-url"], undefined, name);
+    }
 
     // A transport error prints no URL either.
     lines.length = 0;

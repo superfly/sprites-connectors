@@ -3,7 +3,7 @@
 // stripping, encoding and redaction.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { PARAM_NAME, apply, authProblem, credential, encodeWwwForm, holdsKey, keyForms, queryString, redactText } from "../lib/credential.mjs";
+import { PARAM_NAME, apply, authProblem, credential, encodeWwwForm, holdsKey, keyForms, keyMatcher, queryString, redactText } from "../lib/credential.mjs";
 
 const KEY = "s3cret+/=";
 const ENCODED = "s3cret%2B%2F%3D";
@@ -73,4 +73,18 @@ test("redaction covers the key as typed and URL-encoded", () => {
   assert.ok(holdsKey(`/me?token=${ENCODED}`, KEY));
   assert.ok(holdsKey(`x${KEY}y`, KEY));
   assert.ok(!holdsKey("s3cret", KEY));
+  assert.equal(keyMatcher(""), null);
+});
+
+// An API may echo the URL with its own percent-escape casing, or with a
+// space as %20 where the request sent +.
+test("redaction is case-insensitive over every spelling of the key", () => {
+  const key = "s3cret+/= x";
+  const spellings = ["s3cret+/= x", "s3cret%2B%2F%3D+x", "s3cret%2b%2f%3d+x", "s3cret%2B%2f%3D+x", "s3cret%2B%2F%3D%20x", "s3cret%2b%2f%3d%20x", "S3CRET%2b%2F%3d+X"];
+  for (const spelling of spellings) {
+    assert.ok(holdsKey(`https://x.test/me?token=${spelling}&v=1`, key), spelling);
+    assert.equal(redactText(`GET /me?token=${spelling} then ${spelling}`, key), "GET /me?token=[redacted] then [redacted]", spelling);
+  }
+  assert.ok(!holdsKey("s3cret%2B%2F%3D", key));
+  assert.ok(holdsKey("needs regex escaping: a.b+c", "a.b+c") && !holdsKey("aXb+c", "a.b+c"));
 });

@@ -78,19 +78,29 @@ export function apply(url, headers, cred) {
   return { url: `${base}?${queryString(query, name, value)}`, headers };
 }
 
-// The key as typed and as it appears URL-encoded in a query string.
+// The key as typed and as it appears URL-encoded in a query string, both
+// with + and with %20 for a space.
 export function keyForms(key) {
   return [...new Set([key, encodeWwwForm(key), encodeURIComponent(key)])].filter((form) => form !== "");
 }
 
-export function holdsKey(text, key) {
-  return keyForms(key).some((form) => text.includes(form));
+// One case-insensitive pattern over every spelling of the key, so an API
+// that echoes the URL with lowercase or mixed-case percent escapes
+// (%2b for %2B) still matches. Over-redaction is acceptable; a key that
+// survives is not. Null for an empty key, which matches nothing.
+export function keyMatcher(key) {
+  const forms = keyForms(key).map((form) => form.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return forms.length ? new RegExp(forms.join("|"), "gi") : null;
 }
 
-// `text` with every form of the key replaced, for messages and request lines
-// that may quote a URL.
+export function holdsKey(text, key) {
+  const matcher = keyMatcher(key);
+  return matcher !== null && matcher.test(String(text));
+}
+
+// `text` with every spelling of the key replaced, for messages and request
+// lines that may quote a URL.
 export function redactText(text, key) {
-  let out = String(text);
-  for (const form of keyForms(key)) out = out.split(form).join("[redacted]");
-  return out;
+  const matcher = keyMatcher(key);
+  return matcher === null ? String(text) : String(text).replace(matcher, "[redacted]");
 }
