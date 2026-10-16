@@ -1,0 +1,33 @@
+{
+  "probe": {
+    "method": "GET",
+    "path": "/1/apps/limits.json"
+  },
+  "status": 400,
+  "headers": {
+    "cache-control": "no-cache",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a4b49cc70c5a7e5a-SEA",
+    "connection": "keep-alive",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Fri, 16 Oct 2026 05:20:06 GMT",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "transfer-encoding": "chunked",
+    "x-content-type-options": "nosniff",
+    "x-download-options": "noopen",
+    "x-frame-options": "SAMEORIGIN",
+    "x-permitted-cross-domain-policies": "none",
+    "x-request-id": "fc8f45ce-0a4a-4e45-a01c-9a4a1ee0188b",
+    "x-runtime": "0.006223",
+    "x-xss-protection": "1; mode=block"
+  },
+  "body": {
+    "token": "invalid",
+    "errors": [
+      "application token is invalid"
+    ],
+    "status": 0,
+    "request": "fc8f45ce-0a4a-4e45-a01c-9a4a1ee0188b"
+  }
+}
