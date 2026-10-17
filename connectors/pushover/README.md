@@ -56,11 +56,9 @@ https://pushover.net/images/pushover-logo.svg, linked from
 https://support.pushover.net/i63-pushover-logos-and-usage. `icon.svg` keeps
 the drawing and colours unchanged: a `#249DF1` circle and a white "P". The XML
 prolog, size attributes and the `id` were removed, and inline `style` was
-rewritten as `fill` attributes. `mark.svg` is the same circle in
-`currentColor` with the "P" cut out (even-odd fill).
+rewritten as `fill` attributes. `mark.svg` is identical to `icon.svg`.
 
 Pushover's usage page allows the logo when "advertising a built-in Pushover
-integration". It does not allow changing the logo's colours. `icon.svg`
-follows that. `mark.svg` is necessarily a one-colour rendering, as with every
-other connector's mark. If Pushover or a reviewer objects, the mark can be
-replaced with a generic bell.
+integration". It does not allow changing the logo's colours, so unlike most
+connectors the mark is not a one-colour `currentColor` rendering; it keeps
+the original blue and white on every background.
