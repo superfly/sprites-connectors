@@ -1,0 +1,39 @@
+{
+  "probe": {
+    "method": "GET",
+    "path": "/1/apps/limits.json"
+  },
+  "status": 200,
+  "headers": {
+    "cache-control": "max-age=0, private, must-revalidate",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a4b49cc51c2f8486-SJC",
+    "connection": "keep-alive",
+    "content-encoding": "br",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Fri, 16 Oct 2026 05:20:06 GMT",
+    "etag": "W/\"b39fe67ef59cfc25dbc6a59097a8ac81\"",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "server": "cloudflare",
+    "strict-transport-security": "max-age=31536000",
+    "transfer-encoding": "chunked",
+    "x-content-type-options": "nosniff",
+    "x-download-options": "noopen",
+    "x-frame-options": "SAMEORIGIN, DENY",
+    "x-limit-app-limit": "10000",
+    "x-limit-app-remaining": "9996",
+    "x-limit-app-reset": "1793509200",
+    "x-permitted-cross-domain-policies": "none",
+    "x-po-h": "t",
+    "x-request-id": "ab0a3c73-e9a9-42a7-a359-dcaea7b6f7f9",
+    "x-runtime": "0.006737",
+    "x-xss-protection": "1; mode=block"
+  },
+  "body": {
+    "limit": 10000,
+    "remaining": 9996,
+    "reset": 1793509200,
+    "status": 1,
+    "request": "ab0a3c73-e9a9-42a7-a359-dcaea7b6f7f9"
+  }
+}

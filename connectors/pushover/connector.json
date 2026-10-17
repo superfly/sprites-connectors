@@ -1,0 +1,99 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "pushover",
+  "display_name": "Pushover",
+  "base_url": "https://api.pushover.net",
+  "description": "Send push notifications to your phone and desktop",
+  "long_description": "Bring an application API token from your own Pushover account; the gateway keeps it off your Sprite and adds it to each request as the `token` query parameter. Saving, replacing or testing the token reads your account's monthly message limit and sends nothing. A Sprite can send notifications, validate a user or group key, check the remaining monthly allowance and poll emergency-priority receipts. The recipient's user or group key is not stored in the connector; the Sprite sends it as the `user` parameter. Groups, teams, subscriptions, licensing, Glances, receipt cancellation and the Open Client API are not forwarded.",
+  "website_url": "https://pushover.net/apps/build",
+  "auth": {"query": "token"},
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/1/messages.json"},
+    {"methods": ["POST"], "pattern": "/1/users/validate.json"},
+    {"methods": ["GET"], "pattern": "/1/apps/limits.json"},
+    {"methods": ["GET"], "pattern": "/1/receipts/:receipt"}
+  ],
+  "path_param": "\\A[A-Za-z0-9]+\\.json\\z",
+  "forward_response_headers": ["x-limit-app-limit", "x-limit-app-remaining", "x-limit-app-reset"],
+  "probe": {
+    "method": "GET",
+    "path": "/1/apps/limits.json",
+    "label": "monthly message limit",
+    "expect": [
+      ["status", "eq", 1],
+      ["limit", "integer"],
+      ["remaining", "integer"],
+      ["reset", "integer"],
+      ["errors", "absent"]
+    ],
+    "errors": [
+      {"status": 400, "expect": [["token", "eq", "invalid"]], "reason": "invalid_api_key"}
+    ]
+  },
+  "examples": [
+    {
+      "title": "Send a notification (counts against your monthly limit); replace USER_KEY",
+      "method": "POST",
+      "path": "/1/messages.json",
+      "json": {"user": "USER_KEY", "title": "Sprite", "message": "Build finished"},
+      "notes": ["`message` is at most 1,024 characters and `title` at most 250. Every send is delivered to real devices."]
+    },
+    {
+      "title": "Check the remaining monthly allowance",
+      "path": "/1/apps/limits.json"
+    },
+    {
+      "title": "Validate a user or group key; replace USER_KEY",
+      "method": "POST",
+      "path": "/1/users/validate.json",
+      "json": {"user": "USER_KEY"}
+    },
+    {
+      "title": "Poll an emergency-priority receipt; replace RECEIPT",
+      "path": "/1/receipts/RECEIPT.json",
+      "notes": ["Pushover asks for no more than one receipt request every 5 seconds."]
+    }
+  ],
+  "messages": {
+    "400": "Pushover rejected the request; check the user key and parameters. Do not retry unchanged: repeated errors get the gateway's IP blocked",
+    "429": "Pushover monthly message limit reached; it resets on the 1st",
+    "provider_unreachable": "Could not reach Pushover; wait at least 5 seconds before retrying",
+    "unexpected_response": "Unexpected Pushover response; the token could not be verified"
+  },
+  "discovery": {
+    "categories": ["communication"],
+    "keywords": ["push notifications", "notifications", "alerts", "mobile", "pushover"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-sky-500/20",
+  "presentation": {
+    "tagline": "Send push notifications from a Sprite without putting your Pushover token on it.",
+    "setup": "Create an application at pushover.net/apps/build and copy its API Token/Key. This is not the user key on your dashboard; your Sprite passes that as `user` on each request.",
+    "key_label": "Application API token",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the token reads your monthly limit (`GET /1/apps/limits.json`) and sends nothing. Each account can send 10,000 messages a month across all its applications; after that Pushover answers 429 until the limit resets on the 1st."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /1/messages.json`, `POST /1/users/validate.json`, `GET /1/apps/limits.json` and `GET /1/receipts/:receipt.json` are forwarded. Groups, teams, subscriptions, licensing, Glances, receipt cancellation and the Open Client API are not."
+      },
+      {
+        "title": "Token in the URL",
+        "body": "Pushover takes the token as a request parameter, so the gateway adds it to the query string as `token`, replacing any `token` your Sprite sends. URLs are logged more readily than headers, including on Pushover's side."
+      },
+      {
+        "title": "Real notifications, shared IP",
+        "body": "Every send is delivered to real devices. Messages are limited to 1,024 characters. Pushover temporarily blocks IP addresses that send many failing (4xx) requests, and every request reaches Pushover from the shared gateway IP, so do not retry a rejected request unchanged."
+      }
+    ],
+    "usage_notes": [
+      "Your Sprite passes the recipient as `user` (a user or group key) on each send; the connector stores only the application token.",
+      "Bodies may be JSON or form-encoded. Attachments are limited to 5 MB.",
+      "After a 5xx or no response, wait at least 5 seconds before retrying, and keep to 2 concurrent requests."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
