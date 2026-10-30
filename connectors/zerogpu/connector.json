@@ -1,0 +1,96 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "zerogpu",
+  "display_name": "ZeroGPU",
+  "base_url": "https://api.zerogpu.ai",
+  "description": "Run AI inference with ZeroGPU's open-weight models and specialized small models.",
+  "long_description": "Bring a ZeroGPU API key to run OpenAI-compatible inference on open-weight models and ZeroGPU's specialized small language models (ZLMs) for generation, classification and extraction. Saving, replacing and testing a key reads GET /v1/me, which returns the key, project and organization it belongs to; the check is free, runs no inference and does not look at your balance, so a valid key on an account without credit still saves. All forwarded inference is charged to your ZeroGPU account. The gateway keeps the key off your Sprite; the key's own project is used for every request. Supports chat completions and the Responses API, including SSE streaming, plus GET /v1/me. Model listing, embeddings, moderations, audio, batches, files, API-key management, billing and account routes are not forwarded.",
+  "website_url": "https://platform.zerogpu.ai/dashboard",
+  "auth": {"header": "x-api-key"},
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/responses"},
+    {"methods": ["GET"], "pattern": "/v1/me"}
+  ],
+  "forward_response_headers": ["x-request-id", "retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/me",
+    "label": "key identity",
+    "expect": [
+      ["object", "eq", "api_key"],
+      ["id", "text"],
+      ["project_id", "text"],
+      ["organization_id", "text"],
+      ["error", "absent"]
+    ],
+    "errors": [{"status": 403, "reason": "invalid_api_key"}]
+  },
+  "examples": [
+    {
+      "title": "Chat with an open-weight model (charged to your ZeroGPU account)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "model": "meta-llama/llama-3.1-8b-instruct",
+        "messages": [{"role": "user", "content": "Write a one-line tagline for a coffee shop."}],
+        "max_tokens": 60,
+        "stream": false
+      },
+      "notes": [
+        "Set stream to true for SSE. Other models are listed at docs.zerogpu.ai/docs/model-catalog."
+      ]
+    },
+    {
+      "title": "Classify text into IAB categories with a ZLM (charged to your ZeroGPU account)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "model": "zlm-v1-iab-classify-edge",
+        "messages": [{"role": "user", "content": "Best trail running shoes for beginners, with a guide to cushioning and grip."}]
+      },
+      "notes": [
+        "The reply's message content is a JSON string of IAB content and audience categories with scores."
+      ]
+    },
+    {
+      "title": "Responses API (charged to your ZeroGPU account)",
+      "method": "POST",
+      "path": "/v1/responses",
+      "json": {
+        "model": "openai/gpt-oss-120b",
+        "input": "Summarize what an edge inference network is in two sentences.",
+        "max_output_tokens": 300
+      }
+    }
+  ],
+  "messages": {
+    "400": "ZeroGPU rejected the request; check the model ID and request body",
+    "402": "ZeroGPU balance exhausted; add credits or enable autopay at platform.zerogpu.ai",
+    "403": "ZeroGPU rejected the API key; check it or create a new one at platform.zerogpu.ai",
+    "404": "ZeroGPU model not found; check the model ID at docs.zerogpu.ai/docs/model-catalog",
+    "429": "ZeroGPU rate limit reached; retry after the retry-after interval"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["llm", "language models", "open-weight models", "small language models", "classification", "extraction", "iab", "openai-compatible"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-green-500/20",
+  "presentation": {
+    "tagline": "Open-weight models and specialized small models without storing your ZeroGPU key on a Sprite.",
+    "setup": "Log in at platform.zerogpu.ai/dashboard, open API Keys and create a key (it starts with `zgpu-api-`).",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Inference is charged to your ZeroGPU account. Saving, replacing and testing a key read `GET /v1/me`, which is free and does not check your balance; an account without credit saves its key, and inference then returns 402 until you add credit."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /v1/chat/completions` and `POST /v1/responses` (including SSE streaming) and `GET /v1/me` (the key's own key, project and organization IDs) are forwarded. Requests run in the key's own project. Model listing, embeddings, moderations, audio, batches, files, API keys, billing and account routes are not forwarded."
+      }
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
