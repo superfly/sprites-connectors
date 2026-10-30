@@ -6,8 +6,9 @@ Submitted by ZeroGPU (owner: vendor).
 
 - `POST /v1/chat/completions`: https://docs.zerogpu.ai/api-reference/chat-completions
 - `POST /v1/responses`: https://docs.zerogpu.ai/api-reference/responses
-- `GET /v1/me` (the probe): https://zerogpu-docs-zga-662-sprites-integration.mintlify.site/integrations/sprites#how-key-validation-works
-  (preview of our Sprites guide; it moves to docs.zerogpu.ai/integrations/sprites when the guide is published)
+- `GET /v1/me` (the probe): https://docs.zerogpu.ai/integrations/sprites#how-key-validation-works
+  (our Sprites guide, which we publish when this connector ships; "The probe" below
+  documents the endpoint in full until then)
 - Model IDs used in the examples: https://docs.zerogpu.ai/docs/model-catalog
 
 ## The probe
