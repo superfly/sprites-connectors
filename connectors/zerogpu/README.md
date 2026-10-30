@@ -4,23 +4,26 @@ Submitted by ZeroGPU (owner: vendor).
 
 ## API documentation
 
-- `POST /v1/chat/completions` (also the probe): https://docs.zerogpu.ai/api-reference/chat-completions
+- `POST /v1/chat/completions`: https://docs.zerogpu.ai/api-reference/chat-completions
 - `POST /v1/responses`: https://docs.zerogpu.ai/api-reference/responses
-- Model IDs used in the probe and examples: https://docs.zerogpu.ai/docs/model-catalog
+- `GET /v1/me` (the probe): https://zerogpu-docs-zga-662-sprites-integration.mintlify.site/integrations/sprites#how-key-validation-works
+  (preview of our Sprites guide; it moves to docs.zerogpu.ai/integrations/sprites when the guide is published)
+- Model IDs used in the examples: https://docs.zerogpu.ai/docs/model-catalog
 
-## Why the probe is an inference call
+## The probe
 
-The API has no authenticated read-only endpoint. `GET /v1/models` is public and
-answers 200 without a key, so it cannot tell a good key from a bad one. The
-probe is the smallest chat completion we can send: a one-token input to
-`zlm-v1-iab-classify-edge`, our cheapest model ($0.02 per million input tokens).
-On an account with no balance it uses one of the user's free trial calls
-instead. The Billing notice says both.
+`GET /v1/me` returns the key, project and organization the key belongs to:
+`{"object": "api_key", "id": ..., "project_id": ..., "organization_id": ...}`.
+We added it for this connector. `GET /v1/models` is public and answers 200
+without a key, so it can't tell a good key from a bad one. `/v1/me` is free and
+read-only: it runs no inference, never checks the balance or uses a free trial
+call, records no usage, and is sent with `Cache-Control: no-store`. It reads the
+key's row on every call, so a revoked key fails immediately.
 
 A wrong or revoked key gets `403` with the plain-text body `Invalid credentials`,
-hence the `errors` rule. A missing key gets `401`. Revoking a key in the
-dashboard refreshes the API's auth cache, so a revoked key fails on the next
-check.
+hence the `errors` rule. A missing key gets `401`. The recording in
+`fixtures/zerogpu/probe_200.json` has the real response shape with the three IDs
+replaced by placeholders.
 
 ## Project scoping
 
