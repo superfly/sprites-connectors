@@ -1,0 +1,60 @@
+{
+  "probe": {
+    "method": "POST",
+    "path": "/v1/chat/completions"
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-headers": "*",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-origin": "*",
+    "alt-svc": "h3=\":443\"; ma=86400",
+    "cf-ray": "a52601c0ac885e98-DFW",
+    "connection": "keep-alive",
+    "content-encoding": "br",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Thu, 29 Oct 2026 23:37:13 GMT",
+    "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+    "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=mTc6suctTNGVp7lXd1I%2FskSdUvO4qStxfPdDvVeN7APiRGj26%2B0NM8MNxllBnj2zJ%2BPb25QCdgbOk1%2Fog%2Fg7QFbr5%2FUSsw2gIDsZAMi2kzGGr2QXQFznpn1W%2BMUZvflYV6F3yZov6%2F7YbmGl\"}]}",
+    "server": "cloudflare",
+    "transfer-encoding": "chunked",
+    "vary": "accept-encoding",
+    "x-inference-type": "edge",
+    "x-request-id": "a4a9f147-787d-4aa5-8305-6a4febbd754c"
+  },
+  "body": {
+    "id": "a4a9f147-787d-4aa5-8305-6a4febbd754c",
+    "object": "chat.completion",
+    "created": 1793317033,
+    "model": "zlm-v1-iab-classify-edge",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"audience\":[],\"content\":{\"iab_1_0\":[],\"iab_2_2\":[]}}",
+          "refusal": null,
+          "annotations": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1,
+      "completion_tokens": 14,
+      "total_tokens": 15,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "service_tier": "default"
+  }
+}
