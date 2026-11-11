@@ -94,7 +94,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Box has no per-request charge, but Box plans include a monthly allocation of API calls and every request through this connector counts toward it, including the one `GET /2.0/users/me` sent when you save or test a token. Box limits each user to about 1,000 API requests per minute and 60 searches per minute and answers 429 with a `retry-after` header when exceeded."
+        "body": "Box has no per-request charge, but Box Business plans include a monthly per-enterprise allocation of API calls and every request through this connector counts toward it, including the one `GET /2.0/users/me` sent when you save or test a token. Box limits each user to about 1,000 API requests per minute and 60 searches per minute and answers 429 with a `retry-after` header when exceeded."
       },
       {
         "title": "Scope",
