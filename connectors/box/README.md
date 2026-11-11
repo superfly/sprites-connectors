@@ -65,8 +65,8 @@ below). This was not tested.
 
 ## Hosts and redirects
 
-A connector reaches one origin, `https://api.box.com`. File contents live
-elsewhere, so they are left out:
+A connector reaches one origin, `https://api.box.com`. The routes that
+carry file bytes are served elsewhere, so they are left out:
 
 - Uploads: `POST /files/content`, `POST /files/:id/content` and the chunked
   upload session routes are served by `https://upload.box.com/api/2.0`
@@ -88,6 +88,46 @@ with `location` in `forward_response_headers` if the gateway passes a 3xx
 back to the Sprite unfollowed, so the Sprite could fetch the short-lived
 `dl.boxcloud.com` URL itself. How the gateway treats redirects is not
 visible from this repository, so that is left for a reviewer to decide.
+
+### This is not content isolation
+
+Leaving those routes out limits what the connector carries. It does not
+stop a Sprite from reaching file contents, and the manifest does not claim
+it does. Routes are matched by method and path; the `fields` query parameter
+and the response body are not filtered. Box's File (Full) resource
+(https://developer.box.com/reference/resources/file--full, and `File--Full`
+in https://github.com/box/box-openapi) documents these fields on
+`GET /files/:id`, which is forwarded:
+
+- `download_url`: "A pre-authorized, expiring URL for directly downloading
+  the file's content", on `dl.boxcloud.com`.
+- `expiring_embed_link`: a preview URL on `cloud.app.box.com` together with
+  a Box access token restricted to that file. Box's Embed guide
+  (https://developer.box.com/guides/embed/box-embed, "Expiring embed links")
+  shows the request, `GET /2.0/files/12345?fields=expiring_embed_link`. The
+  URL expires after 60 seconds and the session after 60 minutes.
+- `shared_link`, including its `url` and `download_url`.
+- `representations`: URLs for renditions of the file. Choosing specific
+  ones, such as extracted text, needs the `x-rep-hints` request header,
+  which is not forwarded; Box says all representations are listed without
+  it.
+- `metadata.<scope>.<templateKey>`: metadata values. The metadata endpoints
+  are not forwarded, but this field is not an endpoint.
+
+A Sprite that can reach those other Box hosts may be able to open or
+download a file with these, within what Box allows the token's user. The
+links and the preview token are issued by Box in the response and are
+separate from the saved token, which the gateway holds. None of this was
+tried with a real token. Dropping `GET /files/:id` might not close it:
+Box documents the same `fields` parameter on the folder items, search,
+recent items and collection listings, and the format cannot filter a query
+parameter. So it is disclosed in the "File contents are not isolated"
+notice instead of being presented as a boundary.
+
+The connector also does not narrow the token. `GET /search` accepts
+`scope=enterprise_content`, which searches the whole enterprise for a user
+Box support has enabled it for, and the collaboration lists return
+collaborators' names and logins.
 
 ## Docs
 
@@ -122,11 +162,26 @@ Things a reviewer should know about the write routes:
 
 - `DELETE` on a file or folder moves it to the trash or deletes it
   permanently; "the enterprise settings determine" which.
-- `PUT` on a file, folder or web link accepts `shared_link`, so it can create
-  or remove a shared link. `PUT` on a folder also accepts `sync_state`,
-  `can_non_owners_invite`, `folder_upload_email` and the collaboration
-  restriction flags. The format cannot allow a route and refuse some of its
-  body fields. The Scope and "Writes are real" notices say so.
+- The format cannot allow a route and refuse some of its body fields, so
+  `PUT` reaches every field Box documents for the route, and several of them
+  change who has access. The Scope notice says bodies are not restricted and
+  the "Writes are real and can change access" notice lists the ones below.
+  Removing `PUT` would close them and would also remove rename and move; a
+  reviewer who thinks these powers go beyond what a user expects from
+  "organize files" should ask for that instead.
+  - `PUT` on a file, folder or web link accepts `shared_link` (`access`,
+    `password`, `permissions.can_download`, `unshared_at`, `vanity_name`),
+    so it can create, change or remove a shared link, including an `open`
+    one.
+  - `PUT` on a file (`put-files-id`) also accepts `permissions.can_download`
+    (`open` or `company`; "overrides the download permissions that are
+    normally part of the `role` of a collaboration"), `lock`, and
+    `disposition_at` (a retention date that "cannot be shortened once set").
+  - `PUT` on a folder (`put-folders-id`) also accepts
+    `can_non_owners_invite`, `can_non_owners_view_collaborators`,
+    `is_collaboration_restricted_to_enterprise`, `folder_upload_email`
+    (`open` accepts mail from any address) and `sync_state`.
+  - `POST /folders` accepts `folder_upload_email` and `sync_state` as well.
 - The two `collaborations` routes are read-only lists of who has access to
   an item, including collaborators' names and logins.
 
@@ -134,11 +189,12 @@ Left out on purpose: token exchange and revocation (`/oauth2/*`), users
 (`/2.0/users`, `/2.0/users/:id` and everything under it), groups, invites,
 creating, changing or removing collaborations, permanent deletion from the
 trash (`DELETE /2.0/files/:id/trash` and the folder and web link
-equivalents), deleting, promoting and restoring file versions, metadata and
-metadata templates, classifications, watermarks, tasks, folder locks, file
-requests, shared-item lookup (it needs a `boxapi` request header), zip
-downloads, webhooks, events, Box AI, Box Sign, Box Skills, retention, legal
-holds, Shield and every other enterprise admin API.
+equivalents), deleting, promoting and restoring file versions, the metadata
+and metadata template endpoints, classifications, watermarks, tasks, folder
+locks, file requests, shared-item lookup (it needs a `boxapi` request
+header), zip downloads, webhooks, events, Box AI, Box Sign, Box Skills,
+retention policies, legal holds, Shield and every other enterprise admin
+API.
 
 ## Path parameters
 
