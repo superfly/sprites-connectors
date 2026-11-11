@@ -44,7 +44,16 @@ token: it returned HTTP 200 and all five assertions passed. The redacted
 response is recorded in `fixtures/nscale/probe_200.json`; it contains model
 metadata and no credential or account data. It confirms the embedding model
 ID is `Qwen/Qwen3-Embedding-8B`, including the prefix omitted by the API
-reference's example. Paid inference and streaming remain unverified.
+reference's example.
+
+The contributor also tested `POST /v1/embeddings` directly against Nscale
+on 2026-11-11 with model `Qwen/Qwen3-Embedding-8B` and input
+`Hello from Sprites.`. It returned HTTP 200 with one embedding at index 0
+containing 4096 finite numeric dimensions. The helper saved only a token-free
+summary, not the token or full response. This verifies a paid embedding
+request, not forwarding through a deployed Sprites gateway. Chat, text
+completions, streaming and gateway forwarding remain unverified live.
+
 To repeat the credential check with a token supplied through the environment:
 
 ```sh
