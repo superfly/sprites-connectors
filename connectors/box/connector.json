@@ -1,0 +1,125 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "box",
+  "display_name": "Box",
+  "base_url": "https://api.box.com",
+  "description": "Browse, search and organize Box files and folders with a short-lived access token",
+  "long_description": "Bring a Box access token, such as a developer token from the Box Developer Console; the gateway keeps it off your Sprite. Saving, replacing or testing the token reads the token's Box user (GET /2.0/users/me) and nothing else. A Sprite can then list folders, search, read file and folder details, create folders, rename, move, copy, trash and restore files and folders, read and write comments, and manage web links, all as the token's user. Box access tokens expire 60 minutes after they are issued and Box has no long-lived user API key: OAuth, JWT and Client Credentials token exchange and refresh are not forwarded, so you replace the token by hand when it expires. File contents do not pass through this connector: uploads go to upload.box.com and downloads redirect to dl.boxcloud.com, which are different hosts. Users, groups, collaboration invites, permanent deletion from the trash, metadata, tasks, webhooks, events, Box AI, Box Sign and admin APIs are not forwarded either.",
+  "website_url": "https://app.box.com/developers/console",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/2.0/users/me"},
+    {"methods": ["POST"], "pattern": "/2.0/folders"},
+    {"methods": ["GET", "POST", "PUT", "DELETE"], "pattern": "/2.0/folders/:folder_id"},
+    {"methods": ["GET"], "pattern": "/2.0/folders/:folder_id/items"},
+    {"methods": ["POST"], "pattern": "/2.0/folders/:folder_id/copy"},
+    {"methods": ["GET"], "pattern": "/2.0/folders/:folder_id/collaborations"},
+    {"methods": ["GET"], "pattern": "/2.0/folders/trash/items"},
+    {"methods": ["GET", "POST", "PUT", "DELETE"], "pattern": "/2.0/files/:file_id"},
+    {"methods": ["POST"], "pattern": "/2.0/files/:file_id/copy"},
+    {"methods": ["GET"], "pattern": "/2.0/files/:file_id/versions"},
+    {"methods": ["GET"], "pattern": "/2.0/files/:file_id/comments"},
+    {"methods": ["GET"], "pattern": "/2.0/files/:file_id/collaborations"},
+    {"methods": ["POST"], "pattern": "/2.0/comments"},
+    {"methods": ["GET", "PUT", "DELETE"], "pattern": "/2.0/comments/:comment_id"},
+    {"methods": ["GET"], "pattern": "/2.0/search"},
+    {"methods": ["GET"], "pattern": "/2.0/recent_items"},
+    {"methods": ["GET"], "pattern": "/2.0/collections"},
+    {"methods": ["GET"], "pattern": "/2.0/collections/:collection_id"},
+    {"methods": ["GET"], "pattern": "/2.0/collections/:collection_id/items"},
+    {"methods": ["POST"], "pattern": "/2.0/web_links"},
+    {"methods": ["GET", "POST", "PUT", "DELETE"], "pattern": "/2.0/web_links/:web_link_id"}
+  ],
+  "path_param": "\\A[0-9]+\\z",
+  "forward_response_headers": ["box-request-id", "retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/2.0/users/me",
+    "label": "current user",
+    "expect": [
+      ["type", "eq", "user"],
+      ["id", "text"],
+      ["code", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Show the token's Box user",
+      "path": "/2.0/users/me"
+    },
+    {
+      "title": "List the root folder (folder 0); use any folder ID in its place",
+      "path": "/2.0/folders/0/items?limit=100&fields=id,type,name,size,modified_at",
+      "notes": ["Entries are files, folders and web links; use an entry's id with /2.0/files/, /2.0/folders/ or /2.0/web_links/."]
+    },
+    {
+      "title": "Search file names and contents",
+      "path": "/2.0/search?query=invoice&type=file&limit=10&fields=id,type,name,parent",
+      "notes": ["Box limits search to 60 requests per minute per user."]
+    },
+    {
+      "title": "Create a folder in the root folder (changes your Box account)",
+      "method": "POST",
+      "path": "/2.0/folders",
+      "json": {"name": "Sprite notes", "parent": {"id": "0"}},
+      "notes": ["Box answers 409 when an item with that name already exists in the parent folder."]
+    },
+    {
+      "title": "Comment on a file; replace FILE_ID in the body (changes your Box account)",
+      "method": "POST",
+      "path": "/2.0/comments",
+      "json": {"message": "Reviewed by a Sprite.", "item": {"type": "file", "id": "FILE_ID"}}
+    }
+  ],
+  "messages": {
+    "401": "Box rejected the access token. Box tokens expire 60 minutes after they are issued; generate a new one and replace the saved token",
+    "403": "Box refused the request (%{status}); the token's user or the app's scopes do not allow it",
+    "404": "Not found in Box, or the token's user cannot see it",
+    "409": "Box reported a conflict; an item with that name may already exist in the folder",
+    "429": "Box rate limit reached; wait for the retry-after interval and try again",
+    "invalid_api_key": "Box rejected the access token. Box tokens expire 60 minutes after they are issued; generate a new one and try again",
+    "provider_unreachable": "Could not reach Box; retry later"
+  },
+  "discovery": {
+    "categories": ["productivity"],
+    "keywords": ["box", "files", "folders", "file storage", "cloud storage", "documents", "content management", "search"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-blue-500/20",
+  "presentation": {
+    "tagline": "Browse and organize your Box files from a Sprite without putting the token on it.",
+    "setup": "In the Box Developer Console (app.box.com/developers/console), open or create a Platform App, open its Configuration tab and select Generate Developer Token, then paste the token here. The token acts as the Box user who generated it and stops working 60 minutes later; generate a new one and replace the saved token to continue.",
+    "key_label": "Access token",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Box has no per-request charge, but Box plans include a monthly allocation of API calls and every request through this connector counts toward it, including the one `GET /2.0/users/me` sent when you save or test a token. Box limits each user to about 1,000 API requests per minute and 60 searches per minute and answers 429 with a `retry-after` header when exceeded."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwards the token's user (`GET /2.0/users/me`); folders (create, read, update, trash, restore, copy, list items and collaborators); files (read details, update, trash, restore, copy, list versions, comments and collaborators); comments; search; recent items; collections; web links; and the trash listing. File uploads and downloads, token exchange and refresh, users and groups, collaboration invites, permanent deletion from the trash, metadata, tasks, webhooks, events, Box AI, Box Sign and admin APIs are not forwarded."
+      },
+      {
+        "title": "Tokens expire after 60 minutes",
+        "body": "Box access tokens and developer tokens last 60 minutes and this connector cannot refresh them. When a token expires every request returns 401 until you save a new one. Box describes developer tokens as meant for development and testing, and revoking one in the Developer Console deletes the webhooks that app created."
+      },
+      {
+        "title": "No file contents",
+        "body": "Box uploads go to `upload.box.com` and `GET /2.0/files/:id/content` answers with a redirect to `dl.boxcloud.com`. A connector reaches one host, `api.box.com`, so a Sprite can see and organize files through it but cannot read or write their contents."
+      },
+      {
+        "title": "Writes are real",
+        "body": "Updates, moves, copies and comments take effect in your Box account as the token's user. `DELETE` moves an item to the trash or deletes it permanently, depending on your enterprise's settings. Updating a file, folder or web link can also create or remove its shared link."
+      }
+    ],
+    "usage_notes": [
+      "IDs in paths are numeric; the root folder is `0`. Paths with any other ID segment are refused.",
+      "Use the `fields` query parameter to ask for only the fields you need, and `limit` with `marker` or `offset` to page through lists.",
+      "Rename with `PUT /2.0/files/:id` and `{\"name\": ...}`; move with `{\"parent\": {\"id\": ...}}`. Restore a trashed item with `POST` to the same path.",
+      "`DELETE /2.0/folders/:id` refuses a folder that is not empty unless you add `?recursive=true`.",
+      "Request headers such as `as-user`, `boxapi`, `if-match` and `x-rep-hints` are not forwarded."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}

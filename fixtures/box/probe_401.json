@@ -1,0 +1,18 @@
+{
+  "probe": {
+    "method": "GET",
+    "path": "/2.0/users/me"
+  },
+  "status": 401,
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000",
+    "box-request-id": "07465d79ab46b82e5e44a0cf718257aee",
+    "content-length": "0",
+    "date": "Wed, 11 Nov 2026 05:49:12 GMT",
+    "strict-transport-security": "max-age=31536000",
+    "via": "1.1 google",
+    "www-authenticate": "Bearer realm=\"Service\", error=\"invalid_token\", error_description=\"The access token provided is invalid.\"",
+    "x-envoy-upstream-service-time": "4"
+  },
+  "body": ""
+}
