@@ -22,10 +22,10 @@
     "path": "/v1/models",
     "label": "models",
     "expect": [
-      ["object", "eq", "list"],
+      ["object", "text"],
       ["data", "list"],
       ["data[].id", "text"],
-      ["data[].object", "eq", "model"],
+      ["data[].object", "text"],
       ["error", "absent"]
     ]
   },
@@ -71,7 +71,7 @@
   "icon_bg_class": "bg-gray-500/20",
   "presentation": {
     "tagline": "Nscale serverless inference without storing your service token on a Sprite.",
-    "setup": "Sign in at console.nscale.com, open Settings → Service Tokens and create a service token with access to models and inference. Copy the token when it is shown, then paste it here.",
+    "setup": "Sign in at console.nscale.com, open Settings → Service Tokens and create a service token. Copy the token when it is shown, then paste it here.",
     "key_label": "Service token",
     "notices": [
       {"title": "Billing", "body": "Saving, replacing and testing a token only call `GET /v1/models` and run no paid inference. Chat, text completions and embeddings consume your Nscale credits. A successful check does not verify inference permissions or credit balance; Nscale documents 429 for insufficient credit."},

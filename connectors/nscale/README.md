@@ -27,7 +27,9 @@ are outside this connector's scope.
 ## Probe and verification
 
 The probe only lists models, so it runs no paid inference. Its assertions
-expect an OpenAI-compatible model list and no `error`. An empty model list
+follow the documented `ModelList` schema: a non-empty `object` string, a
+`data` list with non-empty `id` and `object` strings, and no `error`. The
+schema does not prescribe literal values for `object`. An empty model list
 is accepted: this checks authentication, not model availability, inference
 permissions or credit balance. Model IDs and pricing are not pinned by the
 probe. A 401 uses the gateway's default `invalid_api_key` classification.
