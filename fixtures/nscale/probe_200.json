@@ -1,0 +1,73 @@
+{
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models"
+  },
+  "status": 200,
+  "headers": {
+    "content-type": "application/json",
+    "date": "Wed, 11 Nov 2026 22:46:01 GMT",
+    "transfer-encoding": "chunked",
+    "x-request-id": "576555df-6859-4dc8-88c2-031462fbd170"
+  },
+  "body": {
+    "object": "list",
+    "data": [
+      {
+        "object": "model",
+        "id": "Qwen/Qwen3-Embedding-8B",
+        "created": 1748961550,
+        "owned_by": "Qwen",
+        "context_length": 32768,
+        "pricing": {
+          "input": 0.04,
+          "output": 0
+        }
+      },
+      {
+        "object": "model",
+        "id": "Qwen/Qwen3.8-27B",
+        "created": 1785918179,
+        "owned_by": "Qwen",
+        "context_length": 1048576,
+        "pricing": {
+          "input": 0.2,
+          "output": 2.5
+        }
+      },
+      {
+        "object": "model",
+        "id": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "created": 1787559923,
+        "owned_by": "Qwen",
+        "context_length": 1048576,
+        "pricing": {
+          "input": 0.15,
+          "output": 0.47
+        }
+      },
+      {
+        "object": "model",
+        "id": "mistralai/Mistral-Large-3-675B-Instruct-2512-NVFP4",
+        "created": 1764352624,
+        "owned_by": "Mistral AI",
+        "context_length": 262144,
+        "pricing": {
+          "input": 1,
+          "output": 2.5
+        }
+      },
+      {
+        "object": "model",
+        "id": "zai-org/GLM-5.3",
+        "created": 1787640170,
+        "owned_by": "Z.AI",
+        "context_length": 1048576,
+        "pricing": {
+          "input": 1.4,
+          "output": 4.4
+        }
+      }
+    ]
+  }
+}
