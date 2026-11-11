@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "nscale",
+  "display_name": "Nscale",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://inference.api.nscale.com",
+  "description": "Serverless chat, text completions and embeddings with Nscale.",
+  "long_description": "Bring a Nscale service token to use OpenAI-compatible serverless inference without storing the token on your Sprite. Saving, replacing and testing a token only list models; the check runs no inference and does not verify inference permissions or credit balance. Inference consumes your Nscale credits. Supports model discovery, chat completions, text completions and embeddings, including SSE streaming for completions. Images, endpoint management, compute, storage, service tokens, billing and account management are not forwarded.",
+  "website_url": "https://console.nscale.com",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/completions"},
+    {"methods": ["POST"], "pattern": "/v1/embeddings"}
+  ],
+  "forward_response_headers": ["inference-id"],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models",
+    "label": "models",
+    "expect": [
+      ["object", "eq", "list"],
+      ["data", "list"],
+      ["data[].id", "text"],
+      ["data[].object", "eq", "model"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {"title": "List available models", "path": "/v1/models"},
+    {
+      "title": "Chat completion (uses your Nscale credits)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "model": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "messages": [{"role": "user", "content": "Explain serverless inference in two sentences."}],
+        "max_completion_tokens": 256,
+        "stream": false
+      },
+      "notes": ["Set stream to true for SSE. Use GET /v1/models to check current model IDs and availability."]
+    },
+    {
+      "title": "Text completion; replace MODEL_ID (uses your Nscale credits)",
+      "method": "POST",
+      "path": "/v1/completions",
+      "json": {"model": "MODEL_ID", "prompt": "Serverless inference is", "max_tokens": 64, "stream": false},
+      "notes": ["Replace MODEL_ID with a model that supports text completions; model capabilities vary."]
+    },
+    {
+      "title": "Create embeddings (uses your Nscale credits)",
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "json": {"model": "Qwen3-Embedding-8B", "input": "Sprites run applications in isolated environments."}
+    }
+  ],
+  "messages": {
+    "401": "Nscale service token is invalid or expired; replace it in this connection",
+    "403": "Nscale service token lacks permission for this operation; check its role and scope",
+    "404": "Nscale model not found or unavailable; check GET /v1/models",
+    "429": "Nscale rejected the request; check your available credits and the provider error"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["llm", "language models", "serverless", "embeddings", "openai-compatible"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-gray-500/20",
+  "presentation": {
+    "tagline": "Nscale serverless inference without storing your service token on a Sprite.",
+    "setup": "Sign in at console.nscale.com, open Settings → Service Tokens and create a service token with access to models and inference. Copy the token when it is shown, then paste it here.",
+    "key_label": "Service token",
+    "notices": [
+      {"title": "Billing", "body": "Saving, replacing and testing a token only call `GET /v1/models` and run no paid inference. Chat, text completions and embeddings consume your Nscale credits. A successful check does not verify inference permissions or credit balance; Nscale documents 429 for insufficient credit."},
+      {"title": "Scope", "body": "Only `GET /v1/models`, `POST /v1/chat/completions`, `POST /v1/completions` and `POST /v1/embeddings` are forwarded. Completions can stream with SSE. Images, endpoint management, compute, storage, service tokens, billing and account management are not forwarded."},
+      {"title": "Token expiry", "body": "Nscale service tokens are time-limited. Rotate an expiring token in Nscale and replace it in this connection; the connector does not refresh tokens automatically."}
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
