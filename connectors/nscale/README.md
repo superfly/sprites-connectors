@@ -39,17 +39,19 @@ than only rate limiting.
 
 On 2026-11-11, live requests to `GET /v1/models` without authorization and
 with a deliberately invalid bearer token both returned 401 authentication
-errors. No valid Nscale service token was available for this submission;
-the successful probe response and paid inference have **not** been tested
-live. No synthetic successful response is presented as a recorded fixture.
-Before merge, run the probe with a real service token:
+errors. The contributor then ran the repository probe with a valid service
+token: it returned HTTP 200 and all five assertions passed. The redacted
+response is recorded in `fixtures/nscale/probe_200.json`; it contains model
+metadata and no credential or account data. It confirms the embedding model
+ID is `Qwen/Qwen3-Embedding-8B`, including the prefix omitted by the API
+reference's example. Paid inference and streaming remain unverified.
+To repeat the credential check with a token supplied through the environment:
 
 ```sh
 node scripts/probe.mjs nscale --key-env NSCALE_SERVICE_TOKEN --write-fixture
 ```
 
-Review the redacted recording before committing it. The successful-response
-assertions still need confirmation against that live response.
+Review any new redacted recording before committing it.
 
 ## Icons and licensing
 

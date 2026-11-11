@@ -54,7 +54,7 @@
       "title": "Create embeddings (uses your Nscale credits)",
       "method": "POST",
       "path": "/v1/embeddings",
-      "json": {"model": "Qwen3-Embedding-8B", "input": "Sprites run applications in isolated environments."}
+      "json": {"model": "Qwen/Qwen3-Embedding-8B", "input": "Sprites run applications in isolated environments."}
     }
   ],
   "messages": {
