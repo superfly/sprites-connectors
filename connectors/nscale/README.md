@@ -64,16 +64,32 @@ Review any new redacted recording before committing it.
 
 ## Icons and licensing
 
-Source: Nscale's documentation header logo at
-https://mintcdn.com/nscale/eHooAh3A-xA3WCln/logos/light.svg,
-linked from https://docs.nscale.com/docs/getting-started/overview.
-`icon.svg` keeps the three symbol paths, their black fills and opacity,
-omits the wordmark, and crops the viewBox horizontally. `mark.svg` uses the
-same paths and opacity with `currentColor` fills.
+Source: Nscale's official [media kit](https://www.nscale.com/media-kit),
+which supplies resources "to use when referencing Nscale and its affiliates
+in any media and public-facing communications." The connector identifies
+Nscale's service; it does not imply vendor ownership or endorsement.
 
-The logo is Nscale's intellectual property, not an open-source asset.
-No redistribution licence or permission has been established. Nscale's
-[website terms](https://www.nscale.com/policies/terms-conditions) restrict
-reproduction and redistribution of its intellectual property and direct
-IP questions to info@nscale.com. **Confirm permission for the included
-logo assets before merging or distributing this connector.**
+`icon.svg` is the supplied `Nscale-symbol_blue.svg`, unchanged, from
+`Nscale_logo/03 Symbol/01 Vector WEB (SVG)/` in the
+[logo download](https://goxvjuya4o8wh25n.public.blob.vercel-storage.com/zips/Nscale_logo.zip).
+It preserves the original paths, proportions, opacity and Nscale Blue
+(`#0F41F3`). `mark.svg` preserves the same geometry and opacity, changing
+only the three fills to `currentColor` as required by the connector format.
+
+The linked [Brand Guidelines 2026](https://goxvjuya4o8wh25n.public.blob.vercel-storage.com/pdfs/Nscale%20Brand%20Guidelines%202026.pdf)
+provide the usage rules:
+
+- Page 13 explicitly permits the standalone logomark "when space is extremely
+  limited: app icons, favicons, social thumbnails, and similar small-format
+  contexts." This is the basis for using the supplied symbol in the connector
+  icon and mark, rather than separating a full-logo lockup ourselves.
+- Pages 10 and 15 require clear space and preservation of the logo's
+  proportions and orientation, with no added effects.
+- Page 12 describes light/dark variants and requires sufficient contrast.
+  Render the currentColor mark in a dark colour on light backgrounds and
+  white on dark backgrounds, retaining clear space around the symbol.
+
+Logo usage is based on this published media-kit invitation and its brand
+guidelines, not a claim that the assets have an open-source licence. Nscale
+retains its intellectual-property rights. Questions about other uses go to
+marketing@nscale.com, as directed by the media kit and guidelines.
