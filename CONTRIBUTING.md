@@ -147,9 +147,7 @@ written with `\A` and `\z` anchors:
 "path_param": "\\A[A-Za-z0-9._%+@-]+\\z"
 ```
 
-The probe's route (next section) does not need to be in this list. Only add
-it if Sprites should be able to call that endpoint with their own requests.
-A probe does not grant forwarding access. Leave out anything
+Include the probe's route (next section) in this list. Leave out anything
 that manages keys, billing, users or the account itself: a reviewer reads
 every route against the vendor's docs and refuses those.
 
@@ -167,13 +165,6 @@ judges the response. It must be the cheapest request that fails with a bad
 key and succeeds with a good one, and it must be safe to repeat: no side
 effects, or if it costs money, say so in the Billing notice (step 2, last
 section).
-
-Sprites supports credential checks independently of the routes a connector
-forwards. Probes use the same fixed `base_url` and credential as forwarded
-requests, but do not need to appear in `allowed_paths`. This lets you check a
-key with an identity endpoint without giving a Sprite access to that endpoint.
-Sprites runs the probe exactly as declared in the manifest and reports whether
-the check passed.
 
 ```json
 "probe": {
@@ -304,8 +295,8 @@ npx --yes ajv-cli@5 validate --spec=draft2020 --strict=false \
 ```
 
 The first checks everything the schema cannot: the names agree, the icons are
-safe and the mark is one colour, every example is an allowed
-route, every `expect` list is well-formed and `path_param` compiles. Run it
+safe and the mark is one colour, the probe and every example are allowed
+routes, every `expect` list is well-formed and `path_param` compiles. Run it
 with no name to check every connector under `connectors/` and `examples/`.
 The second checks the manifest against the schema. Fix what they report and
 run them again until both are clean. Both run in CI on your pull request.

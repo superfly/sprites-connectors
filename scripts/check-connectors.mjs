@@ -3,8 +3,8 @@
 // ones named on the command line, found in either root) for the things the
 // JSON Schema cannot express: directory and manifest names agree, a
 // connector holds only its four files, referenced SVG files exist and are
-// safe to inline, the mark is one ink, every example is a
-// route the manifest forwards, expectations are well-formed, path_param
+// safe to inline, the mark is one ink, the probe and every example are
+// routes the manifest forwards, expectations are well-formed, path_param
 // compiles, and fixtures/ holds only well-named JSON recordings for
 // existing connectors (see scripts/lib/check.mjs). Schema validation itself
 // is ajv-cli (see CONTRIBUTING.md); both run in CI.

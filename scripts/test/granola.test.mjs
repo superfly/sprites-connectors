@@ -19,14 +19,3 @@ test("Granola accepts an empty accessible-notes list but rejects errors and inva
   assert.equal(pathAllowed(connector.allowed_paths, "DELETE", "/v1/notes/not_123"), false);
   assert.equal(pathAllowed(connector.allowed_paths, "POST", "/v1/webhook-endpoints"), false);
 });
-
-test("Expo probes identity without permitting caller GraphQL and rejects partial GraphQL errors", async () => {
-  const connector = manifest("expo_simulators");
-  assert.equal(pathAllowed(connector.allowed_paths, "POST", "/graphql"), false);
-  assert.equal(pathAllowed(connector.allowed_paths, "GET", "/graphql"), false);
-  assert.equal((await runProbe(connector, "key", { fetch: response({ data: { meActor: { id: "actor-id" } } }) })).ok, true);
-  for (const body of [{ data: { meActor: null } }, { data: { meActor: { id: "actor-id" } }, errors: [{ message: "Denied" }] }]) {
-    assert.equal((await runProbe(connector, "key", { fetch: response(body) })).ok, false);
-  }
-  assert.equal((await runProbe(connector, "key", { fetch: response({ errors: [{ message: "Invalid bearer token" }] }, 401) })).reason, "invalid_api_key");
-});

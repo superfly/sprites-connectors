@@ -48,9 +48,9 @@ const base = {
   examples: [{ title: "t", method: "POST", path: "/items/abc" }],
 };
 
-test("probes may use unforwarded routes, but examples must be forwarded", () => {
+test("probe and example paths must be forwarded routes", () => {
   assert.deepEqual(manifestProblems(base), []);
-  assert.deepEqual(manifestProblems({ ...base, probe: { ...base.probe, method: "POST", path: "/graphql", json: { query: "{ meActor { id } }" } } }), []);
+  assert.match(manifestProblems({ ...base, probe: { ...base.probe, method: "POST" } })[0], /probe POST \/me\?x=1 is not allowed/);
   assert.match(manifestProblems({ ...base, examples: [{ title: "t", path: "/items/abc" }] })[0], /examples\[0\] GET \/items\/abc/);
   assert.match(manifestProblems({ ...base, examples: [{ title: "t", method: "POST", path: "/items/a.b" }] })[0], /examples\[0\]/);
 });
