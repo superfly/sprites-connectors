@@ -33,10 +33,11 @@ An empty array passes: a valid key may have no accessible notes, including a
 workspace key limited to Notes by ID. A successful check does not establish
 transcript access. Only notes with generated summaries are returned by the API.
 
-On 2026-11-13, a deliberately invalid bearer key returned HTTP 401 with
-`INVALID_API_KEY`, classified correctly by the repository probe runner.
-Valid-key and deployed-gateway testing remain pending; no successful live
-response fixture is claimed.
+On 2026-11-13, the live probe with a valid bearer key returned HTTP 200 and
+passed all four response assertions. A deliberately invalid bearer key
+returned HTTP 401 with `INVALID_API_KEY`, classified correctly by the
+repository probe runner. No response body was recorded or saved as a fixture.
+End-to-end testing through the deployed Sprites gateway remains pending.
 
 ```sh
 node scripts/probe.mjs granola --key-env GRANOLA_API_KEY
