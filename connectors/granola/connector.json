@@ -134,7 +134,7 @@
   "messages": {
     "401": "Granola API key is invalid, revoked or expired; replace it in this connection",
     "403": "Granola denied access; check the key’s scopes, workspace controls, subscription and IP allowlist",
-    "404": "Granola note is unavailable or inaccessible; only notes with a generated summary are returned",
+    "404": "Granola did not find that resource: the note has no generated summary or is inaccessible, or spaces are not enabled for this workspace",
     "413": "Transcript is too large to include in the note; use GET /v1/notes/NOTE_ID/transcript",
     "429": "Granola rate limit reached; retry later"
   },
