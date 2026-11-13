@@ -1,0 +1,174 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "granola",
+  "display_name": "Granola",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://public-api.granola.ai",
+  "website_url": "https://docs.granola.ai/help-center/sharing/integrations/granola-api",
+  "description": "Read and search meeting notes, summaries and transcripts from Granola.",
+  "auth": "bearer",
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-gray-500/20",
+  "long_description": "Use your Granola API key to read and search accessible meeting notes, summaries, transcripts, folders and spaces without storing the key on your Sprite. Requires a Business or Enterprise plan. Saving or testing a key reads at most one note summary; an empty result is valid. Access follows the key’s scopes and workspace controls. Webhooks, audit logs, legal holds and account management are not forwarded.",
+  "allowed_paths": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/notes"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/notes/:id"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/notes/:id/transcript"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/folders"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v1/spaces"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/notes/search"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v1/notes/transcripts/search"
+    }
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/notes?page_size=1",
+    "label": "notes",
+    "expect": [
+      [
+        "notes",
+        "list"
+      ],
+      [
+        "notes[].id",
+        "text"
+      ],
+      [
+        "hasMore",
+        "boolean"
+      ],
+      [
+        "code",
+        "absent"
+      ]
+    ]
+  },
+  "forward_response_headers": [
+    "retry-after"
+  ],
+  "examples": [
+    {
+      "title": "List accessible notes",
+      "method": "GET",
+      "path": "/v1/notes?page_size=10"
+    },
+    {
+      "title": "Read a note; replace NOTE_ID",
+      "method": "GET",
+      "path": "/v1/notes/NOTE_ID"
+    },
+    {
+      "title": "Read a transcript; replace NOTE_ID",
+      "method": "GET",
+      "path": "/v1/notes/NOTE_ID/transcript"
+    },
+    {
+      "title": "Search note titles and summaries",
+      "method": "POST",
+      "path": "/v1/notes/search",
+      "json": {
+        "keywords": [
+          "project review"
+        ]
+      }
+    },
+    {
+      "title": "Search transcripts",
+      "method": "POST",
+      "path": "/v1/notes/transcripts/search",
+      "json": {
+        "keywords": [
+          "next steps"
+        ]
+      }
+    },
+    {
+      "title": "List folders",
+      "method": "GET",
+      "path": "/v1/folders"
+    },
+    {
+      "title": "List spaces",
+      "method": "GET",
+      "path": "/v1/spaces"
+    }
+  ],
+  "messages": {
+    "401": "Granola API key is invalid, revoked or expired; replace it in this connection",
+    "403": "Granola denied access; check the key’s scopes, workspace controls, subscription and IP allowlist",
+    "404": "Granola did not find that resource: the note has no generated summary or is inaccessible, or spaces are not enabled for this workspace",
+    "413": "Transcript is too large to include in the note; use GET /v1/notes/NOTE_ID/transcript",
+    "429": "Granola rate limit reached; retry later"
+  },
+  "discovery": {
+    "categories": [
+      "productivity"
+    ],
+    "keywords": [
+      "meetings",
+      "notes",
+      "transcripts",
+      "summaries",
+      "search"
+    ]
+  },
+  "presentation": {
+    "tagline": "Read Granola meeting notes without storing your API key on a Sprite.",
+    "setup": "On a Granola Business or Enterprise plan, open Settings → Connectors → API keys in the desktop app. Create a key with the note access scopes you need, then paste it here. Workspace admins can also create a workspace API key.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Requires a Granola Business or Enterprise subscription. Saving or testing a key reads at most one note summary and creates no meeting or AI summary. Requests count against Granola’s API rate limits."
+      },
+      {
+        "title": "Scope",
+        "body": "Read notes, summaries, transcripts, folders and spaces, and search notes or transcripts. Webhooks, audit logs, legal holds and account management are not forwarded."
+      },
+      {
+        "title": "Access",
+        "body": "Results follow the key’s scopes and workspace controls. An empty list passes the key check. Only notes with a generated summary are returned. Transcript access may be disabled by an administrator; a successful check does not verify that permission."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}
