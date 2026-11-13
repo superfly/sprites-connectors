@@ -1,6 +1,6 @@
 // Manifest checks the JSON Schema cannot express, shared by
-// scripts/check-connectors.mjs and the unit tests: the probe and every
-// example must be routes the manifest forwards, expectations must be
+// scripts/check-connectors.mjs and the unit tests: every example must be
+// a route the manifest forwards, expectations must be
 // well-formed, path_param must compile and auth must be one of the forms
 // the probe runner can send. Returns problems as strings; an empty list
 // means the manifest passes.
@@ -58,8 +58,6 @@ export function manifestProblems(manifest) {
       return true;
     }
   };
-  if (typeof probe.path === "string" && !allowed(probe.method ?? "GET", probe.path))
-    problems.push(`probe ${probe.method ?? "GET"} ${probe.path} is not allowed by allowed_paths`);
   (Array.isArray(manifest.examples) ? manifest.examples : []).forEach((example, i) => {
     const method = example?.method ?? "GET";
     if (typeof example?.path === "string" && !allowed(method, example.path))

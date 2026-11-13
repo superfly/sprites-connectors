@@ -144,6 +144,7 @@
       "description": "Hex characters of the key's SHA-256 kept in account ids, 1 to 64."
     },
     "probe": {
+      "description": "Credential check sent to base_url. It does not need to appear in allowed_paths and does not grant access to that route.",
       "$ref": "#/$defs/probe"
     },
     "icon_svg": {

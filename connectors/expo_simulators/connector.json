@@ -1,0 +1,139 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "expo_simulators",
+  "display_name": "Expo Simulators",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.expo.dev",
+  "website_url": "https://expo.dev/settings/access-tokens",
+  "description": "Create, inspect and stop remote Android Emulator and iOS Simulator sessions.",
+  "auth": "bearer",
+  "icon_svg": {
+    "file": "icon.svg"
+  },
+  "icon_bg_class": "bg-gray-500/20",
+  "long_description": "Use an Expo personal or robot access token to create, inspect and stop remote simulator sessions without storing the Expo token on your Sprite. Saving or testing a token runs a read-only identity query and starts no simulator. The check does not verify project permissions or simulator availability. Device control uses the session-specific URL and credentials returned by Expo, outside this gateway. GraphQL, builds, account management and billing are not forwarded.",
+  "allowed_paths": [
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v2/device-run-sessions"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "pattern": "/v2/device-run-sessions/:id"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "pattern": "/v2/device-run-sessions/:id/stop"
+    }
+  ],
+  "probe": {
+    "method": "POST",
+    "path": "/graphql",
+    "label": "identity",
+    "json": {
+      "query": "query SpritesCredentialProbe { meActor { id } }"
+    },
+    "expect": [
+      [
+        "data.meActor.id",
+        "text"
+      ],
+      [
+        "errors",
+        "absent"
+      ]
+    ]
+  },
+  "forward_response_headers": [
+    "cache-control",
+    "pragma",
+    "retry-after"
+  ],
+  "examples": [
+    {
+      "title": "Start an iOS session; replace PROJECT_ID (uses your Expo plan)",
+      "method": "POST",
+      "path": "/v2/device-run-sessions",
+      "json": {
+        "appId": "PROJECT_ID",
+        "platform": "ios",
+        "type": "agent-device",
+        "name": "Sprite app check",
+        "maxDurationMinutes": 15,
+        "maxIdleTimeMinutes": 5
+      },
+      "notes": [
+        "Use an existing Expo Services project UUID for PROJECT_ID. Set platform to android for an Android Emulator. To install an app during startup, supply buildId, applicationArchiveUrl, or expoGo: true; choose at most one."
+      ]
+    },
+    {
+      "title": "Inspect a session; replace SESSION_ID",
+      "method": "GET",
+      "path": "/v2/device-run-sessions/SESSION_ID",
+      "notes": [
+        "Poll every five seconds until data.status is in-progress and data.remoteConfig is not null. Stop polling on stopped or errored. Treat remoteConfig as secret; it can contain controller and preview tokens. Connect your controller directly using these values."
+      ]
+    },
+    {
+      "title": "Stop a session; replace SESSION_ID",
+      "method": "POST",
+      "path": "/v2/device-run-sessions/SESSION_ID/stop",
+      "notes": [
+        "Stop the session when finished, including after failures or polling timeouts. Closing a client does not stop the remote device."
+      ]
+    }
+  ],
+  "messages": {
+    "401": "Expo access token is invalid; replace it in this connection",
+    "403": "Expo access token lacks permission for this project or operation; use a Developer-role token",
+    "400": "Expo rejected the request; check the project UUID, session options and simulator access for the account",
+    "404": "Expo project or session was not found",
+    "429": "Expo rate limit reached; retry later"
+  },
+  "discovery": {
+    "categories": [
+      "developer-tools"
+    ],
+    "keywords": [
+      "expo",
+      "ios",
+      "android",
+      "simulators",
+      "emulators",
+      "mobile",
+      "testing",
+      "agent-device",
+      "appium"
+    ]
+  },
+  "presentation": {
+    "tagline": "Manage Expo simulator sessions without storing your Expo token on a Sprite.",
+    "key_label": "Access token",
+    "setup": "Create an access token at expo.dev/settings/access-tokens. For shared projects, use a robot user assigned the Developer role on the owning account. A personal access token also works. You need an existing Expo Services project and an account with Expo Simulators access.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing a token only checks identity and starts no simulator. Sessions use your Expo plan’s resources and concurrency. Set maxDurationMinutes and stop each session when finished; closing your client does not stop it."
+      },
+      {
+        "title": "Scope",
+        "body": "Only session creation, inspection and stopping are forwarded. GraphQL, builds, account management and billing are not forwarded. A successful token check does not verify project permissions or simulator availability."
+      },
+      {
+        "title": "Device control",
+        "body": "The session response includes connection details for agent-device, Argent or Appium. Use those session credentials directly from your Sprite to control the device. These connections are outside this gateway; the Expo account token stays in Sprites. Treat controller and preview tokens as secrets, even for private previews."
+      }
+    ],
+    "mark_svg": {
+      "file": "mark.svg"
+    }
+  }
+}
