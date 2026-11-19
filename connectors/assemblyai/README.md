@@ -43,7 +43,14 @@ Text-to-Speech (`tts.us.assemblyai.com`) and LLM Gateway including Speech
 Understanding and saved prompts (`llm-gateway.assemblyai.com`). No account,
 key or billing routes exist on `api.assemblyai.com`.
 
-## Upload a local media file
+## Submit a recording
+
+For recordings above 8,000,000 bytes (8 MB), use an `audio_url` that
+AssemblyAI can fetch, such as a presigned HTTPS URL. Send this URL in the
+JSON body of `POST /v2/transcript`. AssemblyAI fetches the recording directly.
+
+The Sprites gateway accepts direct uploads of at most 8,000,000 bytes.
+It returns HTTP 413 for larger request bodies.
 
 From a Sprite allowed to use the connection, set `ASSEMBLYAI_GATEWAY_URL` to
 the connection's gateway URL and replace `recording.mp3` with your file path.
@@ -55,8 +62,6 @@ curl -H 'Content-Type: application/octet-stream' \
 ```
 
 Pass the returned `upload_url` as `audio_url` to `POST /v2/transcript`.
-For files above the gateway's request body limit, use a publicly reachable
-`audio_url`.
 
 ## Probe and verification
 

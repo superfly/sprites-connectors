@@ -27,7 +27,8 @@ Community submission (`owner: community`), not submitted by Sentry.
 - Rate limits: https://docs.sentry.io/api/ratelimits/, the five
   `X-Sentry-Rate-Limit-*` headers, forwarded. Pagination:
   https://docs.sentry.io/api/pagination/, cursors in the `Link` header,
-  forwarded.
+  forwarded with Sentry's original URLs. See [Pagination through the
+  gateway](#pagination-through-the-gateway).
 - Regions: https://docs.sentry.io/organization/data-storage-location/ says
   the API domain for US-stored data is `sentry.io` and for EU-stored data
   `de.sentry.io`. See "Regions" below.
@@ -64,13 +65,22 @@ Sentry stores in the US (`sentry.io`). Two things stop it covering more:
   needs no organization slug.
 - Self-hosted Sentry runs on a user-chosen host, which the format rules out.
 
+## Pagination through the gateway
+
+Use `curl -i` to see the `Link` header. If its `rel="next"` entry has
+`results="true"`, take the entire query string from that entry's URL and
+use it in place of the query string on your original Sprites gateway URL.
+Keep the gateway host and path so the gateway can attach your Sentry token.
+Stop when the next entry is missing or has `results="false"`.
+
 ## Path parameters
 
 Organization, project, team and monitor slugs are `[a-z0-9_-]`; issue ids
 are integers; event ids are 32 hex characters or the literals `latest`,
 `oldest` and `recommended`; short ids look like `PROJ-1A`. Release versions
 may contain `.`, `@` and `+` (`my-app@1.2.3+build`), so `path_param` adds
-`._%+@` to the default set. A version containing `/` cannot be addressed.
+those characters to the default set. Path parameters exclude literal `%`
+and versions containing `/` cannot be addressed.
 `/releases/stats/` is a literal beside `/releases/:version/` and wins by the
 matcher's rules.
 
