@@ -31,6 +31,7 @@ Community submission (`owner: community`), not submitted by Stripe.
 - Response headers: `Request-Id` (https://docs.stripe.com/api/request_ids),
   `Stripe-Version`, `Stripe-Should-Retry` and, on 429s,
   `Stripe-Rate-Limited-Reason` (https://docs.stripe.com/rate-limits).
+
 ## Scope
 
 - The manifest lists the allowed GET endpoints from the Stripe API reference
@@ -57,7 +58,7 @@ Community submission (`owner: community`), not submitted by Stripe.
 Stripe accepts form-encoded request bodies only, so the manifest's examples
 are all `GET` with query strings; the `json` example field would produce a
 body Stripe rejects with 400. A usage note tells users to send `-d` form
-fields. Literal segments (`/search`, `/create_preview`, `/preview`) sit
+fields. Literal segments (`/search`, `/preview`) sit
 beside `:id` routes and take precedence by the route matcher's rules.
 
 ## Verification
