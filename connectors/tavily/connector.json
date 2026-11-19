@@ -1,0 +1,115 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "tavily",
+  "display_name": "Tavily",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.tavily.com",
+  "description": "Web search, page extraction, site crawling and mapping, and deep research for agents",
+  "long_description": "Bring a Tavily API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's usage counters (GET /usage), which costs no credits. A Sprite can then search the web, extract page content, crawl and map sites, start a research task and poll its result, and read usage. Every search, extract, crawl, map and research request uses your Tavily credits (1,000 are free each month on the Researcher plan). API key management, organization usage, logs and feedback endpoints are not forwarded.",
+  "website_url": "https://app.tavily.com/home",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/search"},
+    {"methods": ["POST"], "pattern": "/extract"},
+    {"methods": ["POST"], "pattern": "/crawl"},
+    {"methods": ["POST"], "pattern": "/map"},
+    {"methods": ["POST"], "pattern": "/research"},
+    {"methods": ["GET"], "pattern": "/research/:request_id"},
+    {"methods": ["GET"], "pattern": "/usage"}
+  ],
+  "forward_response_headers": ["retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/usage",
+    "label": "key usage",
+    "expect": [
+      ["key", "map"],
+      ["key.usage", "integer"],
+      ["account", "map"],
+      ["account.current_plan", "text"],
+      ["detail", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Search the web (1 credit)",
+      "method": "POST",
+      "path": "/search",
+      "json": {"query": "Fly.io Sprites", "max_results": 5, "search_depth": "basic", "include_answer": true},
+      "notes": ["`search_depth: \"advanced\"` costs 2 credits and returns better-ranked content chunks; `topic` can be `general`, `news` or `finance`."]
+    },
+    {
+      "title": "Extract the content of up to 20 pages as Markdown (1 credit per 5 URLs)",
+      "method": "POST",
+      "path": "/extract",
+      "json": {"urls": ["https://fly.io/sprites"], "format": "markdown"},
+      "notes": ["Check `failed_results` as well as `results`; a 200 can carry both."]
+    },
+    {
+      "title": "Map the URLs of a site (1 credit per 10 pages)",
+      "method": "POST",
+      "path": "/map",
+      "json": {"url": "https://fly.io/docs", "max_depth": 1, "limit": 20}
+    },
+    {
+      "title": "Crawl a site and extract each page (mapping plus extraction credits)",
+      "method": "POST",
+      "path": "/crawl",
+      "json": {"url": "https://fly.io/docs/sprites", "max_depth": 1, "limit": 10, "instructions": "Pages about running agents in Sprites"}
+    },
+    {
+      "title": "Start a research task (4 to 250 credits depending on model and length)",
+      "method": "POST",
+      "path": "/research",
+      "json": {"input": "What are the trade-offs between persistent sandboxes and ephemeral containers for AI coding agents?", "model": "mini", "output_length": "short"},
+      "notes": ["Returns 201 with a `request_id` and `status: pending`; poll `GET /research/REQUEST_ID` until `status` is `completed` or `failed`."]
+    },
+    {
+      "title": "Poll a research task; replace REQUEST_ID",
+      "path": "/research/REQUEST_ID?include_usage=true"
+    },
+    {
+      "title": "Read the key's and account's usage",
+      "path": "/usage",
+      "notes": ["Tavily allows 10 usage requests per 10 minutes; the key check uses one."]
+    }
+  ],
+  "messages": {
+    "400": "Tavily rejected the request (%{status}); check the body's detail.error",
+    "422": "Tavily could not validate the request parameters; see detail for the field",
+    "429": "Tavily rate limit reached; wait for the Retry-After header and retry",
+    "432": "Tavily plan or key usage limit exceeded; raise the limit or upgrade at app.tavily.com",
+    "433": "Tavily pay-as-you-go limit exceeded; raise it at app.tavily.com",
+    "434": "Tavily live content fetching (max_age_hours) is unavailable on this plan right now; retry without it",
+    "provider_unreachable": "Could not reach Tavily; retry later"
+  },
+  "discovery": {
+    "categories": ["search", "web-scraping"],
+    "keywords": ["tavily", "web search", "search", "extract", "crawl", "site map", "research", "page contents", "retrieval"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Search, extract, crawl and research the web from a Sprite without putting your Tavily key on it.",
+    "setup": "Sign in at app.tavily.com, open the home page's API Keys section and create a key (it starts with `tvly-`). The free Researcher plan includes 1,000 credits a month.",
+    "key_label": "API key",
+    "key_placeholder": "tvly-...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /usage`, which spends no credits. Everything else spends your Tavily credits: a basic search is 1 credit and an advanced one 2; extract is 1 credit per 5 URLs (2 with `extract_depth: \"advanced\"`); map is 1 credit per 10 pages; crawl is map plus extract; research is 4 to 110 credits with the `mini` model and 15 to 250 with `pro`. Add `include_usage: true` to see what a request cost. Pay-as-you-go is $0.008 per credit."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /search`, `POST /extract`, `POST /crawl`, `POST /map`, `POST /research`, `GET /research/:request_id` and `GET /usage` are forwarded. API key management, organization usage, request logs and feedback are not. Tavily's rate limits apply per account: 100 requests a minute on the free plan, 1,000 or more on paid plans, with `/crawl` and `/map` at 100 a minute, `/research` at 20 and `/usage` at 10 per 10 minutes."
+      }
+    ],
+    "usage_notes": [
+      "Research runs in the background: `POST /research` returns 201 with a `request_id`, and `GET /research/:request_id` answers 202 while it is pending and 200 when it is complete or failed. Streaming (`stream: true`) sends Server-Sent Events on the same route.",
+      "Error bodies are `{\"detail\": {\"error\": \"...\"}}`; a 422 lists the invalid fields under `detail` instead. Tavily uses 432 and 433 for plan and pay-as-you-go limits, which the gateway passes through."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
