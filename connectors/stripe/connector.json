@@ -1,0 +1,186 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "stripe",
+  "display_name": "Stripe",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.stripe.com",
+  "description": "Customers, payments, invoices, subscriptions and products in your Stripe account",
+  "long_description": "Bring a Stripe secret or restricted API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads your account balance (GET /v1/balance) and nothing else, so a restricted key needs the Balance: Read permission. A Sprite can then read and write the core Stripe objects: balance and balance transactions, customers, payment intents, setup intents, payment methods, charges, refunds, disputes, products, prices, coupons, promotion codes, invoices, invoice items, credit notes, subscriptions, subscription items and schedules, quotes, Checkout Sessions, Payment Links, tax rates, billing meters and events, and read payouts. What the key may actually do is set by its Stripe permissions; a restricted key with only the permissions a Sprite needs is recommended. Stripe accounts, Connect (including the Stripe-Account header), webhook endpoints, API keys, ephemeral keys, tokens, sources, files, the Customer Portal, Terminal, Issuing, Treasury, Identity and Radar are not forwarded. Stripe's API is free to call; Stripe's fees apply to the payments you process through it.",
+  "website_url": "https://dashboard.stripe.com/apikeys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/balance"},
+    {"methods": ["GET"], "pattern": "/v1/balance_transactions"},
+    {"methods": ["GET"], "pattern": "/v1/balance_transactions/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/customers"},
+    {"methods": ["GET"], "pattern": "/v1/customers/search"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/customers/:id"},
+    {"methods": ["GET"], "pattern": "/v1/customers/:id/balance_transactions"},
+    {"methods": ["GET"], "pattern": "/v1/customers/:id/payment_methods"},
+    {"methods": ["GET"], "pattern": "/v1/customers/:id/tax_ids"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/payment_intents"},
+    {"methods": ["GET"], "pattern": "/v1/payment_intents/search"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/payment_intents/:id"},
+    {"methods": ["POST"], "pattern": "/v1/payment_intents/:id/confirm"},
+    {"methods": ["POST"], "pattern": "/v1/payment_intents/:id/capture"},
+    {"methods": ["POST"], "pattern": "/v1/payment_intents/:id/cancel"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/setup_intents"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/setup_intents/:id"},
+    {"methods": ["POST"], "pattern": "/v1/setup_intents/:id/confirm"},
+    {"methods": ["POST"], "pattern": "/v1/setup_intents/:id/cancel"},
+    {"methods": ["GET"], "pattern": "/v1/payment_methods"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/payment_methods/:id"},
+    {"methods": ["POST"], "pattern": "/v1/payment_methods/:id/attach"},
+    {"methods": ["POST"], "pattern": "/v1/payment_methods/:id/detach"},
+    {"methods": ["GET"], "pattern": "/v1/charges"},
+    {"methods": ["GET"], "pattern": "/v1/charges/search"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/charges/:id"},
+    {"methods": ["POST"], "pattern": "/v1/charges/:id/capture"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/refunds"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/refunds/:id"},
+    {"methods": ["POST"], "pattern": "/v1/refunds/:id/cancel"},
+    {"methods": ["GET"], "pattern": "/v1/disputes"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/disputes/:id"},
+    {"methods": ["POST"], "pattern": "/v1/disputes/:id/close"},
+    {"methods": ["GET"], "pattern": "/v1/payouts"},
+    {"methods": ["GET"], "pattern": "/v1/payouts/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/products"},
+    {"methods": ["GET"], "pattern": "/v1/products/search"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/products/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/prices"},
+    {"methods": ["GET"], "pattern": "/v1/prices/search"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/prices/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/coupons"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/coupons/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/promotion_codes"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/promotion_codes/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/invoices"},
+    {"methods": ["GET"], "pattern": "/v1/invoices/search"},
+    {"methods": ["POST"], "pattern": "/v1/invoices/create_preview"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/invoices/:id"},
+    {"methods": ["GET"], "pattern": "/v1/invoices/:id/lines"},
+    {"methods": ["POST"], "pattern": "/v1/invoices/:id/finalize"},
+    {"methods": ["POST"], "pattern": "/v1/invoices/:id/pay"},
+    {"methods": ["POST"], "pattern": "/v1/invoices/:id/send"},
+    {"methods": ["POST"], "pattern": "/v1/invoices/:id/void"},
+    {"methods": ["POST"], "pattern": "/v1/invoices/:id/mark_uncollectible"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/invoiceitems"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/invoiceitems/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/credit_notes"},
+    {"methods": ["GET"], "pattern": "/v1/credit_notes/preview"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/credit_notes/:id"},
+    {"methods": ["GET"], "pattern": "/v1/credit_notes/:id/lines"},
+    {"methods": ["POST"], "pattern": "/v1/credit_notes/:id/void"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/subscriptions"},
+    {"methods": ["GET"], "pattern": "/v1/subscriptions/search"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/subscriptions/:id"},
+    {"methods": ["POST"], "pattern": "/v1/subscriptions/:id/resume"},
+    {"methods": ["DELETE"], "pattern": "/v1/subscriptions/:id/discount"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/subscription_items"},
+    {"methods": ["GET", "POST", "DELETE"], "pattern": "/v1/subscription_items/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/subscription_schedules"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/subscription_schedules/:id"},
+    {"methods": ["POST"], "pattern": "/v1/subscription_schedules/:id/cancel"},
+    {"methods": ["POST"], "pattern": "/v1/subscription_schedules/:id/release"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/quotes"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/quotes/:id"},
+    {"methods": ["GET"], "pattern": "/v1/quotes/:id/line_items"},
+    {"methods": ["POST"], "pattern": "/v1/quotes/:id/accept"},
+    {"methods": ["POST"], "pattern": "/v1/quotes/:id/cancel"},
+    {"methods": ["POST"], "pattern": "/v1/quotes/:id/finalize"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/checkout/sessions"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/checkout/sessions/:id"},
+    {"methods": ["GET"], "pattern": "/v1/checkout/sessions/:id/line_items"},
+    {"methods": ["POST"], "pattern": "/v1/checkout/sessions/:id/expire"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/payment_links"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/payment_links/:id"},
+    {"methods": ["GET"], "pattern": "/v1/payment_links/:id/line_items"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/tax_rates"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/tax_rates/:id"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/billing/meters"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/billing/meters/:id"},
+    {"methods": ["POST"], "pattern": "/v1/billing/meter_events"},
+    {"methods": ["GET"], "pattern": "/v1/events"},
+    {"methods": ["GET"], "pattern": "/v1/events/:id"}
+  ],
+  "forward_request_headers": ["stripe-version", "idempotency-key"],
+  "forward_response_headers": ["request-id", "stripe-version", "stripe-should-retry", "stripe-rate-limited-reason"],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/balance",
+    "label": "account balance",
+    "expect": [
+      ["object", "eq", "balance"],
+      ["available", "list"],
+      ["pending", "list"],
+      ["livemode", "boolean"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Read the account balance",
+      "path": "/v1/balance"
+    },
+    {
+      "title": "List the five most recent customers",
+      "path": "/v1/customers?limit=5"
+    },
+    {
+      "title": "Search payment intents by status and amount",
+      "path": "/v1/payment_intents/search?query=status:%27succeeded%27%20AND%20amount%3E1000&limit=5",
+      "notes": ["Search syntax is documented at docs.stripe.com/search#search-query-language; the query must be URL-encoded."]
+    },
+    {
+      "title": "Read one invoice with its customer expanded; replace INVOICE_ID",
+      "path": "/v1/invoices/INVOICE_ID?expand[]=customer"
+    },
+    {
+      "title": "List recent events, newest first",
+      "path": "/v1/events?limit=10"
+    }
+  ],
+  "messages": {
+    "400": "Stripe rejected the request (%{status}); check the parameters, and send POST bodies form-encoded, not as JSON",
+    "402": "Stripe could not complete the payment; see the error's decline_code",
+    "403": "This Stripe key lacks the permission for this request; add it to the restricted key in the Stripe Dashboard (the key check needs Balance: Read)",
+    "404": "Not found in Stripe; check the id and whether the key is for test or live mode",
+    "409": "Stripe reported a conflict, usually an Idempotency-Key reused with different parameters",
+    "429": "Stripe rate limit reached (see the Stripe-Rate-Limited-Reason header); back off and retry",
+    "provider_unreachable": "Could not reach Stripe; retry later"
+  },
+  "discovery": {
+    "categories": ["finance"],
+    "keywords": ["stripe", "payments", "billing", "subscriptions", "invoices", "customers", "checkout", "products", "prices"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-indigo-500/20",
+  "presentation": {
+    "tagline": "Work with your Stripe customers, payments, invoices and subscriptions from a Sprite without putting the key on it.",
+    "setup": "In the Stripe Dashboard open Developers → API keys (dashboard.stripe.com/apikeys) and click Create restricted key. Grant only the resources your Sprite needs, plus Balance: Read so the key check works, and prefer a test-mode (sandbox) key while developing. A full secret key (sk_...) also works but gives the Sprite everything the account can do.",
+    "key_label": "Restricted or secret API key",
+    "key_placeholder": "rk_test_... or rk_live_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Stripe does not charge for API calls. Saving or testing the key reads `GET /v1/balance` and changes nothing. Requests a Sprite makes with a live-mode key move real money: payment confirmations, captures, refunds, invoice payments and subscription changes all have real effects and Stripe's processing fees apply."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwards the core Stripe objects: balance and balance transactions, customers, payment intents, setup intents, payment methods (read, attach, detach), charges, refunds, disputes, payouts (read only), products, prices, coupons, promotion codes, invoices and invoice items, credit notes, subscriptions, subscription items and schedules, quotes, Checkout Sessions, Payment Links, tax rates, billing meters and meter events, and events. Not forwarded: accounts and Connect (the `Stripe-Account` header is not passed), webhook endpoints, API keys, ephemeral keys, tokens, sources, files, the Customer Portal, Terminal, Issuing, Treasury, Identity, Radar and every `/v2/` route. Within these routes the key's own Stripe permissions decide what succeeds."
+      },
+      {
+        "title": "Use a restricted key",
+        "body": "Stripe restricted keys (`rk_...`) carry per-resource None, Read or Write permissions and can be rotated or revoked on their own. Create one with just what the Sprite needs; the key check only requires Balance: Read. A request outside the key's permissions is refused by Stripe with 403. One connection holds one key, so test mode and live mode are separate connections."
+      }
+    ],
+    "usage_notes": [
+      "Stripe takes request parameters form-encoded (`-d name=Jenny`), not as a JSON body; GET parameters go in the query string. Nested fields use bracket syntax such as `expand[]=customer`.",
+      "`Stripe-Version` and `Idempotency-Key` headers are forwarded as sent. Without `Stripe-Version` the request uses your account's default API version. Send an `Idempotency-Key` on POST requests you may retry.",
+      "Stripe ids (`cus_...`, `pi_...`, `in_...`) fit the connector's path rules. Cancel a subscription with `DELETE /v1/subscriptions/:id`; there is no `/cancel` route."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
