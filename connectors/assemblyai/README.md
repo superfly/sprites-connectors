@@ -43,6 +43,21 @@ Text-to-Speech (`tts.us.assemblyai.com`) and LLM Gateway including Speech
 Understanding and saved prompts (`llm-gateway.assemblyai.com`). No account,
 key or billing routes exist on `api.assemblyai.com`.
 
+## Upload a local media file
+
+From a Sprite allowed to use the connection, set `ASSEMBLYAI_GATEWAY_URL` to
+the connection's gateway URL and replace `recording.mp3` with your file path.
+
+```sh
+curl -H 'Content-Type: application/octet-stream' \
+  --data-binary '@recording.mp3' \
+  "${ASSEMBLYAI_GATEWAY_URL%/}/v2/upload"
+```
+
+Pass the returned `upload_url` as `audio_url` to `POST /v2/transcript`.
+For files above the gateway's request body limit, use a publicly reachable
+`audio_url`.
+
 ## Probe and verification
 
 `GET /v2/transcript?limit=1` lists at most one transcript, is read-only and is

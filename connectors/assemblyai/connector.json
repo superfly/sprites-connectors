@@ -70,16 +70,6 @@
     {
       "title": "Find words in a transcript; replace TRANSCRIPT_ID",
       "path": "/v2/transcript/TRANSCRIPT_ID/word-search?words=fire,smoke"
-    },
-    {
-      "title": "Upload a local media file for transcription",
-      "method": "POST",
-      "path": "/v2/upload",
-      "notes": [
-        "Send the file as the raw request body: --data-binary @recording.mp3 -H Content-Type:application/octet-stream.",
-        "The response upload_url is only readable by AssemblyAI; pass it as audio_url to POST /v2/transcript.",
-        "Large files are subject to the gateway's request body limit; prefer a publicly reachable URL."
-      ]
     }
   ],
   "messages": {
@@ -110,6 +100,12 @@
       {
         "title": "Model and data",
         "body": "Set `speech_models` to `[\"assemblyai-stt-3-7\"]` to pin the AssemblyAI-STT-3.7 model; it keeps disfluencies by default, so set `disfluencies` to `false` for clean text. `DELETE /v2/transcript/:id` removes the transcript's data and any file uploaded for it from AssemblyAI. Uploads go through the gateway's request body limit; a publicly reachable `audio_url` avoids it."
+      }
+    ],
+    "usage_notes": [
+      {
+        "title": "Upload a local media file",
+        "body": "From a Sprite allowed to use this connection, set `ASSEMBLYAI_GATEWAY_URL` to the connection's gateway URL and replace `recording.mp3` with your file path. Run `curl -H 'Content-Type: application/octet-stream' --data-binary '@recording.mp3' \"${ASSEMBLYAI_GATEWAY_URL%/}/v2/upload\"`. Pass the returned `upload_url` as `audio_url` to `POST /v2/transcript`. For files above the gateway's request body limit, use a publicly reachable `audio_url`."
       }
     ],
     "mark_svg": {"file": "mark.svg"}
