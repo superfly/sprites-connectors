@@ -1,0 +1,168 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "sentry",
+  "display_name": "Sentry",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://sentry.io",
+  "description": "Read and triage Sentry issues, events, releases, monitors and replays",
+  "long_description": "Bring a Sentry auth token (a personal token, an organization token or an internal integration token) for an organization on sentry.io; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the token reads GET /api/0/, which returns the token's own scopes and nothing else. A Sprite can then list organizations, projects and teams, read and update issues (assign, resolve, ignore), read events, hashes and tags, run Discover queries, read and create releases and deploys, read environments, stats, sessions, repositories, cron monitors and check-ins, replays and dashboards, and submit user feedback. What the token may do is set by its scopes; a token with only the read scopes a Sprite needs (org:read, project:read, event:read, and project:releases if it creates releases) is recommended. Not forwarded: members and invites, auth tokens and API keys, client keys (DSNs), service hooks, integrations and Sentry apps, SCIM, organization and project deletion, issue deletion and alert rules. Only the sentry.io host (US region) is covered; EU-region and self-hosted Sentry have other hosts. Sentry's API is free to call within its rate limits.",
+  "website_url": "https://sentry.io/settings/account/api/auth-tokens/",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/api/0/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/projects/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/teams/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/environments/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/repos/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/stats_v2/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/sessions/"},
+    {"methods": ["GET", "PUT"], "pattern": "/api/0/organizations/:org/issues/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues-count/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues-stats/"},
+    {"methods": ["GET", "PUT"], "pattern": "/api/0/organizations/:org/issues/:issue_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/events/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/events/:event_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/hashes/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/tags/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/tags/:key/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/tags/:key/values/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/events/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/events-stats/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/eventids/:event_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/shortids/:short_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/tags/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/tags/:key/values/"},
+    {"methods": ["GET", "POST"], "pattern": "/api/0/organizations/:org/releases/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/releases/stats/"},
+    {"methods": ["GET", "PUT"], "pattern": "/api/0/organizations/:org/releases/:version/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/releases/:version/files/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/releases/:version/files/:file_id/"},
+    {"methods": ["GET", "POST"], "pattern": "/api/0/organizations/:org/releases/:version/deploys/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/releases/:version/commits/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/releases/:version/resolved/"},
+    {"methods": ["GET", "POST"], "pattern": "/api/0/organizations/:org/monitors/"},
+    {"methods": ["GET", "PUT"], "pattern": "/api/0/organizations/:org/monitors/:monitor/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/monitors/:monitor/checkins/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/replays/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/replays/:replay_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/dashboards/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/dashboards/:dashboard_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/"},
+    {"methods": ["GET", "PUT"], "pattern": "/api/0/projects/:org/:project/"},
+    {"methods": ["GET", "PUT"], "pattern": "/api/0/projects/:org/:project/issues/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/events/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/events/:event_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/releases/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/environments/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/stats/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/tags/:key/values/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/users/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/ownership/"},
+    {"methods": ["POST"], "pattern": "/api/0/projects/:org/:project/user-feedback/"},
+    {"methods": ["GET"], "pattern": "/api/0/teams/:org/:team/"},
+    {"methods": ["GET"], "pattern": "/api/0/teams/:org/:team/projects/"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._%+@-]+\\z",
+  "forward_response_headers": [
+    "link",
+    "x-sentry-rate-limit-limit",
+    "x-sentry-rate-limit-remaining",
+    "x-sentry-rate-limit-reset",
+    "x-sentry-rate-limit-concurrentlimit",
+    "x-sentry-rate-limit-concurrentremaining",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/api/0/",
+    "label": "token scopes",
+    "expect": [
+      ["version", "text"],
+      ["auth", "map"],
+      ["auth.scopes", "list"],
+      ["detail", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Show the token's scopes",
+      "path": "/api/0/"
+    },
+    {
+      "title": "List the organizations the token can see",
+      "path": "/api/0/organizations/"
+    },
+    {
+      "title": "List an organization's projects; replace ORG",
+      "path": "/api/0/organizations/ORG/projects/"
+    },
+    {
+      "title": "List unresolved issues, newest first; replace ORG",
+      "path": "/api/0/organizations/ORG/issues/?query=is:unresolved&sort=date&limit=10",
+      "notes": ["Pagination cursors arrive in the Link response header, which the gateway passes back."]
+    },
+    {
+      "title": "Read an issue and its latest event; replace ORG and ISSUE_ID",
+      "path": "/api/0/organizations/ORG/issues/ISSUE_ID/events/latest/"
+    },
+    {
+      "title": "Run a Discover query for error counts by project over 24 hours; replace ORG",
+      "path": "/api/0/organizations/ORG/events/?field=project&field=count()&query=event.type:error&statsPeriod=24h"
+    },
+    {
+      "title": "Create a release (changes your Sentry data); replace ORG and PROJECT",
+      "method": "POST",
+      "path": "/api/0/organizations/ORG/releases/",
+      "json": {"version": "my-app@1.2.3", "projects": ["PROJECT"]},
+      "notes": ["Needs the project:releases scope."]
+    }
+  ],
+  "messages": {
+    "400": "Sentry rejected the request (%{status}); check the query parameters and body",
+    "403": "This Sentry token lacks the scope for this request; create a token with the scope the endpoint documents",
+    "404": "Not found in Sentry; check the organization and project slugs and that the organization is in the US region",
+    "429": "Sentry rate limit reached for this endpoint; wait for X-Sentry-Rate-Limit-Reset or Retry-After and retry",
+    "provider_unreachable": "Could not reach Sentry; retry later"
+  },
+  "discovery": {
+    "categories": ["developer-tools"],
+    "keywords": ["sentry", "error monitoring", "errors", "exceptions", "issues", "crash reporting", "releases", "performance", "tracing", "observability", "cron monitors", "session replay"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-purple-500/20",
+  "presentation": {
+    "tagline": "Triage Sentry issues and read events, releases and monitors from a Sprite without putting the token on it.",
+    "setup": "In Sentry open your account's Personal Tokens page (sentry.io/settings/account/api/auth-tokens/) and create a token with only the scopes the Sprite needs: org:read, project:read and event:read cover reading; add event:write to update issues and project:releases to create releases. Organization tokens (Settings → Developer Settings → Organization Tokens) and internal integration tokens also work. The organization must be in Sentry's US region (sentry.io).",
+    "key_label": "Auth token",
+    "key_placeholder": "sntryu_... or sntrys_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Sentry's API has no per-request charge. Saving or testing the token reads `GET /api/0/`, which returns the token's own scopes. Sentry rate limits each caller per endpoint and answers 429 when exceeded; the `X-Sentry-Rate-Limit-*` headers are passed back. Sentry asks integrations not to poll: prefer wide queries over tight loops."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwards reads of organizations, projects, teams, environments, repositories, stats and sessions; issues (list, read, update and bulk update), their events, hashes and tags; Discover `events` and `events-stats`; releases (list, create, read, update, files, deploys, commits), cron monitors and check-ins, replays, dashboards, event and short-id lookups, project users and ownership, and `POST .../user-feedback/`. Not forwarded: members and invites, auth tokens and API keys, client keys (DSNs), service hooks, integrations and Sentry apps, SCIM, deleting organizations, projects, releases or issues, and alert rules. Within these routes the token's own scopes decide what succeeds."
+      },
+      {
+        "title": "Smallest scopes",
+        "body": "Personal tokens carry only the scopes chosen at creation and cannot be widened later, so make one for the Sprite: `org:read`, `project:read` and `event:read` for read-only use, plus `event:write` to resolve, ignore or assign issues and `project:releases` to create releases and deploys. A request outside the token's scopes is refused by Sentry with 403."
+      },
+      {
+        "title": "US region only",
+        "body": "This connector talks to `sentry.io`, the host Sentry documents for organizations whose data is stored in the US. Organizations in the EU region are served from `de.sentry.io`, and self-hosted Sentry runs on your own host; neither is covered by this connector."
+      }
+    ],
+    "usage_notes": [
+      "Update an issue with `PUT /api/0/organizations/ORG/issues/ISSUE_ID/` and a JSON body such as `{\"status\": \"resolved\"}` (also `ignored`, `unresolved`, `assignedTo`, `isBookmarked`, `hasSeen`); needs `event:write`. `PUT .../issues/?id=1&id=2` updates several at once.",
+      "Sentry paths end with a slash (`/api/0/organizations/`); without it Sentry redirects. JSON bodies need `Content-Type: application/json`.",
+      "Lists are paginated with cursors in the `Link` response header (`rel=\"next\"; results=\"true\"`), which the gateway passes back; follow it until `results=\"false\"`.",
+      "Release versions may contain `.`, `@`, `+` and `-` (`my-app@1.2.3+build`) and pass the connector's path rule; a version containing `/` cannot be addressed in a path."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
