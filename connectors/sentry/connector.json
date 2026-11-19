@@ -6,8 +6,8 @@
   "tier": "community",
   "owner": "community",
   "base_url": "https://sentry.io",
-  "description": "Read and triage Sentry issues, events, releases, monitors and replays",
-  "long_description": "Bring a Sentry auth token (a personal token, an organization token or an internal integration token) for an organization on sentry.io; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the token reads GET /api/0/, which returns the token's own scopes and nothing else. A Sprite can then list organizations, projects and teams, read and update issues (assign, resolve, ignore), read events, hashes and tags, run Discover queries, read and create releases and deploys, read environments, stats, sessions, repositories, cron monitors and check-ins, replays and dashboards, and submit user feedback. What the token may do is set by its scopes; a token with only the read scopes a Sprite needs (org:read, project:read, event:read, and project:releases if it creates releases) is recommended. Not forwarded: members and invites, auth tokens and API keys, client keys (DSNs), service hooks, integrations and Sentry apps, SCIM, organization and project deletion, issue deletion and alert rules. Only the sentry.io host (US region) is covered; EU-region and self-hosted Sentry have other hosts. Sentry's API is free to call within its rate limits.",
+  "description": "Investigate Sentry issues, events, releases, monitors and replays",
+  "long_description": "Bring a Sentry personal, organization or internal integration token for a US-region organization on sentry.io. The gateway keeps the token off your Sprite and sends it as a bearer token. Saving or testing it checks its scopes through GET /api/0/. A Sprite can list organizations, projects and teams, investigate issues and events, run Discover queries and read releases, cron monitors, check-ins, replays and dashboards. Issue operations and project settings are read-only. With additional scopes, a Sprite can also manage releases and cron monitors, create deploys and submit user feedback. Grant only the scopes the Sprite needs. Sentry's API is free to call within its rate limits.",
   "website_url": "https://sentry.io/settings/account/api/auth-tokens/",
   "auth": "bearer",
   "allowed_paths": [
@@ -20,10 +20,10 @@
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/repos/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/stats_v2/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/sessions/"},
-    {"methods": ["GET", "PUT"], "pattern": "/api/0/organizations/:org/issues/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues-count/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues-stats/"},
-    {"methods": ["GET", "PUT"], "pattern": "/api/0/organizations/:org/issues/:issue_id/"},
+    {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/events/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/events/:event_id/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/issues/:issue_id/hashes/"},
@@ -52,8 +52,8 @@
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/dashboards/"},
     {"methods": ["GET"], "pattern": "/api/0/organizations/:org/dashboards/:dashboard_id/"},
     {"methods": ["GET"], "pattern": "/api/0/projects/"},
-    {"methods": ["GET", "PUT"], "pattern": "/api/0/projects/:org/:project/"},
-    {"methods": ["GET", "PUT"], "pattern": "/api/0/projects/:org/:project/issues/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/"},
+    {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/issues/"},
     {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/events/"},
     {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/events/:event_id/"},
     {"methods": ["GET"], "pattern": "/api/0/projects/:org/:project/releases/"},
@@ -135,8 +135,8 @@
   "icon_svg": {"file": "icon.svg"},
   "icon_bg_class": "bg-purple-500/20",
   "presentation": {
-    "tagline": "Triage Sentry issues and read events, releases and monitors from a Sprite without putting the token on it.",
-    "setup": "In Sentry open your account's Personal Tokens page (sentry.io/settings/account/api/auth-tokens/) and create a token with only the scopes the Sprite needs: org:read, project:read and event:read cover reading; add event:write to update issues and project:releases to create releases. Organization tokens (Settings → Developer Settings → Organization Tokens) and internal integration tokens also work. The organization must be in Sentry's US region (sentry.io).",
+    "tagline": "Investigate Sentry issues and read events, releases and monitors from a Sprite without putting the token on it.",
+    "setup": "In Sentry, open Personal Tokens (sentry.io/settings/account/api/auth-tokens/) and create a token with only the scopes the Sprite needs. Start with org:read, project:read and event:read. Add project:releases if you need to create releases or deploys. Organization tokens and internal integration tokens also work. Use a token for a US-region organization.",
     "key_label": "Auth token",
     "key_placeholder": "sntryu_... or sntrys_...",
     "notices": [
@@ -146,11 +146,11 @@
       },
       {
         "title": "Scope",
-        "body": "Forwards reads of organizations, projects, teams, environments, repositories, stats and sessions; issues (list, read, update and bulk update), their events, hashes and tags; Discover `events` and `events-stats`; releases (list, create, read, update, files, deploys, commits), cron monitors and check-ins, replays, dashboards, event and short-id lookups, project users and ownership, and `POST .../user-feedback/`. Not forwarded: members and invites, auth tokens and API keys, client keys (DSNs), service hooks, integrations and Sentry apps, SCIM, deleting organizations, projects, releases or issues, and alert rules. Within these routes the token's own scopes decide what succeeds."
+        "body": "Read organizations, projects, teams, environments, repositories, issues, events, Discover results, releases, cron check-ins, replays and dashboards. Issue operations and project settings are read-only. The gateway allows writes for releases, deploys, cron monitors and user feedback. It blocks member and invite management, token and DSN management, service hooks, Sentry apps, SCIM and alert rules. Sentry enforces the token's scopes for each allowed route."
       },
       {
         "title": "Smallest scopes",
-        "body": "Personal tokens carry only the scopes chosen at creation and cannot be widened later, so make one for the Sprite: `org:read`, `project:read` and `event:read` for read-only use, plus `event:write` to resolve, ignore or assign issues and `project:releases` to create releases and deploys. A request outside the token's scopes is refused by Sentry with 403."
+        "body": "Use `org:read`, `project:read` and `event:read` for read-only use. Add `project:releases` for releases and deploys, `alerts:write` for cron monitor changes, or `project:write` for legacy user feedback only if the Sprite needs those operations. Sentry returns 403 when a request exceeds the token's permissions."
       },
       {
         "title": "US region only",
@@ -158,7 +158,6 @@
       }
     ],
     "usage_notes": [
-      "Update an issue with `PUT /api/0/organizations/ORG/issues/ISSUE_ID/` and a JSON body such as `{\"status\": \"resolved\"}` (also `ignored`, `unresolved`, `assignedTo`, `isBookmarked`, `hasSeen`); needs `event:write`. `PUT .../issues/?id=1&id=2` updates several at once.",
       "Sentry paths end with a slash (`/api/0/organizations/`); without it Sentry redirects. JSON bodies need `Content-Type: application/json`.",
       "Lists are paginated with cursors in the `Link` response header (`rel=\"next\"; results=\"true\"`), which the gateway passes back; follow it until `results=\"false\"`.",
       "Release versions may contain `.`, `@`, `+` and `-` (`my-app@1.2.3+build`) and pass the connector's path rule; a version containing `/` cannot be addressed in a path."

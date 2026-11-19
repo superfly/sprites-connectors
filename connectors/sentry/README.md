@@ -43,6 +43,12 @@ Community submission (`owner: community`), not submitted by Sentry.
   (`.../hooks/`), integrations and Sentry apps, SCIM, inbound filters and
   symbol sources, `DELETE` on organizations, projects, releases and issues
   (`event:admin`), team and project creation, and alert rules.
+- Issue and project-detail routes are read-only. Sentry's issue update
+  endpoints can publish or discard issues as well as change their status.
+  Sentry's project update endpoint allows changes to some settings even
+  with `project:read`. See https://docs.sentry.io/api/events/update-an-issue/,
+  https://docs.sentry.io/api/events/bulk-mutate-an-organizations-issues/ and
+  https://docs.sentry.io/api/projects/update-a-project/.
 
 ## Regions and self-hosted
 
