@@ -22,12 +22,17 @@ Community submission (`owner: community`), not submitted by Tavily.
   `extract`, `crawl`, `map`, `research` (POST, returns 201 with a
   `request_id`), `research-get` (`GET /research/{request_id}`) and `usage`.
   Research ids are UUIDs and fit the default `:param` rule.
+  Tavily's crawl timeout defaults to 150 seconds. Sprites waits 120 seconds
+  for the response headers, so the crawl example sets Tavily's `timeout` to
+  90 seconds. See https://docs.tavily.com/documentation/api-reference/endpoint/crawl#body-timeout.
 - Credits: https://docs.tavily.com/documentation/api-credits. Rate limits:
   https://docs.tavily.com/documentation/rate-limits (per account; 100 RPM on
   the free Researcher plan, 1,000 or more on paid plans; `/crawl` and `/map`
   100 RPM, `/research` 20 RPM, `/usage` 10 per 10 minutes). 429 carries
   `Retry-After`, which is forwarded; there is no request-id response header
-  (the id is in the body as `request_id`).
+  (the id is in the body as `request_id`). Setting `instructions` raises the
+  mapping charge from 1 to 2 credits per 10 successful pages. A crawl also
+  incurs extraction charges.
 - Errors are `{"detail": {"error": "..."}}` with 400, 401, 403 (crawl/map
   only), 429, 432 (plan or key limit), 433 (pay-as-you-go limit), 434 (flex
   tier) and 500; a 422 on search lists the invalid fields under `detail` and

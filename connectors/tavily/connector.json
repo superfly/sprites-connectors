@@ -48,7 +48,7 @@
       "notes": ["Check `failed_results` as well as `results`; a 200 can carry both."]
     },
     {
-      "title": "Map the URLs of a site (1 credit per 10 pages)",
+      "title": "Map the URLs of a site (1 credit per 10 successful pages)",
       "method": "POST",
       "path": "/map",
       "json": {"url": "https://fly.io/docs", "max_depth": 1, "limit": 20}
@@ -57,7 +57,8 @@
       "title": "Crawl a site and extract each page (mapping plus extraction credits)",
       "method": "POST",
       "path": "/crawl",
-      "json": {"url": "https://fly.io/docs/sprites", "max_depth": 1, "limit": 10, "instructions": "Pages about running agents in Sprites"}
+      "json": {"url": "https://fly.io/docs/sprites", "max_depth": 1, "limit": 10, "instructions": "Pages about running agents in Sprites", "timeout": 90},
+      "notes": ["With instructions, mapping costs 2 credits per 10 successful pages, plus extraction credits. The 90-second Tavily timeout leaves time for the response to reach the gateway."]
     },
     {
       "title": "Start a research task (4 to 250 credits depending on model and length)",
@@ -99,7 +100,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /usage`, which spends no credits. Everything else spends your Tavily credits: a basic search is 1 credit and an advanced one 2; extract is 1 credit per 5 URLs (2 with `extract_depth: \"advanced\"`); map is 1 credit per 10 pages; crawl is map plus extract; research is 4 to 110 credits with the `mini` model and 15 to 250 with `pro`. Add `include_usage: true` to see what a request cost. Pay-as-you-go is $0.008 per credit."
+        "body": "Saving or testing the key reads `GET /usage` and spends no credits. Basic search costs 1 credit and advanced search costs 2. Extract costs 1 credit per 5 successful URLs, or 2 with `extract_depth: \"advanced\"`. Map costs 1 credit per 10 successful pages, or 2 with `instructions`. Crawl adds the mapping and extraction costs. Research costs 4 to 110 credits with `mini` and 15 to 250 with `pro`. Add `include_usage: true` where supported to see what the request cost. Pay-as-you-go is $0.008 per credit."
       },
       {
         "title": "Scope",
@@ -107,6 +108,7 @@
       }
     ],
     "usage_notes": [
+      "For `POST /crawl`, set `timeout` below the gateway's 120-second response deadline. Tavily defaults to 150 seconds. Use a smaller `limit` or `max_depth` if a crawl takes too long.",
       "Research runs in the background: `POST /research` returns 201 with a `request_id`, and `GET /research/:request_id` answers 202 while it is pending and 200 when it is complete or failed. Streaming (`stream: true`) sends Server-Sent Events on the same route.",
       "Error bodies are `{\"detail\": {\"error\": \"...\"}}`; a 422 lists the invalid fields under `detail` instead. Tavily uses 432 and 433 for plan and pay-as-you-go limits, which the gateway passes through."
     ],
