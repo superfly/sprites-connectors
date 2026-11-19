@@ -1,0 +1,113 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "assemblyai",
+  "display_name": "AssemblyAI",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.assemblyai.com",
+  "website_url": "https://www.assemblyai.com/dashboard/api-keys",
+  "description": "Transcribe recorded audio with AssemblyAI-STT-3.7 and read transcripts, sentences, subtitles and word searches.",
+  "auth": {"header": "authorization"},
+  "long_description": "Use your AssemblyAI API key to transcribe recorded audio and video with the AssemblyAI-STT-3.7 speech model (set `speech_models` to `[\"assemblyai-stt-3-7\"]`; it is also the default for accounts created on or after 2026-11-17) without storing the key on your Sprite. A Sprite can upload media, submit transcription requests, poll transcripts, and read sentences, paragraphs, SRT or VTT subtitles, word searches and redacted audio, and delete a transcript's data. Saving or testing a key lists at most one existing transcript and creates nothing. Only the US pre-recorded API at api.assemblyai.com is forwarded: the EU host, streaming (WebSocket), Sync, Dictation, Text-to-Speech, LLM Gateway and Speech Understanding over LLM Gateway live on other hosts and are not forwarded.",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/v2/upload"},
+    {"methods": ["GET", "POST"], "pattern": "/v2/transcript"},
+    {"methods": ["GET", "DELETE"], "pattern": "/v2/transcript/:id"},
+    {"methods": ["GET"], "pattern": "/v2/transcript/:id/sentences"},
+    {"methods": ["GET"], "pattern": "/v2/transcript/:id/paragraphs"},
+    {"methods": ["GET"], "pattern": "/v2/transcript/:id/srt"},
+    {"methods": ["GET"], "pattern": "/v2/transcript/:id/vtt"},
+    {"methods": ["GET"], "pattern": "/v2/transcript/:id/word-search"},
+    {"methods": ["GET"], "pattern": "/v2/transcript/:id/redacted-audio"}
+  ],
+  "forward_response_headers": ["retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/v2/transcript?limit=1",
+    "label": "transcript list",
+    "expect": [
+      ["page_details", "map"],
+      ["page_details.limit", "integer"],
+      ["transcripts", "list"],
+      ["transcripts[].id", "text"],
+      ["transcripts[].status", "in", ["queued", "processing", "completed", "error"]],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Transcribe a provider-hosted sample with AssemblyAI-STT-3.7 (charged by AssemblyAI)",
+      "method": "POST",
+      "path": "/v2/transcript",
+      "json": {
+        "audio_url": "https://assembly.ai/wildfires.mp3",
+        "speech_models": ["assemblyai-stt-3-7"],
+        "speaker_labels": true
+      },
+      "notes": [
+        "The response is the queued transcript; poll GET /v2/transcript/ID until status is completed.",
+        "Add \"universal-2\" after \"assemblyai-stt-3-7\" in speech_models to fall back for languages STT-3.7 does not cover."
+      ]
+    },
+    {
+      "title": "Read a transcript; replace TRANSCRIPT_ID",
+      "path": "/v2/transcript/TRANSCRIPT_ID"
+    },
+    {
+      "title": "List your five newest transcripts",
+      "path": "/v2/transcript?limit=5"
+    },
+    {
+      "title": "Sentences with timestamps; replace TRANSCRIPT_ID",
+      "path": "/v2/transcript/TRANSCRIPT_ID/sentences"
+    },
+    {
+      "title": "SRT subtitles; replace TRANSCRIPT_ID",
+      "path": "/v2/transcript/TRANSCRIPT_ID/srt?chars_per_caption=32",
+      "notes": ["The response is text/plain; use /vtt for WebVTT."]
+    },
+    {
+      "title": "Find words in a transcript; replace TRANSCRIPT_ID",
+      "path": "/v2/transcript/TRANSCRIPT_ID/word-search?words=fire,smoke"
+    }
+  ],
+  "messages": {
+    "400": "AssemblyAI rejected the request (%{status}); check the body, parameters and that the transcript id exists",
+    "401": "AssemblyAI API key is invalid or revoked; replace it in this connection",
+    "404": "AssemblyAI did not find that resource",
+    "429": "AssemblyAI rate limit reached; wait for the Retry-After header and try again",
+    "provider_unreachable": "Could not reach AssemblyAI; retry later"
+  },
+  "discovery": {
+    "categories": ["media"],
+    "keywords": ["transcription", "speech to text", "speech recognition", "stt", "subtitles", "diarization", "assemblyai-stt-3-7"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-stone-500/20",
+  "presentation": {
+    "tagline": "Transcribe audio with AssemblyAI-STT-3.7 from a Sprite without putting your API key on it.",
+    "setup": "Sign in at assemblyai.com, open the dashboard's API keys page and copy or create a key, then paste it here. Keys are sent as the bare value of the Authorization header.",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing a key lists at most one existing transcript (`GET /v2/transcript?limit=1`) and costs nothing. Every `POST /v2/transcript` is charged by AssemblyAI per hour of audio for the chosen speech model (AssemblyAI-STT-3.7 is priced per hour; see assemblyai.com/pricing), and add-ons such as speaker labels, PII redaction or speech understanding options in the request may cost extra. Polling `GET /v2/transcript/:id` is limited to 60 requests per minute per transcript."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwards the pre-recorded speech-to-text API at `api.assemblyai.com`: `POST /v2/upload`, `GET`/`POST /v2/transcript`, `GET`/`DELETE /v2/transcript/:id` and its `/sentences`, `/paragraphs`, `/srt`, `/vtt`, `/word-search` and `/redacted-audio` routes. The EU host (`api.eu.assemblyai.com`), streaming speech-to-text (WebSocket), Sync, Dictation, Text-to-Speech, LLM Gateway and Speech Understanding over LLM Gateway are on other hosts and are not forwarded."
+      },
+      {
+        "title": "Model and data",
+        "body": "Set `speech_models` to `[\"assemblyai-stt-3-7\"]` to pin the AssemblyAI-STT-3.7 model; it keeps disfluencies by default, so set `disfluencies` to `false` for clean text. `DELETE /v2/transcript/:id` removes the transcript's data and any file uploaded for it from AssemblyAI. Uploads go through the gateway's request body limit; a publicly reachable `audio_url` avoids it."
+      }
+    ],
+    "usage_notes": [
+      {
+        "title": "Upload a local media file",
+        "body": "From a Sprite allowed to use this connection, set `ASSEMBLYAI_GATEWAY_URL` to the connection's gateway URL and replace `recording.mp3` with your file path. Run `curl -H 'Content-Type: application/octet-stream' --data-binary '@recording.mp3' \"${ASSEMBLYAI_GATEWAY_URL%/}/v2/upload\"`. Pass the returned `upload_url` as `audio_url` to `POST /v2/transcript`. For files above the gateway's request body limit, use a publicly reachable `audio_url`."
+      }
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
