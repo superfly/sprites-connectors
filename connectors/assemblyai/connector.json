@@ -46,6 +46,7 @@
         "speaker_labels": true
       },
       "notes": [
+        "For your own recording, use an audio_url AssemblyAI can fetch, such as a presigned HTTPS URL. The Sprites gateway caps direct uploads at 8,000,000 bytes (8 MB).",
         "The response is the queued transcript; poll GET /v2/transcript/ID until status is completed.",
         "Add \"universal-2\" after \"assemblyai-stt-3-7\" in speech_models to fall back for languages STT-3.7 does not cover."
       ]
@@ -99,13 +100,13 @@
       },
       {
         "title": "Model and data",
-        "body": "Set `speech_models` to `[\"assemblyai-stt-3-7\"]` to pin the AssemblyAI-STT-3.7 model; it keeps disfluencies by default, so set `disfluencies` to `false` for clean text. `DELETE /v2/transcript/:id` removes the transcript's data and any file uploaded for it from AssemblyAI. Uploads go through the gateway's request body limit; a publicly reachable `audio_url` avoids it."
+        "body": "Set `speech_models` to `[\"assemblyai-stt-3-7\"]` to pin the AssemblyAI-STT-3.7 model; it keeps disfluencies by default, so set `disfluencies` to `false` for clean text. `DELETE /v2/transcript/:id` removes the transcript's data and any file uploaded for it from AssemblyAI. Direct uploads above 8,000,000 bytes (8 MB) return HTTP 413. For larger recordings, send an `audio_url` that AssemblyAI can fetch."
       }
     ],
     "usage_notes": [
       {
-        "title": "Upload a local media file",
-        "body": "From a Sprite allowed to use this connection, set `ASSEMBLYAI_GATEWAY_URL` to the connection's gateway URL and replace `recording.mp3` with your file path. Run `curl -H 'Content-Type: application/octet-stream' --data-binary '@recording.mp3' \"${ASSEMBLYAI_GATEWAY_URL%/}/v2/upload\"`. Pass the returned `upload_url` as `audio_url` to `POST /v2/transcript`. For files above the gateway's request body limit, use a publicly reachable `audio_url`."
+        "title": "Upload a local file up to 8 MB",
+        "body": "Check that the file is at most 8,000,000 bytes. For larger files, submit an `audio_url` that AssemblyAI can fetch, such as a presigned HTTPS URL. For a direct upload, set `ASSEMBLYAI_GATEWAY_URL` to the connection's gateway URL, replace `recording.mp3` with your file path, and run `curl -H 'Content-Type: application/octet-stream' --data-binary '@recording.mp3' \"${ASSEMBLYAI_GATEWAY_URL%/}/v2/upload\"`. Pass the returned `upload_url` as `audio_url` to `POST /v2/transcript`."
       }
     ],
     "mark_svg": {"file": "mark.svg"}

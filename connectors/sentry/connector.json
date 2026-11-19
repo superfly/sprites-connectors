@@ -66,7 +66,7 @@
     {"methods": ["GET"], "pattern": "/api/0/teams/:org/:team/"},
     {"methods": ["GET"], "pattern": "/api/0/teams/:org/:team/projects/"}
   ],
-  "path_param": "\\A[A-Za-z0-9._%+@-]+\\z",
+  "path_param": "\\A[A-Za-z0-9._+@-]+\\z",
   "forward_response_headers": [
     "link",
     "x-sentry-rate-limit-limit",
@@ -103,7 +103,7 @@
     {
       "title": "List unresolved issues, newest first; replace ORG",
       "path": "/api/0/organizations/ORG/issues/?query=is:unresolved&sort=date&limit=10",
-      "notes": ["Pagination cursors arrive in the Link response header, which the gateway passes back."]
+      "notes": ["Use curl -i to see the Link header. If the next link has results=\"true\", replace the query string on this gateway URL with the query string from that link."]
     },
     {
       "title": "Read an issue and its latest event; replace ORG and ISSUE_ID",
@@ -159,7 +159,7 @@
     ],
     "usage_notes": [
       "Sentry paths end with a slash (`/api/0/organizations/`); without it Sentry redirects. JSON bodies need `Content-Type: application/json`.",
-      "Lists are paginated with cursors in the `Link` response header (`rel=\"next\"; results=\"true\"`), which the gateway passes back; follow it until `results=\"false\"`.",
+      "The forwarded `Link` header contains Sentry URLs. For `rel=\"next\"` with `results=\"true\"`, replace the query string on your original gateway URL with the full query string from that link, including `cursor`. Keep the gateway host and path so it can attach your token. Stop when the next link is missing or has `results=\"false\"`.",
       "Release versions may contain `.`, `@`, `+` and `-` (`my-app@1.2.3+build`) and pass the connector's path rule; a version containing `/` cannot be addressed in a path."
     ],
     "mark_svg": {"file": "mark.svg"}
