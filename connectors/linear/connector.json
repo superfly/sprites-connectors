@@ -1,0 +1,118 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "linear",
+  "display_name": "Linear",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.linear.app",
+  "description": "Query and update Linear issues, projects, cycles and teams over GraphQL",
+  "long_description": "Bring a personal API key from your Linear workspace. The gateway keeps it off your Sprite and sends it in the Authorization header. Saving or testing the key reads the key's own user through the GraphQL viewer query. A Sprite can send any GraphQL operation the key permits, including managing webhooks with sufficient privileges and requesting signed file upload URLs. Choose the smallest set of Linear permissions and restrict the key to specific teams where possible. Linear's API is free and rate limits apply per user.",
+  "website_url": "https://linear.app/settings/account/security",
+  "auth": {"header": "authorization"},
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/graphql"}
+  ],
+  "forward_response_headers": [
+    "x-request-id",
+    "x-complexity",
+    "x-ratelimit-requests-limit",
+    "x-ratelimit-requests-remaining",
+    "x-ratelimit-requests-reset",
+    "x-ratelimit-complexity-limit",
+    "x-ratelimit-complexity-remaining",
+    "x-ratelimit-complexity-reset",
+    "retry-after"
+  ],
+  "probe": {
+    "method": "POST",
+    "path": "/graphql",
+    "label": "viewer",
+    "json": {"query": "{ viewer { id name } }"},
+    "expect": [
+      ["data.viewer.id", "text"],
+      ["data.viewer.name", "string"],
+      ["errors", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Show the key's own user",
+      "method": "POST",
+      "path": "/graphql",
+      "json": {"query": "{ viewer { id name email } }"}
+    },
+    {
+      "title": "List teams with their keys",
+      "method": "POST",
+      "path": "/graphql",
+      "json": {"query": "{ teams { nodes { id key name } } }"}
+    },
+    {
+      "title": "List the ten most recently updated open issues in a team; replace TEAM_KEY",
+      "method": "POST",
+      "path": "/graphql",
+      "json": {
+        "query": "query($team: String!) { issues(first: 10, orderBy: updatedAt, filter: { team: { key: { eq: $team } }, state: { type: { nin: [\"completed\", \"canceled\"] } } }) { nodes { identifier title priority state { name } assignee { name } url } } }",
+        "variables": {"team": "TEAM_KEY"}
+      }
+    },
+    {
+      "title": "Create an issue (writes to your workspace); replace TEAM_ID",
+      "method": "POST",
+      "path": "/graphql",
+      "json": {
+        "query": "mutation($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { identifier url } } }",
+        "variables": {"input": {"teamId": "TEAM_ID", "title": "Hello from a Sprite", "description": "Created through the Sprites Linear connector."}}
+      },
+      "notes": ["Find team ids with the teams query above. Needs a key with Write or Create issues permission."]
+    },
+    {
+      "title": "Add a comment to an issue (writes to your workspace); replace ISSUE_ID",
+      "method": "POST",
+      "path": "/graphql",
+      "json": {
+        "query": "mutation($input: CommentCreateInput!) { commentCreate(input: $input) { success comment { id url } } }",
+        "variables": {"input": {"issueId": "ISSUE_ID", "body": "Posted from a Sprite."}}
+      }
+    }
+  ],
+  "messages": {
+    "400": "Linear rejected the GraphQL request (%{status}); check the errors array in the body for the query problem",
+    "403": "This Linear key is not allowed to do that; check the key's permissions and team restrictions",
+    "429": "Linear rate limit reached (requests or complexity per hour); wait for the Retry-After header and retry",
+    "provider_unreachable": "Could not reach Linear; retry later"
+  },
+  "discovery": {
+    "categories": ["productivity"],
+    "keywords": ["linear", "issues", "issue tracking", "project management", "projects", "cycles", "roadmap", "graphql"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-indigo-500/20",
+  "presentation": {
+    "tagline": "Query and update your Linear workspace from a Sprite without putting the API key on it.",
+    "setup": "In Linear open Settings → Account → Security & access (linear.app/settings/account/security) and create a personal API key. Pick the smallest permissions the Sprite needs (Read only, or Create issues and Create comments) and restrict it to specific teams if you can; copy the key when it is shown.",
+    "key_label": "Personal API key",
+    "key_placeholder": "lin_api_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Linear's API has no per-request charge. Saving or testing the key runs `{ viewer { id name } }`, a one-field query about the key's own user. Linear rate limits each user to 2,500 requests and 3,000,000 complexity points per hour on standard plans (shared across all of that user's keys) and answers 429 with a `Retry-After` header when exceeded."
+      },
+      {
+        "title": "Scope",
+        "body": "The gateway forwards `POST /graphql`. Your key's Linear permissions and team restrictions determine which queries and mutations succeed. This includes requesting signed file upload URLs. A key with sufficient admin privileges can manage webhooks that send future workspace events to a configured URL. Manage or delete a registered webhook in Linear to stop delivery. OAuth flows, webhook deliveries and file uploads to signed URLs run outside this gateway route."
+      },
+      {
+        "title": "Mutations are real",
+        "body": "Mutations create, update, archive and delete objects in your workspace and notify your teammates like any other change. Prefer a Read-only key unless the Sprite needs to write."
+      }
+    ],
+    "usage_notes": [
+      "Send `Content-Type: application/json` with a body of `{\"query\": \"...\", \"variables\": {...}}`. GraphQL errors come back in an `errors` array, sometimes with HTTP 200, so check it before trusting `data`.",
+      "The schema is browsable at studio.apollographql.com/public/Linear-API/variant/current/home, and the endpoint supports introspection.",
+      "Each response carries `X-Complexity` and the `X-RateLimit-*` headers, which the gateway passes back; a single query may cost at most 10,000 complexity points."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
