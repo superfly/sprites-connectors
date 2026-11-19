@@ -31,27 +31,26 @@ Community submission (`owner: community`), not submitted by Stripe.
 - Response headers: `Request-Id` (https://docs.stripe.com/api/request_ids),
   `Stripe-Version`, `Stripe-Should-Retry` and, on 429s,
   `Stripe-Rate-Limited-Reason` (https://docs.stripe.com/rate-limits).
-- Routes: every allowed route is a `GET`, `POST` or `DELETE` in the API
-  reference under https://docs.stripe.com/api/ by resource: balance,
-  balance_transactions, customers (and `/search`, `/balance_transactions`,
-  `/payment_methods`, `/tax_ids`), payment_intents (`/confirm`, `/capture`,
-  `/cancel`), setup_intents, payment_methods (`/attach`, `/detach`), charges,
-  refunds, disputes, payouts (read only), products, prices, coupons,
-  promotion_codes, invoices (`/finalize`, `/pay`, `/send`, `/void`,
-  `/mark_uncollectible`, `/lines`, `/create_preview`), invoiceitems,
-  credit_notes (`/preview`, `/lines`, `/void`), subscriptions (`/resume`,
-  `DELETE .../discount`), subscription_items, subscription_schedules
-  (`/cancel`, `/release`), quotes (`/accept`, `/cancel`, `/finalize`,
-  `/line_items`), checkout/sessions (`/expire`, `/line_items`), payment_links,
-  tax_rates, billing/meters, billing/meter_events and events.
-- Left out on purpose: `/v1/account`, `/v1/accounts/*` and everything Connect,
-  `/v1/webhook_endpoints`, `/v1/ephemeral_keys`, `/v1/tokens`, `/v1/sources`,
-  `/v1/files` and `/v1/file_links`, `/v1/billing_portal/*`, `/v1/apps/secrets`,
-  `/v1/payment_method_domains`, `/v1/balance_settings`, Terminal, Issuing,
-  Treasury, Identity, Radar, Tax (`/v1/tax/*`) and all `/v2/` routes. Payout
-  creation, cancellation and reversal are also left out: payouts move money
-  to the account's bank. `POST /v1/payment_methods` (creating a payment method
-  from raw card details) is left out as well.
+## Scope
+
+- The manifest lists the allowed GET endpoints from the Stripe API reference
+  at https://docs.stripe.com/api/. They cover balance and transactions,
+  customers, payment and setup intents, payment methods, charges, refunds,
+  disputes, payouts, products, prices, discounts, invoices and invoice items,
+  credit notes, subscriptions and schedules, quotes, Checkout Sessions,
+  Payment Links, tax rates, billing meters and events.
+- Writes are limited to products, prices, coupons, promotion codes and tax
+  rates in the account that owns the key. Connect and account-management
+  endpoints are excluded, and the gateway only forwards `Stripe-Version` and
+  `Idempotency-Key` as application headers.
+- Stripe also supports Connect through the body of ordinary payment and
+  billing requests. For example, PaymentIntent creation can set a destination
+  account, and confirmation can act on a destination already set on an
+  existing intent. The manifest cannot inspect request bodies or determine
+  whether a Stripe object has a connected account, so the connector exposes
+  those resources for reads only. Account-local reads can include references
+  to existing Connect transactions. See
+  https://docs.stripe.com/connect/destination-charges?platform=web&ui=elements.
 
 ## Body encoding
 
