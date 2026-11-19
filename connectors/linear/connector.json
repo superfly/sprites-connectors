@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.linear.app",
   "description": "Query and update Linear issues, projects, cycles and teams over GraphQL",
-  "long_description": "Bring a personal API key from your own Linear workspace; the gateway keeps it off your Sprite and sends it in the Authorization header the way Linear's docs show. Saving, replacing or testing the key runs one small GraphQL query for the key's own user (viewer { id name }) and nothing else. A Sprite can then send any GraphQL query or mutation to Linear's single endpoint, POST /graphql: issues, comments, projects, cycles, teams, labels, documents, initiatives and the rest of the schema. Because Linear's API is one endpoint, the connector cannot narrow it by route; what the key may read or change is set by the key's own Linear permissions (Read, Write, Admin, Create issues, Create comments, and optional team restrictions), so give the key only what the Sprite needs. OAuth, webhooks and file uploads to Linear's storage are not forwarded. Linear's API is free; its rate limit of 2,500 requests and 3,000,000 complexity points per hour per user applies.",
+  "long_description": "Bring a personal API key from your Linear workspace. The gateway keeps it off your Sprite and sends it in the Authorization header. Saving or testing the key reads the key's own user through the GraphQL viewer query. A Sprite can send any GraphQL operation the key permits, including managing webhooks with sufficient privileges and requesting signed file upload URLs. Choose the smallest set of Linear permissions and restrict the key to specific teams where possible. Linear's API is free and rate limits apply per user.",
   "website_url": "https://linear.app/settings/account/security",
   "auth": {"header": "authorization"},
   "allowed_paths": [
@@ -101,7 +101,7 @@
       },
       {
         "title": "Scope",
-        "body": "Only `POST /graphql` is forwarded, and it is Linear's whole API: every query and mutation the key is allowed to run, including ones that change issues, projects, teams and, with an Admin key, workspace settings. The connector cannot narrow a GraphQL endpoint by route, so limit the key itself: Linear personal keys can be Read-only, Write, Admin, Create issues or Create comments, and can be restricted to specific teams. OAuth, webhooks and file uploads are not forwarded."
+        "body": "The gateway forwards `POST /graphql`. Your key's Linear permissions and team restrictions determine which queries and mutations succeed. This includes requesting signed file upload URLs. A key with sufficient admin privileges can manage webhooks that send future workspace events to a configured URL. Manage or delete a registered webhook in Linear to stop delivery. OAuth flows, webhook deliveries and file uploads to signed URLs run outside this gateway route."
       },
       {
         "title": "Mutations are real",

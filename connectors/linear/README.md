@@ -33,10 +33,17 @@ Community submission (`owner: community`), not submitted by Linear.
 
 Linear's API is a single GraphQL endpoint, so `allowed_paths` is just
 `POST /graphql` and the route allowlist cannot separate reads from writes or
-keep admin mutations out. The notices say so and push users toward the key's
-own permissions (Read-only, team-restricted keys). Reviewers should weigh
-whether that is acceptable for a community connector; it is the same
-situation any GraphQL API would be in under this format.
+filter admin mutations. The key's scopes and team restrictions control
+which operations Linear authorizes. Prefer a read-only or narrowly scoped
+key for ordinary use. With sufficient privileges a Sprite can manage webhooks,
+which can deliver future events after the original request completes. Manage
+or remove registered webhooks in Linear to stop delivery. See
+https://linear.app/developers/webhooks.
+
+The `fileUpload` mutation can issue a signed upload URL, including with
+issue- or comment-creation scopes. The subsequent upload goes directly to
+the signed URL. See https://linear.app/developers/how-to-upload-a-file-to-linear
+and https://linear.app/changelog/2026-11-12-bring-your-own-key.
 
 ## Verification
 
