@@ -96,8 +96,8 @@
   ],
   "messages": {
     "400": "Kimi rejected the request (%{status}); check error.message",
-    "403": "Kimi refused the request: the API is not open to this account or the caller's IP is not on the organization allowlist",
-    "404": "Kimi model or resource not found, or this account cannot use it; check GET /v1/models",
+    "403": "Kimi refused the request: the API is not open to this account, the IP is not on the organization allowlist, the account is inactive, or URL fetch blocked the URL as a security risk",
+    "404": "Kimi model or resource not found, or this account cannot use it (check GET /v1/models); URL fetch answers 404 when a page has no extractable content",
     "429": "Kimi rate limit reached, engine overloaded or balance insufficient; check error.type and retry later or top up",
     "503": "Kimi service temporarily unavailable; retry later",
     "provider_unreachable": "Could not reach Moonshot AI; retry later"
@@ -128,7 +128,7 @@
     ],
     "usage_notes": [
       "Sprites waits 120 seconds for response headers. Use `stream: true` for chat, Responses and Messages calls that may think or write at length, and set `timeout_seconds` (1 to 60) on web search.",
-      "Errors are `{\"error\": {\"type\": \"...\", \"message\": \"...\"}}`; on 429 `error.type` says whether it is a rate limit, an overloaded engine or an empty balance. The web search and fetch tools answer 401 and 403 with an empty body.",
+      "Errors are `{\"error\": {\"type\": \"...\", \"message\": \"...\"}}`; on 429 `error.type` says whether it is a rate limit, an overloaded engine or an empty balance. The web search and fetch tools use their own error types, and answer 401 and an inactive account's 403 with an empty body.",
       "Upload files as multipart form data with a `purpose` (`file-extract`, `batch`, `image` or `video`). Batch input files hold JSONL requests to `/v1/chat/completions`; download results with `GET /v1/files/:file_id/content`."
     ],
     "mark_svg": {"file": "mark.svg"}

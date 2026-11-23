@@ -87,7 +87,12 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   organization allowlist (not a bad key, so not classified
   `invalid_api_key`), 404 unknown model, 429 rate limit, overload or empty
   balance (told apart by `error.type`), 500, 503, and 504 after 900 seconds.
-  The search and fetch tools answer 401 and 403 with an empty body.
+  The search and fetch tools have their own error types
+  (https://platform.kimi.ai/docs/api/tools-search.md,
+  https://platform.kimi.ai/docs/api/tools-fetch.md): 401 and 403 (account
+  inactive or suspended) come with an empty body, fetch answers 403
+  `security_risk` for a blocked URL and 404 `markdown_not_found` for a page
+  with no content, and both answer 502 and 504 on upstream failures.
 - Left out on purpose:
   - `GET /v1/users/me/balance`: account billing information.
   - `POST /v1/signatures/verify`: only useful with the nonce request header,
