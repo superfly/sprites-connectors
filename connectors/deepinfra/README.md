@@ -17,7 +17,9 @@ Community submission (`owner: community`), not submitted by DeepInfra.
   returns `RateLimitOut`, `{"rate_limit": <int>, "tpm_rate_limit": <int>}`
   (both required in the OpenAPI schema), needs `account:read` (a default
   scope), runs no model and costs nothing. Asserts both fields are integers
-  and `detail` (the error wrapper on non-OpenAI routes) is absent. The
+  and that neither error wrapper is present: `detail` (FastAPI's, as on a
+  401 or a missing scope) and `error` (`DeepError`, the 404 body the
+  OpenAPI documents for this route). The
   candidate suggested `GET /v1/me`
   (https://docs.deepinfra.com/api-reference/account/me), which needs the same
   scope. But it returns the account's email, names, sign-in provider and

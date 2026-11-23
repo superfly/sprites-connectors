@@ -28,7 +28,8 @@
     "expect": [
       ["rate_limit", "integer"],
       ["tpm_rate_limit", "integer"],
-      ["detail", "absent"]
+      ["detail", "absent"],
+      ["error", "absent"]
     ]
   },
   "examples": [
