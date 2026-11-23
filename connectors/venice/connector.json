@@ -110,7 +110,7 @@
     "400": "Venice rejected the request (%{status}); see the body's error and details",
     "402": "Venice balance or this key's spend limit is exhausted; top up or raise the key's limit at venice.ai/settings/api",
     "403": "Venice refused the request; if the key is restricted to IP addresses, the gateway's address is not on its list",
-    "429": "Venice rate limit reached; wait until x-ratelimit-reset-requests and retry",
+    "429": "Venice rate limit reached or model overloaded; wait until x-ratelimit-reset-requests and retry",
     "503": "Venice model is at capacity; retry later or pick another model",
     "504": "Venice timed out the request; set stream to true for long generations",
     "provider_unreachable": "Could not reach Venice; retry later"
