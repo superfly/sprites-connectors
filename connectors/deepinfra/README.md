@@ -61,7 +61,10 @@ Community submission (`owner: community`), not submitted by DeepInfra.
   upload).
 - Billing: https://deepinfra.com/pricing. Language, embedding and reranking
   models are mostly priced per token; speech recognition per minute of
-  audio; "most other models are billed for inference execution time". An
+  audio (the models list gives Whisper's price per second); text to speech
+  per input character (`hexgrad/Kokoro-82M` is `input_characters` in the
+  models list, per million); image models per image; "most other models
+  are billed for inference execution time". An
   account needs a card or prepaid balance. `service_tier: "priority"` costs
   50% more and `"flex"` 20% less
   ([service tier](https://docs.deepinfra.com/chat/overview#service-tier)).

@@ -36,7 +36,7 @@
     {
       "title": "List models with their pricing and context length",
       "path": "/v1/openai/models",
-      "notes": ["Each entry's `metadata.pricing` gives the price per million tokens; use an `id` from here as `model` below."]
+      "notes": ["Each entry's `metadata.pricing` gives the model's price: per million tokens for language, embedding and reranking models, per image unit, per second of audio or per million characters for others. Use an `id` from here as `model` below."]
     },
     {
       "title": "Chat completion (charged per token to your DeepInfra account)",
@@ -91,14 +91,14 @@
       "notes": ["`scores` come back in the order of `documents`; a single query is applied to every document."]
     },
     {
-      "title": "Text to speech (charged at the model's price)",
+      "title": "Text to speech (charged per input character)",
       "method": "POST",
       "path": "/v1/inference/hexgrad/Kokoro-82M",
       "json": {"text": "Hello from a Sprite."},
       "notes": ["Other model pages at deepinfra.com/models/text-to-speech list voice and format parameters."]
     },
     {
-      "title": "Transcribe audio with Whisper (charged at the model's price)",
+      "title": "Transcribe audio with Whisper (charged per second of audio)",
       "method": "POST",
       "path": "/v1/inference/openai/whisper-large-v3",
       "notes": ["Send the file as multipart form data: `curl -F audio=@audio.mp3 ...`. DeepInfra accepts mp3 and wav."]
@@ -128,7 +128,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /v1/me/rate_limit`, which runs no model and costs nothing; listing models is free too. Every other forwarded request runs a model and is charged to your DeepInfra account at that model's price on deepinfra.com/pricing: language, embedding and reranking models mostly per token, speech recognition per minute of audio, and other image and speech models per image or by inference time, as each model's page says. DeepInfra needs a card or prepaid balance before it serves requests. `service_tier: \"priority\"` adds 50% and `\"flex\"` takes 20% off. Requests a model rejects with `fail_fast` are not billed."
+        "body": "Saving or testing the key reads `GET /v1/me/rate_limit`, which runs no model and costs nothing; listing models is free too. Every other forwarded request runs a model and is charged to your DeepInfra account at that model's price on deepinfra.com/pricing: language, embedding and reranking models mostly per token, speech recognition by the length of the audio, text to speech per input character, image models per image, and other models by inference time, as each model's page says. DeepInfra needs a card or prepaid balance before it serves requests. `service_tier: \"priority\"` adds 50% and `\"flex\"` takes 20% off. Requests a model rejects with `fail_fast` are not billed."
       },
       {
         "title": "Scope",
