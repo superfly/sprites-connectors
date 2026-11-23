@@ -77,7 +77,8 @@ Community submission (`owner: community`), not submitted by Mistral AI.
   - `DELETE /v1/models/:model_id`, `PATCH /v1/fine_tuning/models/:model_id`
     and `POST`/`DELETE .../archive`: they change or delete the user's
     fine-tuned models.
-  - Fine-tuning jobs: long-running and costly to start.
+  - Fine-tuning jobs: the API reference (https://docs.mistral.ai/openapi.yaml)
+    lists no fine-tuning job endpoints, only the model routes above.
   - The beta Agents, Conversations, Libraries, Connectors, Prompts, Skills,
     RAG, Observability and Service Accounts APIs: they create persistent
     workspace resources and are still in beta.
