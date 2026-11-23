@@ -1,0 +1,154 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "attio",
+  "display_name": "Attio",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.attio.com",
+  "description": "Read and update Attio CRM records, lists, notes, tasks and comments",
+  "long_description": "Bring an Attio workspace access token (API key); the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the token lists the workspace's objects (GET /v2/objects), which changes nothing and needs the object_configuration:read scope. A Sprite can then read objects, lists and their attributes; query, search, create, upsert and update records such as people, companies and deals; add records to lists and update list entries; read and create notes, tasks and comments; read meetings, call recordings, email metadata and workspace members; and run SQL queries on plans that include them. Attio enforces the token's scopes on every request. Deletes, merges, value-history rewrites, schema changes (objects, lists, attributes, views), webhooks, the email blocklist and sequence unsubscribes are not forwarded.",
+  "website_url": "https://attio.com/help/apps/other-apps/generating-an-api-key",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v2/self"},
+    {"methods": ["GET"], "pattern": "/v2/objects"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object/attributes"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object/attributes/:attribute"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object/attributes/:attribute/options"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object/attributes/:attribute/statuses"},
+    {"methods": ["POST"], "pattern": "/v2/objects/:object/records/query"},
+    {"methods": ["POST", "PUT"], "pattern": "/v2/objects/:object/records"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v2/objects/:object/records/:record_id"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object/records/:record_id/attributes/:attribute/values"},
+    {"methods": ["GET"], "pattern": "/v2/objects/:object/records/:record_id/entries"},
+    {"methods": ["POST"], "pattern": "/v2/objects/records/search"},
+    {"methods": ["GET"], "pattern": "/v2/lists"},
+    {"methods": ["GET"], "pattern": "/v2/lists/:list"},
+    {"methods": ["GET"], "pattern": "/v2/lists/:list/attributes"},
+    {"methods": ["GET"], "pattern": "/v2/lists/:list/attributes/:attribute"},
+    {"methods": ["GET"], "pattern": "/v2/lists/:list/attributes/:attribute/options"},
+    {"methods": ["GET"], "pattern": "/v2/lists/:list/attributes/:attribute/statuses"},
+    {"methods": ["POST"], "pattern": "/v2/lists/:list/entries/query"},
+    {"methods": ["POST", "PUT"], "pattern": "/v2/lists/:list/entries"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v2/lists/:list/entries/:entry_id"},
+    {"methods": ["GET"], "pattern": "/v2/lists/:list/entries/:entry_id/attributes/:attribute/values"},
+    {"methods": ["GET", "POST"], "pattern": "/v2/notes"},
+    {"methods": ["GET"], "pattern": "/v2/notes/:note_id"},
+    {"methods": ["GET", "POST"], "pattern": "/v2/tasks"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v2/tasks/:task_id"},
+    {"methods": ["GET"], "pattern": "/v2/threads"},
+    {"methods": ["GET"], "pattern": "/v2/threads/:thread_id"},
+    {"methods": ["POST"], "pattern": "/v2/comments"},
+    {"methods": ["GET"], "pattern": "/v2/comments/:comment_id"},
+    {"methods": ["GET"], "pattern": "/v2/meetings"},
+    {"methods": ["GET"], "pattern": "/v2/meetings/:meeting_id"},
+    {"methods": ["GET"], "pattern": "/v2/meetings/:meeting_id/call_recordings"},
+    {"methods": ["GET"], "pattern": "/v2/meetings/:meeting_id/call_recordings/:call_recording_id"},
+    {"methods": ["GET"], "pattern": "/v2/emails"},
+    {"methods": ["GET"], "pattern": "/v2/workspace_members"},
+    {"methods": ["GET"], "pattern": "/v2/workspace_members/:workspace_member_id"},
+    {"methods": ["POST"], "pattern": "/v2/sql"}
+  ],
+  "forward_response_headers": ["retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/v2/objects",
+    "label": "workspace objects",
+    "expect": [
+      ["data", "nonempty_list"],
+      ["data[].id.workspace_id", "text"],
+      ["data[].id.object_id", "text"],
+      ["status_code", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List the workspace's objects (people, companies, deals and custom objects)",
+      "path": "/v2/objects"
+    },
+    {
+      "title": "List the attributes of the people object",
+      "path": "/v2/objects/people/attributes"
+    },
+    {
+      "title": "Search people and companies by name, domain or email",
+      "method": "POST",
+      "path": "/v2/objects/records/search",
+      "json": {"query": "acme", "objects": ["people", "companies"], "request_as": {"type": "workspace"}, "limit": 10}
+    },
+    {
+      "title": "Query the 10 most recently created companies",
+      "method": "POST",
+      "path": "/v2/objects/companies/records/query",
+      "json": {"sorts": [{"attribute": "created_at", "direction": "desc"}], "limit": 10},
+      "notes": ["A query is a POST but changes nothing. Page with `limit` and `offset` in the body."]
+    },
+    {
+      "title": "Create a person (changes your Attio data)",
+      "method": "POST",
+      "path": "/v2/objects/people/records",
+      "json": {"data": {"values": {"email_addresses": ["ada@example.com"], "name": [{"first_name": "Ada", "last_name": "Lovelace", "full_name": "Ada Lovelace"}]}}},
+      "notes": ["Create answers 409 if a unique attribute such as `email_addresses` already matches a person. To create or update instead, send the same body with `PUT /v2/objects/people/records?matching_attribute=email_addresses`."]
+    },
+    {
+      "title": "Read one record; replace RECORD_ID",
+      "path": "/v2/objects/companies/records/RECORD_ID"
+    },
+    {
+      "title": "Add a note to a company (changes your Attio data); replace RECORD_ID",
+      "method": "POST",
+      "path": "/v2/notes",
+      "json": {"data": {"parent_object": "companies", "parent_record_id": "RECORD_ID", "title": "Call summary", "format": "plaintext", "content": "Discussed renewal timing."}}
+    },
+    {
+      "title": "Create a task linked to a company (changes your Attio data); replace RECORD_ID",
+      "method": "POST",
+      "path": "/v2/tasks",
+      "json": {"data": {"content": "Send the renewal proposal", "format": "plaintext", "deadline_at": "2026-12-01T17:00:00.000Z", "is_completed": false, "linked_records": [{"target_object": "companies", "target_record_id": "RECORD_ID"}], "assignees": []}}
+    },
+    {
+      "title": "List the entries in a list; replace LIST",
+      "method": "POST",
+      "path": "/v2/lists/LIST/entries/query",
+      "json": {"limit": 20}
+    }
+  ],
+  "messages": {
+    "400": "Attio rejected the request (%{status}); check the body's code and message",
+    "403": "This Attio token lacks a scope this request needs, or the plan does not include it; edit the token's scopes in Workspace settings → Developers",
+    "404": "Not found in Attio; check the object or list slug and the record or entry id",
+    "409": "Attio found a conflict with an existing value on a unique attribute; use the upsert (PUT) route to update instead",
+    "429": "Attio rate limit reached; wait for the Retry-After time and retry",
+    "provider_unreachable": "Could not reach Attio; retry later"
+  },
+  "discovery": {
+    "categories": ["crm"],
+    "keywords": ["attio", "crm", "contacts", "people", "companies", "deals", "pipeline", "lists", "notes", "tasks", "sales"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Work with your Attio CRM from a Sprite without putting your access token on it.",
+    "setup": "A workspace admin opens Workspace settings → Developers in Attio, clicks + New access token, names it and sets its scopes. The token needs `object_configuration:read` for the key check. Add `record_permission:read`, `list_configuration:read`, `list_entry:read`, `note:read`, `task:read` and `comment:read` for read-only use, and the matching `read-write` scopes only for what the Sprite should change.",
+    "key_label": "Access token",
+    "key_placeholder": "64-character access token",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the token lists your workspace's objects with `GET /v2/objects`, which changes nothing. Attio lists no per-request charge for its REST API. Records a Sprite creates count toward your plan's record limit, and additional records are a paid add-on. `POST /v2/sql` works only on plans that include SQL access. Attio allows 100 read and 25 write requests per second per workspace, and `POST /v2/sql` 2 per second."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwarded: `GET /v2/self`; `GET` on objects, lists and their attributes, select options and statuses; `POST /v2/objects/:object/records/query`, `POST` and `PUT /v2/objects/:object/records`, `GET` and `PATCH /v2/objects/:object/records/:record_id`, record attribute values and record entries, `POST /v2/objects/records/search`; `POST /v2/lists/:list/entries/query`, `POST` and `PUT /v2/lists/:list/entries`, `GET` and `PATCH /v2/lists/:list/entries/:entry_id` and entry attribute values; `GET` and `POST /v2/notes`, `GET /v2/notes/:note_id`; `GET` and `POST /v2/tasks`, `GET` and `PATCH /v2/tasks/:task_id`; `GET /v2/threads` and `/v2/threads/:thread_id`; `POST /v2/comments`, `GET /v2/comments/:comment_id`; `GET` on meetings and their call recordings, `GET /v2/emails`, `GET` on workspace members; `POST /v2/sql`. Not forwarded: any delete, record merges, attribute value-history rewrites, creating or changing objects, lists, attributes or views, webhooks, files, activities, the workspace blocklist and sequence unsubscribes. Attio enforces the token's scopes on every allowed route."
+      }
+    ],
+    "usage_notes": [
+      "Objects and lists are addressed by slug (`people`, `companies`, `deals`) or by id; records, entries, notes, tasks and other resources by UUID.",
+      "Most list and query routes page with `limit` and `offset` (in the body for `POST .../query`, in the query string for `GET` lists). `GET /v2/meetings` and `GET /v2/emails` page with `limit` and the `cursor` the previous response returned. There is no pagination header.",
+      "Errors are `{\"status_code\": 400, \"type\": \"invalid_request_error\", \"code\": \"validation_type\", \"message\": \"...\"}`. A 429 carries `Retry-After` as an HTTP date, which the gateway passes back."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
