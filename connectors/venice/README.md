@@ -52,6 +52,8 @@ Community submission (`owner: community`), not submitted by Venice.
   pricing page lists no price for background removal, and
   `POST /image/background-remove` takes no `model`, so it has no price in
   `GET /models` either; the OpenAPI spec only marks it as dynamically priced.
+  Venice charges each request to DIEM first, then earned credits, bundled
+  credits and USD (pricing page, "Paying for usage").
 - Rate limits: https://docs.venice.ai/api-reference/rate-limiting. Limits are
   per model and tier and readable from the probe route. Inference responses
   carry `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` (reset in Unix

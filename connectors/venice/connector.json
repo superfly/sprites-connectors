@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.venice.ai/api/v1",
   "description": "Private, OpenAI-compatible chat, embeddings, images, speech and web search with Venice",
-  "long_description": "Bring a Venice API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's own tier, balances and rate limits (GET /api_keys/rate_limits), which costs nothing. A Sprite can then list models, run chat completions and the Responses API, create embeddings, generate, edit, upscale and remove the background of images, synthesize and transcribe speech, and search the web, scrape a page or parse a document. Inference and tools spend your Venice balance (DIEM, bundled credits or USD). API key management, billing and usage history, video, music, voice cloning and changing, characters, decisions, crypto RPC and x402 wallet routes are not forwarded.",
+  "long_description": "Bring a Venice API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's own tier, balances and rate limits (GET /api_keys/rate_limits), which costs nothing. A Sprite can then list models, run chat completions and the Responses API, create embeddings, generate, edit, upscale and remove the background of images, synthesize and transcribe speech, and search the web, scrape a page or parse a document. Inference and tools spend your Venice balance: DIEM first, then earned credits, bundled credits and USD. API key management, billing and usage history, video, music, voice cloning and changing, characters, decisions, crypto RPC and x402 wallet routes are not forwarded.",
   "website_url": "https://venice.ai/settings/api",
   "auth": "bearer",
   "allowed_paths": [
@@ -128,7 +128,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /api_keys/rate_limits` and spends nothing; the model, style and trait lists are free too. Chat, Responses and embeddings are billed per token, image generation, edits and upscaling per image, speech per character and transcription per second of audio, at each model's price in `GET /models`. Background removal is also charged, but takes no model and has no published price. `/augment/search`, `/augment/scrape` and `/augment/text-parser` cost $0.01 per request, and web search or scraping turned on inside a chat adds a fee per request or URL. Venice spends DIEM, bundled credits or USD from your account, within any per-key spend limit you set."
+        "body": "Saving or testing the key reads `GET /api_keys/rate_limits` and spends nothing; the model, style and trait lists are free too. Chat, Responses and embeddings are billed per token, image generation, edits and upscaling per image, speech per character and transcription per second of audio, at each model's price in `GET /models`. Background removal is also charged, but takes no model and has no published price. `/augment/search`, `/augment/scrape` and `/augment/text-parser` cost $0.01 per request, and web search or scraping turned on inside a chat adds a fee per request or URL. Venice charges DIEM first, then earned credits, bundled credits and USD, within any per-key spend limit you set."
       },
       {
         "title": "Scope",
