@@ -52,21 +52,21 @@
       "path": "/v1/audio/models"
     },
     {
-      "title": "Synthesize speech as Base64 MP3 (spends credits per spoken character)",
+      "title": "Synthesize speech as Base64 MP3 (billed per spoken character against your balance)",
       "method": "POST",
       "path": "/v1/audio/speech",
       "json": {"input": "Hello from a Sprite.", "voice_id": "geffen_32", "model": "simba-3.5", "audio_format": "mp3"},
       "notes": ["The audio is Base64 in `audio_data`; `billable_characters_count` says what was billed. Up to 2,000 spoken characters per request."]
     },
     {
-      "title": "Stream long-form speech as raw MP3 (spends credits per spoken character)",
+      "title": "Stream long-form speech as raw MP3 (billed per spoken character against your balance)",
       "method": "POST",
       "path": "/v1/audio/stream",
       "json": {"input": "A longer passage to read aloud.", "voice_id": "geffen_32", "model": "simba-3.5", "output_format": "mp3_24000_128"},
       "notes": ["Up to 20,000 spoken characters. Write the body to a file, for example with curl's `-o speech.mp3`."]
     },
     {
-      "title": "Stream speech with word timestamps (spends credits per spoken character)",
+      "title": "Stream speech with word timestamps (billed per spoken character against your balance)",
       "method": "POST",
       "path": "/v1/audio/stream/with-timestamps",
       "json": {"input": "Captions follow every word.", "voice_id": "geffen_32", "model": "simba-3.5", "output_format": "mp3_24000_128"},
