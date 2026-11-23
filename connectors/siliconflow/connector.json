@@ -44,7 +44,7 @@
       "method": "POST",
       "path": "/v1/chat/completions",
       "json": {
-        "model": "deepseek-ai/DeepSeek-V3",
+        "model": "deepseek-ai/DeepSeek-V3.2",
         "messages": [{"role": "user", "content": "Explain serverless inference in two sentences."}],
         "max_tokens": 256,
         "stream": false

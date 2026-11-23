@@ -62,7 +62,10 @@ Community submission (`owner: community`), not submitted by SiliconFlow.
   https://docs.siliconflow.com/en/userguide/rate-limits/rate-limit-and-upgradation.
   Per account (not per key) and per model, RPM/TPM for language, embedding
   and rerank models and IPM/IPD for images, rising with usage tier. Free
-  models have fixed limits. No rate-limit or retry response headers are
+  models have fixed limits. `deepseek-ai/DeepSeek-V3` and
+  `deepseek-ai/DeepSeek-R1` are also capped at 30 requests an hour (and 100
+  a day without identity verification), so the chat example uses
+  `deepseek-ai/DeepSeek-V3.2`. No rate-limit or retry response headers are
   documented, so none are forwarded.
 - Billing: pay-as-you-go against the account balance at the per-model prices
   on https://cloud.siliconflow.com/models; some models are free.
