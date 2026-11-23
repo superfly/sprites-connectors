@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.heygen.com",
   "description": "Generate AI avatar videos, prompt-to-video clips, speech and video translations",
-  "long_description": "Bring a HeyGen API key; the gateway keeps it off your Sprite and sends it in the X-Api-Key header. Saving, replacing or testing the key reads the key owner's profile and balance (GET /v3/users/me), which costs nothing. A Sprite can then browse avatars, looks and voices, create avatar videos, Video Agent videos, HeyGen Video and Avatar 6 clips, speech and video translations, upload input files, and poll each job until it finishes. Every generation draws on your prepaid HeyGen API balance. Finished media come back as presigned links that expire, so download them promptly. Deleting or editing videos, creating avatars or voice clones, webhooks, templates, brand kits, API key, usage and request-log endpoints are not forwarded.",
+  "long_description": "Bring a HeyGen API key; the gateway keeps it off your Sprite and sends it in the X-Api-Key header. Saving, replacing or testing the key reads the key owner's profile and balance (GET /v3/users/me), which costs nothing. A Sprite can then browse avatars, looks and voices, create avatar videos, Video Agent videos, HeyGen Video and Avatar 6 clips, speech and video translations, upload input files, and poll each job until it finishes. Every generation except free-model speech is billed to your HeyGen API account. Finished media come back as presigned links that expire, so download them promptly. Deleting or editing videos, creating avatars or voice clones, webhooks, templates, brand kits, API key, usage and request-log endpoints are not forwarded.",
   "website_url": "https://platform.heygen.com/api-keys",
   "auth": {"header": "x-api-key"},
   "allowed_paths": [
@@ -116,12 +116,12 @@
   "icon_bg_class": "bg-emerald-500/20",
   "presentation": {
     "tagline": "Generate avatar videos, prompt-to-video clips, speech and translations from a Sprite without putting your HeyGen key on it.",
-    "setup": "Open platform.heygen.com/api-keys, generate an API key and add API balance; API calls do not use HeyGen web-plan credits. A key with restricted permission scopes must include `account:read`, which the key check uses, and works for the routes its other scopes cover.",
+    "setup": "Open platform.heygen.com/api-keys, generate an API key and add API balance if your account uses a prepaid wallet; API calls do not use HeyGen web-plan credits. A key with restricted permission scopes must include `account:read`, which the key check uses, and works for the routes its other scopes cover.",
     "key_label": "API key",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /v3/users/me` and costs nothing. Listing and polling are free. `POST /v3/videos`, `POST /v3/video-agents`, `POST /v3/models/videos`, `POST /v3/models/avatars` and `POST /v3/video-translations` draw on your prepaid HeyGen API balance, mostly per second of output (translations per second of source video); rates depend on the engine and resolution and are on the pricing page at platform.heygen.com/pricing. `POST /v3/models/audio/tts` spends API balance except with `heygen-voice-1-turbo-free`, which HeyGen offers free until November 30, 2026. Every render is billed, including a retried create sent without an `Idempotency-Key`."
+        "body": "Saving or testing the key reads `GET /v3/users/me` and costs nothing. Listing and polling are free. `POST /v3/videos`, `POST /v3/video-agents`, `POST /v3/models/videos`, `POST /v3/models/avatars` and `POST /v3/video-translations` are billed to your HeyGen API account (a prepaid wallet, or metered usage on usage-based and Enterprise plans), mostly per second of output (translations per second of source video); rates depend on the engine and resolution and are on the pricing page at platform.heygen.com/pricing. `POST /v3/models/audio/tts` spends API balance except with `heygen-voice-1-turbo-free`, which HeyGen offers free until November 30, 2026. Every render is billed, including a retried create sent without an `Idempotency-Key`."
       },
       {
         "title": "Scope",

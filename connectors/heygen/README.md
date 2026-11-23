@@ -101,13 +101,17 @@ Community submission (`owner: community`), not submitted by HeyGen.
   and per path; reads 300 a minute, writes 10 a second, status polling 500 a
   minute, `POST /v3/assets` 30 a minute and TTS 30 a minute on self-serve
   plans; 10 concurrent jobs on pay-as-you-go.
-- Billing: API keys draw on a prepaid API balance separate from web-plan
+- Billing: API keys bill an API account separate from web-plan
   credits (https://help.heygen.com/en/articles/10060327-heygen-api-pricing-credits-explained),
   mostly per second of output; the rate table is on
   https://platform.heygen.com/pricing behind sign-in, so the Billing notice
   names which routes spend balance and links there instead of quoting rates.
   `heygen-voice-1-turbo-free` is free until November 30, 2026
   (https://developers.heygen.com/docs/models/heygen-voice).
+  `GET /v3/users/me` reports one of three `billing_type`s
+  (https://developers.heygen.com/user-profile): `wallet` (prepaid),
+  `subscription` or `usage_based` (metered, with an optional spending cap),
+  so the notices do not call the balance prepaid.
 - Left out on purpose:
   - Destructive and edit routes: every `DELETE`, `POST /v3/videos/:video_id`
     (edit and re-render), `PATCH` on avatars, looks, translations, lipsyncs
