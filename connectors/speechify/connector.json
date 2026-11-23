@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.speechify.ai",
   "description": "Text-to-speech with lifelike voices in 48 languages, as files or streams",
-  "long_description": "Bring a SpeechifyAI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists one voice (GET /v1/voices?limit=1), which is free. A Sprite can then list voices and models, read one voice, and synthesize speech as a single JSON response with Base64 audio, as a raw audio stream, or as a stream of audio with word timestamps. Synthesis is billed per spoken character against your Speechify balance. Voice cloning and deletion, consent challenges, projects and their members, webhooks, workspace entitlements and the WebSocket text-input stream are not forwarded.",
+  "long_description": "Bring a SpeechifyAI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists the models the workspace can use (GET /v1/audio/models), which is free. A Sprite can then list voices and models, read one voice, and synthesize speech as a single JSON response with Base64 audio, as a raw audio stream, or as a stream of audio with word timestamps. Synthesis is billed per spoken character against your Speechify balance. Voice cloning and deletion, consent challenges, projects and their members, webhooks, workspace entitlements and the WebSocket text-input stream are not forwarded.",
   "website_url": "https://platform.speechify.ai/api-keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -28,11 +28,11 @@
   ],
   "probe": {
     "method": "GET",
-    "path": "/v1/voices?limit=1",
-    "label": "voices",
+    "path": "/v1/audio/models",
+    "label": "models",
     "expect": [
-      ["voices", "list"],
-      ["has_more", "boolean"],
+      ["models", "nonempty_list"],
+      ["models[].id", "text"],
       ["error", "absent"]
     ]
   },
@@ -93,7 +93,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key lists one voice with `GET /v1/voices?limit=1`, which costs nothing; listing voices and models is free too. `POST /v1/audio/speech`, `POST /v1/audio/stream` and `POST /v1/audio/stream/with-timestamps` are billed per spoken character (SSML tags are not counted) against your monthly balance: Simba 3.5 lists at $15, $12 or $10 per 1M characters on Starter, Pro or Scale, and Simba 3.0 and 3.2 at $10, $8 or $6. The free plan includes 500K characters a month and then pauses until the next month."
+        "body": "Saving or testing the key lists the available models with `GET /v1/audio/models`, which costs nothing; listing and reading voices is free too. `POST /v1/audio/speech`, `POST /v1/audio/stream` and `POST /v1/audio/stream/with-timestamps` are billed per spoken character (SSML tags are not counted) against your monthly balance: Simba 3.5 lists at $15, $12 or $10 per 1M characters on Starter, Pro or Scale, and Simba 3.0 and 3.2 at $10, $8 or $6. The free plan includes 500K characters a month and then pauses until the next month."
       },
       {
         "title": "Scope",

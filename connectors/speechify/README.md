@@ -19,13 +19,21 @@ not the consumer Speechify reader app at speechify.com.
   which only pin the synthesis region. A connector has one base URL, so this
   one uses the default host, which picks the region. A reviewer may prefer a
   regional host; the routes are the same.
-- Probe: `GET /v1/voices?limit=1`,
-  https://docs.speechify.ai/build/api-reference/v1/voices/get. This is the
-  request the authentication page uses as its example, and it is free (only
-  synthesis is billed). `limit=1` keeps the response to one voice. The
-  assertions are that `voices` is a list, `has_more` is a boolean and
-  `error`, the error envelope, is absent. A project-pinned key still
-  succeeds, because `project_id` is omitted.
+- Probe: `GET /v1/audio/models`,
+  https://docs.speechify.ai/build/api-reference/v1/audio/models. It is free
+  (only synthesis is billed), returns the few models the workspace can
+  select in one unpaginated response, and has answered with a
+  `{"models": [...]}` object since it shipped, with no versioned change to
+  that shape in the changelog
+  (https://docs.speechify.ai/build/changelog/2026/7/9). The assertions are
+  that `models` is a non-empty list (the docs say exactly one entry is the
+  default), every `models[].id` is a non-empty string and `error`, the error
+  envelope, is absent. `GET /v1/voices` was not used: the probe sends no
+  `Speechify-Version`, so it gets the workspace's pinned version, and a
+  workspace pinned to `2026-06-26` or earlier, or one with no stored
+  default, gets a bare JSON array from `GET /v1/voices`
+  (https://docs.speechify.ai/build/changelog/2026/6/27), which a probe
+  cannot accept.
 - Routes:
   - `GET /v1/voices`: https://docs.speechify.ai/build/api-reference/v1/voices/get
   - `GET /v1/voices/:voice_id`: https://docs.speechify.ai/build/api-reference/v1/voices/-id-/get
@@ -82,15 +90,15 @@ not the consumer Speechify reader app at speechify.com.
 ## Verification
 
 On 2026-11-23, `BOGUS=not-a-real-key node scripts/probe.mjs speechify
---key-env BOGUS` got HTTP 401
-`{"error":{"code":"unauthorized","message":"Unauthorized"},"request_id":"..."}`
-and classified it `invalid_api_key`. With the same made-up key, curl got 401
+--key-env BOGUS` sent `GET /v1/audio/models` and got HTTP 401
+`{"error":{"code":"unauthorized","message":"Unauthorized"},"request_id":"..."}`,
+which it classified `invalid_api_key`. With the same made-up key, curl got 401
 from every allowed route: `GET /v1/voices`, `GET /v1/voices/geffen_32`,
 `GET /v1/audio/models`, `POST /v1/audio/speech`, `POST /v1/audio/stream`
 and `POST /v1/audio/stream/with-timestamps`. An unknown path
 (`GET /v1/nonexistent-route`) got 404 `not_found`, so the 401s show the
 paths exist. **The probe has not been run with a real key**, so no fixture
-was recorded; the assertions follow the documented List Voices response.
+was recorded; the assertions follow the documented List Models response.
 `node scripts/check-connectors.mjs speechify` and the ajv schema check pass.
 
 ## Icons
