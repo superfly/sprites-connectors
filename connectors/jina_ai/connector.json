@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.jina.ai",
   "description": "Embeddings, reranking, document OCR and batch embedding jobs for search and RAG",
-  "long_description": "Bring a Jina AI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key embeds one short word with jina-embeddings-v5-text-nano (POST /v1/embeddings), which uses about one token from the key's balance. A Sprite can then create text and multimodal embeddings, rerank documents against a query, transcribe document images with jina-ocr-v1, submit batch embedding jobs and read their status, output and errors, and read the model catalogue. Every embedding, rerank, OCR and batch request uses tokens from your Jina AI balance. Jina's Reader (r.jina.ai), Search (s.jina.ai) and other hosts, batch job cancellation, and API key, balance and billing management are not forwarded.",
+  "long_description": "Bring a Jina AI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key embeds one short word with jina-embeddings-v5-text-nano (POST /v1/embeddings), which uses a few tokens from the key's balance. A Sprite can then create text and multimodal embeddings, rerank documents against a query, transcribe document images with jina-ocr-v1, submit batch embedding jobs and read their status, output and errors, and read the model catalogue. Every embedding, rerank, OCR and batch request uses tokens from your Jina AI balance. Jina's Reader (r.jina.ai), Search (s.jina.ai) and other hosts, batch job cancellation, and API key, balance and billing management are not forwarded.",
   "website_url": "https://jina.ai/api-dashboard/key-manager",
   "auth": "bearer",
   "allowed_paths": [
@@ -27,7 +27,7 @@
   "probe": {
     "method": "POST",
     "path": "/v1/embeddings",
-    "label": "one-token embedding",
+    "label": "one-word embedding",
     "json": {"model": "jina-embeddings-v5-text-nano", "input": ["ok"], "dimensions": 32},
     "expect": [
       ["model", "text"],
@@ -108,7 +108,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key sends one embedding request for a single word with `jina-embeddings-v5-text-nano`, which uses about one token from the key's balance (that model is listed at $0.00000002 per token). Embeddings, rerank and batch jobs are charged per input token; OCR with `jina-ocr-v1` is charged for input and output tokens, and an A4 page is about 900 input tokens. `GET /v1/models` lists each model's per-token price and is free. Responses report what was used in `usage.total_tokens`."
+        "body": "Saving or testing the key sends one embedding request for a single word with `jina-embeddings-v5-text-nano`, which uses a few tokens from the key's balance: Jina counts its task prefix and special tokens as well as the word (that model is listed at $0.00000002 per token). Embeddings, rerank and batch jobs are charged per input token; OCR with `jina-ocr-v1` is charged for input and output tokens, and an A4 page is about 900 input tokens. `GET /v1/models` lists each model's per-token price and is free. Responses report what was used in `usage.total_tokens`."
       },
       {
         "title": "Scope",

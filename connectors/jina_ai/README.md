@@ -23,8 +23,10 @@ operation id is given so it can be found on the reference page.
   `array<BatchStatus>`), and a probe only passes on a JSON object, so it
   cannot be used. `GET /v1/models` needs no key, so it proves nothing. A
   one-word embedding with the cheapest model (listed by `GET /v1/models` at
-  $0.00000002 per token) is the cheapest call that proves the key: about one
-  token per check. Asserts `model` is text, `data` is a non-empty list,
+  $0.00000002 per token) is the cheapest call that proves the key: a few
+  tokens per check, because `EmbeddingUsage` counts the task prefix and
+  special framing as well as the word (not measured; no real key was
+  available). Asserts `model` is text, `data` is a non-empty list,
   every `data[].embedding` is a non-empty list, `usage.total_tokens` is an
   integer and `detail` (the error field) is absent, following the
   documented `EmbeddingResponse` and `ErrorResponse` schemas.
