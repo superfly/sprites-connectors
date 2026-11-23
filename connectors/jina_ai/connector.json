@@ -1,0 +1,125 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "jina_ai",
+  "display_name": "Jina AI",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.jina.ai",
+  "description": "Embeddings, reranking, document OCR and batch embedding jobs for search and RAG",
+  "long_description": "Bring a Jina AI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key embeds one short word with jina-embeddings-v5-text-nano (POST /v1/embeddings), which uses about one token from the key's balance. A Sprite can then create text and multimodal embeddings, rerank documents against a query, transcribe document images with jina-ocr-v1, submit batch embedding jobs and read their status, output and errors, and read the model catalogue. Every embedding, rerank, OCR and batch request uses tokens from your Jina AI balance. Jina's Reader (r.jina.ai), Search (s.jina.ai) and other hosts, batch job cancellation, and API key, balance and billing management are not forwarded.",
+  "website_url": "https://jina.ai/api-dashboard/key-manager",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/v1/rerank"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/batch/embeddings"},
+    {"methods": ["GET"], "pattern": "/v1/batches"},
+    {"methods": ["GET"], "pattern": "/v1/batch/:batch_id"},
+    {"methods": ["GET"], "pattern": "/v1/batch/:batch_id/output"},
+    {"methods": ["GET"], "pattern": "/v1/batch/:batch_id/errors"},
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["GET"], "pattern": "/v1/models/:model_id"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._-]+\\z",
+  "forward_response_headers": ["x-request-id"],
+  "probe": {
+    "method": "POST",
+    "path": "/v1/embeddings",
+    "label": "one-token embedding",
+    "json": {"model": "jina-embeddings-v5-text-nano", "input": ["ok"], "dimensions": 32},
+    "expect": [
+      ["model", "text"],
+      ["data", "nonempty_list"],
+      ["data[].embedding", "nonempty_list"],
+      ["usage.total_tokens", "integer"],
+      ["detail", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Embed search queries (uses tokens from your balance)",
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "json": {"model": "jina-embeddings-v5-text-small", "task": "retrieval.query", "dimensions": 512, "input": ["How do Sprites keep API keys off the machine?"]},
+      "notes": ["Use `task: \"retrieval.passage\"` for the documents you index. `usage.total_tokens` in the response is what the request cost. Send large corpora as a batch job instead of one huge request."]
+    },
+    {
+      "title": "Rerank documents against a query (uses tokens from your balance)",
+      "method": "POST",
+      "path": "/v1/rerank",
+      "json": {"model": "jina-reranker-v3", "query": "persistent sandboxes for AI agents", "top_n": 2, "return_documents": false, "documents": ["Sprites are persistent Linux sandboxes.", "A recipe for sourdough bread.", "Ephemeral containers start fresh every run."]},
+      "notes": ["Results are sorted by `relevance_score`, each with the `index` it had in `documents`."]
+    },
+    {
+      "title": "Transcribe a document image with jina-ocr-v1 (uses tokens); replace PAGE_IMAGE_URL",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {"model": "jina-ocr-v1", "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": "PAGE_IMAGE_URL"}}]}]},
+      "notes": ["Send one page per request; input and output tokens are both charged. Errors on this route use OpenAI's `{\"error\": {...}}` envelope."]
+    },
+    {
+      "title": "Start a batch embedding job (uses tokens for every line)",
+      "method": "POST",
+      "path": "/v1/batch/embeddings",
+      "json": {"model": "jina-embeddings-v5-text-nano", "task": "text-matching", "input": [{"custom_id": "req-1", "body": {"input": "Hello world"}}, {"custom_id": "req-2", "body": {"input": "Batch embeddings"}}]},
+      "notes": ["Returns a `batch_id`; poll `GET /v1/batch/BATCH_ID` until `status` is `completed`, `failed`, `expired` or `cancelled`. For large jobs pass `input_url` (a JSONL file on GCS, S3 or HTTP) instead of `input`."]
+    },
+    {
+      "title": "Read a batch job's status; replace BATCH_ID",
+      "path": "/v1/batch/BATCH_ID"
+    },
+    {
+      "title": "Download a finished batch job's output; replace BATCH_ID",
+      "path": "/v1/batch/BATCH_ID/output",
+      "notes": ["The output is JSONL, one line per input line. `GET /v1/batch/BATCH_ID/errors` returns the failed lines."]
+    },
+    {
+      "title": "List recent batch jobs",
+      "path": "/v1/batches?limit=20"
+    },
+    {
+      "title": "List models with their prices and limits (free)",
+      "path": "/v1/models"
+    }
+  ],
+  "messages": {
+    "400": "Jina AI rejected the request (%{status}); check the body's detail and code",
+    "403": "Jina AI refused the request: the key's token balance is exhausted or the plan limit was reached; top up at jina.ai/api-dashboard",
+    "404": "Jina AI could not find that batch job or model",
+    "409": "Jina AI batch job is being modified; retry shortly",
+    "422": "Jina AI could not validate the request body; see errors for the field",
+    "429": "Jina AI rate limit reached (requests, tokens or concurrency per minute); try again later",
+    "504": "Jina AI timed out processing the request; send smaller inputs or use a batch job",
+    "provider_unreachable": "Could not reach Jina AI; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference", "search"],
+    "keywords": ["jina", "jina ai", "embeddings", "multimodal embeddings", "reranker", "rerank", "ocr", "document ocr", "batch embeddings", "rag", "retrieval", "vector search"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-teal-500/20",
+  "presentation": {
+    "tagline": "Embed, rerank and OCR documents with Jina AI from a Sprite without putting your key on it.",
+    "setup": "Open jina.ai/api-dashboard/key-manager, sign in and create an API key (it starts with `jina_`). New keys come with free trial tokens; top up on the same dashboard.",
+    "key_label": "API key",
+    "key_placeholder": "jina_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key sends one embedding request for a single word with `jina-embeddings-v5-text-nano`, which uses about one token from the key's balance (that model is listed at $0.00000002 per token). Embeddings, rerank and batch jobs are charged per input token; OCR with `jina-ocr-v1` is charged for input and output tokens, and an A4 page is about 900 input tokens. `GET /v1/models` lists each model's per-token price and is free. Responses report what was used in `usage.total_tokens`."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /v1/embeddings`, `POST /v1/rerank`, `POST /v1/chat/completions` (document OCR), `POST /v1/batch/embeddings`, `GET /v1/batches`, `GET /v1/batch/:batch_id`, `GET /v1/batch/:batch_id/output`, `GET /v1/batch/:batch_id/errors`, `GET /v1/models` and `GET /v1/models/:model_id` on `api.jina.ai` are forwarded. Cancelling batch jobs, API key and balance management, and Jina's Reader (`r.jina.ai`) and Search (`s.jina.ai`) APIs are not."
+      }
+    ],
+    "usage_notes": [
+      "Sprites waits 120 seconds for Jina AI's response headers, and Jina's API has no timeout parameter. Keep inline embedding, rerank and OCR requests small (one PDF or page image at a time) and send large workloads as a batch job.",
+      "Errors are `{\"detail\": \"...\", \"code\": \"...\", \"request_id\": \"...\"}`, with `errors` listing fields on a 422; `/v1/chat/completions` uses OpenAI's `{\"error\": {...}}` envelope instead. A 403 with `AUTHZ_INSUFFICIENT_BALANCE` means the key is valid but out of tokens.",
+      "Rate limits apply per key in requests and tokens per minute; read the current limits at jina.ai/api-dashboard/rate-limit."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
