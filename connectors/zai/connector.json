@@ -1,0 +1,125 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "zai",
+  "display_name": "Z.ai (GLM)",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.z.ai/api/paas/v4",
+  "description": "GLM chat completions, web search, page reading, OCR, images, video and transcription on Z.ai's standard API",
+  "long_description": "Bring a Z.ai Standard API Key; the gateway keeps it off your Sprite and sends it as a bearer token to Z.ai's international standard API (api.z.ai/api/paas/v4). Saving, replacing or testing the key counts the tokens of a two-character message with POST /tokenizer, which runs no generation. A Sprite can then call the OpenAI-compatible chat completions route with GLM models, count tokens, search the web, read a web page, parse document layouts with GLM-OCR, generate images and videos, poll asynchronous results and transcribe audio. These calls use your Z.ai balance or usage bundles, not GLM Coding Plan quota. The Coding Plan and Anthropic-compatible endpoints, agents, file uploads, the China host open.bigmodel.cn, and key, billing and account management are not forwarded.",
+  "website_url": "https://z.ai/manage-apikey/apikey-list",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/chat/completions"},
+    {"methods": ["POST"], "pattern": "/tokenizer"},
+    {"methods": ["POST"], "pattern": "/web_search"},
+    {"methods": ["POST"], "pattern": "/reader"},
+    {"methods": ["POST"], "pattern": "/layout_parsing"},
+    {"methods": ["POST"], "pattern": "/images/generations"},
+    {"methods": ["POST"], "pattern": "/async/images/generations"},
+    {"methods": ["POST"], "pattern": "/videos/generations"},
+    {"methods": ["GET"], "pattern": "/async-result/:id"},
+    {"methods": ["POST"], "pattern": "/audio/transcriptions"}
+  ],
+  "probe": {
+    "method": "POST",
+    "path": "/tokenizer",
+    "label": "token count",
+    "json": {"model": "glm-4.6", "messages": [{"role": "user", "content": "hi"}]},
+    "expect": [
+      ["id", "text"],
+      ["usage", "map"],
+      ["usage.total_tokens", "number"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Chat completion with GLM-5.3 (spends your Z.ai balance)",
+      "method": "POST",
+      "path": "/chat/completions",
+      "json": {
+        "model": "glm-5.3",
+        "messages": [{"role": "user", "content": "Explain persistent sandboxes for coding agents in two sentences."}],
+        "max_tokens": 1024,
+        "stream": true
+      },
+      "notes": ["Streaming sends Server-Sent Events, so the first bytes arrive well inside the gateway's 120-second header deadline. Without `stream`, keep `max_tokens` modest or a long reply may time out."]
+    },
+    {
+      "title": "Count the tokens in a message",
+      "method": "POST",
+      "path": "/tokenizer",
+      "json": {"model": "glm-4.6", "messages": [{"role": "user", "content": "How many tokens is this?"}]}
+    },
+    {
+      "title": "Search the web ($0.01 per search)",
+      "method": "POST",
+      "path": "/web_search",
+      "json": {"search_engine": "search-prime", "search_query": "Fly.io Sprites", "count": 5}
+    },
+    {
+      "title": "Read a web page as Markdown",
+      "method": "POST",
+      "path": "/reader",
+      "json": {"url": "https://fly.io/docs/", "return_format": "markdown", "timeout": 20}
+    },
+    {
+      "title": "Parse a document or image with GLM-OCR (spends your Z.ai balance)",
+      "method": "POST",
+      "path": "/layout_parsing",
+      "json": {"model": "glm-ocr", "file": "https://cdn.bigmodel.cn/static/logo/introduction.png"}
+    },
+    {
+      "title": "Generate an image with GLM-Image ($0.015 per image)",
+      "method": "POST",
+      "path": "/images/generations",
+      "json": {"model": "glm-image", "prompt": "A hot air balloon over a mountain lake at sunrise", "size": "1280x1280"}
+    },
+    {
+      "title": "Start a video with CogVideoX-3 ($0.2 per video)",
+      "method": "POST",
+      "path": "/videos/generations",
+      "json": {"model": "cogvideox-3", "prompt": "A cat is playing with a ball.", "size": "1920x1080", "fps": 30},
+      "notes": ["Returns an `id` and `task_status: PROCESSING`; poll `GET /async-result/TASK_ID` until `task_status` is `SUCCESS` or `FAIL`."]
+    },
+    {
+      "title": "Poll an async image or video task; replace TASK_ID",
+      "path": "/async-result/TASK_ID"
+    }
+  ],
+  "messages": {
+    "400": "Z.ai rejected the request (%{status}); check error.code and error.message, for example 1211 for an unknown model",
+    "403": "This Z.ai key has no permission for that API",
+    "429": "Z.ai rate limit, usage limit or balance reached; check error.code (1113 means the balance is empty, 1302 the rate limit)",
+    "provider_unreachable": "Could not reach Z.ai; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference", "search"],
+    "keywords": ["z.ai", "zhipu", "glm", "llm", "chat completions", "openai-compatible", "web search", "ocr", "image generation", "video generation", "speech to text"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Call GLM models and Z.ai's search, OCR and media APIs from a Sprite without putting your Z.ai key on it.",
+    "setup": "Sign in at z.ai, top up your balance at z.ai/manage-apikey/billing if needed, then open z.ai/manage-apikey/apikey-list and create a key under Standard API Key. GLM Coding Plan and Team Plan keys are meant for the Coding Plan endpoint, which this connector does not use.",
+    "key_label": "Standard API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key sends `POST /tokenizer` with a two-character message; it runs no generation, and Z.ai's pricing page lists no charge for it. Every other call uses your Z.ai balance or usage bundles at pay-as-you-go rates, never Coding Plan quota: chat and OCR are billed per token (GLM-5.3 is $1.4 input and $4.4 output per million tokens), web search costs $0.01 a search, GLM-Image $0.015 an image, CogVideoX-3 $0.2 a video and GLM-ASR $0.03 per million tokens."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /chat/completions`, `POST /tokenizer`, `POST /web_search`, `POST /reader`, `POST /layout_parsing`, `POST /images/generations`, `POST /async/images/generations`, `POST /videos/generations`, `GET /async-result/:id` and `POST /audio/transcriptions` on `api.z.ai/api/paas/v4` are forwarded. The Coding Plan endpoint (`/api/coding/paas/v4`), the Anthropic-compatible endpoint, agents and their file uploads, the China host `open.bigmodel.cn`, and key, billing and account management are not."
+      }
+    ],
+    "usage_notes": [
+      "OpenAI SDKs work with `base_url` set to the connector's gateway URL; model ids are lower case, such as `glm-5.3`, `glm-5.3-flash` and `glm-4.7-flash` (free).",
+      "Errors are `{\"error\": {\"code\": \"...\", \"message\": \"...\"}}`, where `code` is Z.ai's business error code; a wrong key answers 401. A streaming call that fails mid-generation reports it in `finish_reason` instead.",
+      "Image generation with `POST /async/images/generations` and video generation return a task `id`; poll `GET /async-result/:id`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
