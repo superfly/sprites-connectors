@@ -52,9 +52,12 @@ Upstash.
 - Billing: https://context7.com/docs/plans-pricing and
   https://context7.com/docs/search-api#pricing. "Each API call is one Search
   API or context request." The Free plan includes 1,000 calls a month and
-  then stops (with 20 bonus calls a day); Pro includes 2,000 per seat a
-  month and bills $5 per 1,000 extra calls up to the teamspace's spending
-  limit, after which requests answer 402. The pricing page does not name
+  then stops (with 20 bonus calls a day); Pro and Enterprise include 2,000
+  per seat a month and bill $5 per 1,000 extra calls up to the teamspace's
+  spending limit, after which requests answer 402 (Enterprise pricing:
+  https://context7.com/plans). The usage response's `plan` can also be
+  `payg`, which the OpenAPI document describes as including no requests
+  and billing every request. The pricing page does not name
   `/api/v3/fetch` separately; it documents the same 402 spending-limit
   response as the search routes, so the Billing notice treats it as an API
   call.

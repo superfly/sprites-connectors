@@ -86,7 +86,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /api/v2/usage`, which Context7 does not count as a request. Every documentation search, library search, context request and page fetch counts as one API call. The Free plan includes 1,000 calls a month and then stops with 429 until the next month (with 20 bonus calls a day). Pro includes 2,000 calls per seat a month, then bills $5 per 1,000 calls until the teamspace's spending limit, after which requests answer 402."
+        "body": "Saving or testing the key reads `GET /api/v2/usage`, which Context7 does not count as a request. Every documentation search, library search, context request and page fetch counts as one API call. The Free plan includes 1,000 calls a month and then stops with 429 until the next month (with 20 bonus calls a day). Pro and Enterprise include 2,000 calls per seat a month, then bill $5 per 1,000 calls until the teamspace's spending limit, after which requests answer 402. A pay-as-you-go teamspace includes no calls and bills every one."
       },
       {
         "title": "Scope",
