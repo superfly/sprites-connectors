@@ -1,0 +1,124 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "recraft",
+  "display_name": "Recraft",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://external.api.recraft.ai",
+  "description": "Generate and edit raster and vector (SVG) images, icons and illustrations",
+  "long_description": "Bring a Recraft API token; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the token reads the account it belongs to (GET /v1/users/me), which costs no API units. A Sprite can then generate raster and SVG images, edit them (image to image, inpainting, outpainting, background replacement and removal, erasing, remixing), vectorize, upscale and enhance images, enhance prompts, and create, list and read custom styles. Every generation, edit and tool request spends API units from your Recraft balance. Deleting styles is not forwarded, and API tokens, billing and workspace access are managed only in the Recraft app.",
+  "website_url": "https://www.recraft.ai/app/api/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/v1/images/generations"},
+    {"methods": ["POST"], "pattern": "/v1/images/generations/raster"},
+    {"methods": ["POST"], "pattern": "/v1/images/generations/vector"},
+    {"methods": ["POST"], "pattern": "/v1/images/imageToImage"},
+    {"methods": ["POST"], "pattern": "/v1/images/inpaint"},
+    {"methods": ["POST"], "pattern": "/v1/images/outpaint"},
+    {"methods": ["POST"], "pattern": "/v1/images/replaceBackground"},
+    {"methods": ["POST"], "pattern": "/v1/images/generateBackground"},
+    {"methods": ["POST"], "pattern": "/v1/images/vectorize"},
+    {"methods": ["POST"], "pattern": "/v1/images/removeBackground"},
+    {"methods": ["POST"], "pattern": "/v1/images/eraseRegion"},
+    {"methods": ["POST"], "pattern": "/v1/images/crispUpscale"},
+    {"methods": ["POST"], "pattern": "/v1/images/creativeUpscale"},
+    {"methods": ["POST"], "pattern": "/v1/images/enhance"},
+    {"methods": ["POST"], "pattern": "/v1/images/variateImage"},
+    {"methods": ["POST"], "pattern": "/v1/prompts/enhance"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/styles"},
+    {"methods": ["GET"], "pattern": "/v1/styles/basic"},
+    {"methods": ["GET"], "pattern": "/v1/styles/:style_id"},
+    {"methods": ["GET"], "pattern": "/v1/users/me"}
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/users/me",
+    "label": "account",
+    "expect": [
+      ["id", "text"],
+      ["credits", "integer"],
+      ["code", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Generate an SVG icon (80 API units, $0.08, per image)",
+      "method": "POST",
+      "path": "/v1/images/generations/vector",
+      "json": {"prompt": "Minimal line icon of a paper airplane", "model": "recraftv4_1_vector", "n": 1, "size": "1:1", "response_format": "b64_json"},
+      "notes": ["`b64_json` returns the SVG bytes in `data[].b64_json`. The default `url` result is a public link kept for only about 24 hours. `recraftv2_vector` costs 44 units per image."]
+    },
+    {
+      "title": "Generate a raster image quickly (7 API units, $0.007, per image)",
+      "method": "POST",
+      "path": "/v1/images/generations/raster",
+      "json": {"prompt": "Isometric illustration of a small data center", "model": "recraftv4_1_flash_v2", "n": 1, "size": "16:9", "image_format": "png", "response_format": "b64_json"}
+    },
+    {
+      "title": "Vectorize a raster image into SVG (10 API units, $0.01)",
+      "method": "POST",
+      "path": "/v1/images/vectorize",
+      "json": {"image_url": "https://example.com/logo.png", "response_format": "b64_json"},
+      "notes": ["Pass a public URL or a `data:image/png;base64,...` data URL in `image_url`. `version: \"v1_pro\"` costs 40 units. Image tools return one image under `image`, not a `data` array."]
+    },
+    {
+      "title": "Remove an image's background (10 API units, $0.01)",
+      "method": "POST",
+      "path": "/v1/images/removeBackground",
+      "json": {"image_url": "https://example.com/product.png", "image_format": "png", "response_format": "b64_json"}
+    },
+    {
+      "title": "Enhance a short prompt (10 API units, $0.01)",
+      "method": "POST",
+      "path": "/v1/prompts/enhance",
+      "json": {"prompt": "logo for a coffee shop called Ember"}
+    },
+    {
+      "title": "List the basic styles (free)",
+      "path": "/v1/styles/basic"
+    },
+    {
+      "title": "Read one of your custom styles; replace STYLE_ID (free)",
+      "path": "/v1/styles/STYLE_ID"
+    },
+    {
+      "title": "Read the account's API unit balance (free)",
+      "path": "/v1/users/me"
+    }
+  ],
+  "messages": {
+    "400": "Recraft rejected the request (%{status}); check the error body for the parameter",
+    "429": "Recraft rate limit reached (5 requests a second, 100 images a minute); wait and retry",
+    "provider_unreachable": "Could not reach Recraft; retry later"
+  },
+  "discovery": {
+    "categories": ["media", "ai-inference"],
+    "keywords": ["recraft", "image generation", "svg", "vector", "icons", "logos", "illustration", "vectorize", "remove background", "upscale", "inpainting"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Generate and edit images, icons and SVG vectors from a Sprite without putting your Recraft token on it.",
+    "setup": "Open recraft.ai/app/api/api-keys and select Create token. The account needs a positive API unit balance first; add units at recraft.ai/app/api/billing. All tokens of one account share its balance.",
+    "key_label": "API token",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the token reads `GET /v1/users/me` and spends no API units; listing and reading styles is free too. Everything else spends prepaid API units ($1 = 1,000 units): generation costs 7 to 300 units per image depending on the model (default `recraftv4_1`: 35 raster, 80 vector), plus 5 when style references create a style; image to image, inpainting, outpainting and background operations 40 or 80, creating a style 5, erasing a region 2, crisp upscale 4, vectorize 10 (40 with Vectorizer Pro), remove background and enhance prompt 10, remix 40, enhance details 210 and creative upscale 250. Each response's `credits` field is what the request cost."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /v1/images/generations` (and its `/raster` and `/vector` variants), `POST /v1/images/imageToImage`, `/inpaint`, `/outpaint`, `/replaceBackground`, `/generateBackground`, `/vectorize`, `/removeBackground`, `/eraseRegion`, `/crispUpscale`, `/creativeUpscale`, `/enhance` and `/variateImage`, `POST /v1/prompts/enhance`, `GET` and `POST /v1/styles`, `GET /v1/styles/basic`, `GET /v1/styles/:style_id` and `GET /v1/users/me` are forwarded. Deleting styles is not. Recraft allows 5 requests a second and 100 images a minute per account, across all tokens."
+      }
+    ],
+    "usage_notes": [
+      "Send JSON with `Content-Type: application/json` and pass input images as public URLs or data URLs (`image_url`, `mask_url`, `image_urls`, `style_reference_urls`); multipart uploads also work but must fit the gateway's request body limit.",
+      "Result URLs are public and kept for only about 24 hours. Use `response_format: \"b64_json\"` to get the image bytes in the response, or download the file right away.",
+      "Recraft has no timeout parameter and the gateway waits 120 seconds for response headers, so keep `n` small on slow models (Pro, creative upscale, enhance details).",
+      "Errors are plain text (401 `request unauthorized`, 404 `404 page not found`) or JSON; read the body as text before parsing it."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
