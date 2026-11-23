@@ -1,0 +1,116 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "airtable",
+  "display_name": "Airtable",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.airtable.com",
+  "description": "Read and update Airtable bases, tables, records and record comments",
+  "long_description": "Bring an Airtable personal access token; the gateway keeps it off your Sprite and sends it as a bearer token. Saving or testing it reads the token's user ID (GET /v0/meta/whoami), which needs no scope and reads no base. A Sprite can then list the bases the token can access, read their table and view schemas, list, read, create and update records (including upserts), and read and add record comments. Airtable enforces the token's scopes and the bases added to it on every request. Deleting records, destructive PUT updates, schema changes, base creation, webhooks, attachment uploads and enterprise admin endpoints are not forwarded. API calls count toward each workspace's monthly limit on the Free and Team plans.",
+  "website_url": "https://airtable.com/create/tokens",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v0/meta/whoami"},
+    {"methods": ["GET"], "pattern": "/v0/meta/bases"},
+    {"methods": ["GET"], "pattern": "/v0/meta/bases/:base_id/tables"},
+    {"methods": ["GET"], "pattern": "/v0/meta/bases/:base_id/views"},
+    {"methods": ["GET", "POST", "PATCH"], "pattern": "/v0/:base_id/:table_id"},
+    {"methods": ["POST"], "pattern": "/v0/:base_id/:table_id/listRecords"},
+    {"methods": ["GET", "PATCH"], "pattern": "/v0/:base_id/:table_id/:record_id"},
+    {"methods": ["GET", "POST"], "pattern": "/v0/:base_id/:table_id/:record_id/comments"}
+  ],
+  "forward_response_headers": ["retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/v0/meta/whoami",
+    "label": "token user",
+    "expect": [
+      ["id", "text"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Show the token's user ID",
+      "path": "/v0/meta/whoami"
+    },
+    {
+      "title": "List the bases the token can access",
+      "path": "/v0/meta/bases",
+      "notes": ["Needs the schema.bases:read scope. Only bases added to the token are listed."]
+    },
+    {
+      "title": "Read a base's tables and fields; replace BASE_ID",
+      "path": "/v0/meta/bases/BASE_ID/tables",
+      "notes": ["Needs schema.bases:read. Use the table IDs (tbl...) it returns in record paths."]
+    },
+    {
+      "title": "List up to 10 records from a table; replace BASE_ID and TABLE_ID",
+      "path": "/v0/BASE_ID/TABLE_ID?pageSize=10",
+      "notes": ["Needs data.records:read. If the response has an offset, pass it as ?offset=... to read the next page."]
+    },
+    {
+      "title": "List records with a formula filter in the body; replace BASE_ID and TABLE_ID",
+      "method": "POST",
+      "path": "/v0/BASE_ID/TABLE_ID/listRecords",
+      "json": {"filterByFormula": "{Status} = 'Todo'", "pageSize": 10},
+      "notes": ["Reads only. Use this form when a filter or field list would make the URL longer than 16,000 characters."]
+    },
+    {
+      "title": "Read one record; replace BASE_ID, TABLE_ID and RECORD_ID",
+      "path": "/v0/BASE_ID/TABLE_ID/RECORD_ID"
+    },
+    {
+      "title": "Create a record (changes your Airtable data); replace BASE_ID and TABLE_ID",
+      "method": "POST",
+      "path": "/v0/BASE_ID/TABLE_ID",
+      "json": {"records": [{"fields": {"Name": "Created from a Sprite"}}]},
+      "notes": ["Needs data.records:write. Up to 10 records per request.", "To update a record, send PATCH to /v0/BASE_ID/TABLE_ID/RECORD_ID with {\"fields\": {...}}; PATCH changes only the fields you send."]
+    },
+    {
+      "title": "Comment on a record (visible to collaborators); replace BASE_ID, TABLE_ID and RECORD_ID",
+      "method": "POST",
+      "path": "/v0/BASE_ID/TABLE_ID/RECORD_ID/comments",
+      "json": {"text": "Checked by a Sprite"},
+      "notes": ["Needs data.recordComments:write."]
+    }
+  ],
+  "messages": {
+    "403": "Airtable refused the request: the token lacks the scope or the base, or the record or table does not exist",
+    "404": "Airtable route or record not found; check the base, table and record IDs",
+    "422": "Airtable could not process the request; see error.type and error.message",
+    "429": "Airtable rate limit or the workspace's monthly API call limit reached; wait 30 seconds and retry",
+    "503": "Airtable is temporarily unavailable; retry with backoff",
+    "provider_unreachable": "Could not reach Airtable; retry later"
+  },
+  "discovery": {
+    "categories": ["productivity"],
+    "keywords": ["airtable", "database", "spreadsheet", "bases", "tables", "records", "no-code"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Read and update your Airtable records from a Sprite without putting your token on it.",
+    "setup": "Open airtable.com/create/tokens and create a personal access token. Add only the scopes the Sprite needs (data.records:read, plus data.records:write to change records, schema.bases:read to list bases and tables, data.recordComments:read or :write for comments) and add only the bases it should reach.",
+    "key_label": "Personal access token",
+    "key_placeholder": "pat...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Airtable does not charge per request. Saving or testing the token reads `GET /v0/meta/whoami`, which reads no base. Every forwarded call counts toward the monthly API call limit of the workspace that owns the base: 1,000 calls on the Free plan and 100,000 on Team; Business and Enterprise Scale have no monthly cap. Airtable allows 5 requests a second per base and 50 a second per user, and answers 429 when either is exceeded."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v0/meta/whoami`, `GET /v0/meta/bases`, `GET /v0/meta/bases/:base_id/tables`, `GET /v0/meta/bases/:base_id/views`, `GET`, `POST` and `PATCH` on `/v0/:base_id/:table_id`, `POST /v0/:base_id/:table_id/listRecords`, `GET` and `PATCH` on `/v0/:base_id/:table_id/:record_id`, and `GET` and `POST` on `/v0/:base_id/:table_id/:record_id/comments` are forwarded. Deleting records, destructive `PUT` updates, schema and base changes, webhooks, attachment uploads and enterprise endpoints are not. Airtable enforces the token's scopes and bases on each call."
+      }
+    ],
+    "usage_notes": [
+      "Use table IDs (`tbl...`) from `GET /v0/meta/bases/BASE_ID/tables` in record paths. Table names with spaces or other punctuation cannot be addressed through the connector.",
+      "A 403 `INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND` means the token lacks the scope or the base, or the ID is wrong. Add the scope and base to the token at airtable.com/create/tokens.",
+      "Attachment URLs in records and comments expire 2 hours after Airtable returns them; read the record again for fresh URLs.",
+      "Errors are `{\"error\": {\"type\": \"...\", \"message\": \"...\"}}`; some 404s are `{\"error\": \"NOT_FOUND\"}`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
