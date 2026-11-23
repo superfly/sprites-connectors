@@ -103,7 +103,6 @@
   ],
   "messages": {
     "400": "Cohere rejected the request (%{status}); see the body's message",
-    "402": "Cohere billing problem; check your plan at dashboard.cohere.com",
     "403": "Cohere key lacks permission for this request (%{status}); check the key and model access",
     "404": "Cohere model or route not found; check GET /v1/models",
     "422": "Cohere could not process the request parameters; see the body's message",
