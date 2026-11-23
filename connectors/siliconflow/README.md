@@ -69,7 +69,9 @@ Community submission (`owner: community`), not submitted by SiliconFlow.
   `deepseek-ai/DeepSeek-V3.2`. No rate-limit or retry response headers are
   documented, so none are forwarded.
 - Billing: pay-as-you-go against the account balance at the per-model prices
-  on https://cloud.siliconflow.com/models; some models are free.
+  on https://cloud.siliconflow.com/models; some models are free. Speech is
+  billed by the UTF-8 byte count of the input text
+  (https://docs.siliconflow.com/en/userguide/capabilities/text-to-speech).
 - Left out on purpose: `POST /v1/uploads/audio/voice` and
   `POST /v1/audio/voice/deletions` (they create and delete stored reference
   voices; a Sprite can still list existing voices and use system voices),

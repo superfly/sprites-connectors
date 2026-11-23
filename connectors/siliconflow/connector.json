@@ -107,7 +107,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /v1/user/info` and runs no model, so it costs nothing. Chat, messages, completions, embeddings and rerank are billed per token; images per image; video per video; speech and transcription per model; all are charged pay-as-you-go to your SiliconFlow balance at the prices on cloud.siliconflow.com/models, and some models are free. Listing models, reading user info, listing voices and polling video status run no model."
+        "body": "Saving or testing the key reads `GET /v1/user/info` and runs no model, so it costs nothing. Chat, messages, completions, embeddings and rerank are billed per token; images per image; video per video; speech per UTF-8 byte of input text; transcription per model; all are charged pay-as-you-go to your SiliconFlow balance at the prices on cloud.siliconflow.com/models, and some models are free. Listing models, reading user info, listing voices and polling video status run no model."
       },
       {
         "title": "Scope",
