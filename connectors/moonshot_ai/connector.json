@@ -1,0 +1,136 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "moonshot_ai",
+  "display_name": "Moonshot AI (Kimi)",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.moonshot.ai",
+  "description": "Kimi models through Moonshot AI's OpenAI- and Anthropic-compatible API, plus web search, URL fetch, files and batches",
+  "long_description": "Bring an API key from the international Kimi API Platform (platform.kimi.ai); the gateway keeps it off your Sprite and sends it as a bearer token to api.moonshot.ai. Saving, replacing or testing the key lists models (GET /v1/models), which runs no inference and costs nothing. A Sprite can then call Kimi models through Chat Completions, Responses or the Anthropic-compatible Messages endpoint, estimate token counts, run Kimi web search and URL fetch, upload and read files, and create and check batch jobs. Inference, web search and URL fetch use your Kimi balance. Balance, request signature verification, file deletion, batch cancellation and the Admin API (members, projects, API keys, billing, audit logs) are not forwarded. Keys from the China platform (platform.moonshot.cn) and Kimi Code subscriptions do not work here.",
+  "website_url": "https://platform.kimi.ai/console/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/responses"},
+    {"methods": ["POST"], "pattern": "/anthropic/v1/messages"},
+    {"methods": ["POST"], "pattern": "/v1/tokenizers/estimate-token-count"},
+    {"methods": ["POST"], "pattern": "/v1/tools/search"},
+    {"methods": ["POST"], "pattern": "/v1/tools/search_pro"},
+    {"methods": ["POST"], "pattern": "/v1/tools/fetch"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/files"},
+    {"methods": ["GET"], "pattern": "/v1/files/:file_id"},
+    {"methods": ["GET"], "pattern": "/v1/files/:file_id/content"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/batches"},
+    {"methods": ["GET"], "pattern": "/v1/batches/:batch_id"}
+  ],
+  "forward_response_headers": [
+    "retry-after",
+    "x-ratelimit-limit",
+    "x-ratelimit-remaining",
+    "x-ratelimit-reset",
+    "msh-request-id",
+    "x-msh-track-id"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models",
+    "label": "models",
+    "expect": [
+      ["object", "text"],
+      ["data", "list"],
+      ["data[].id", "text"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {"title": "List available models", "path": "/v1/models"},
+    {
+      "title": "Chat completion, streamed (uses your Kimi balance)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "model": "kimi-k3.1-pro",
+        "messages": [{"role": "user", "content": "Explain what a Fly.io Sprite is in two sentences."}],
+        "reasoning_effort": "low",
+        "max_completion_tokens": 2048,
+        "stream": true
+      },
+      "notes": ["Sprites waits 120 seconds for response headers, and K3 models think before answering, so stream long requests: `stream: true` sends headers at once. Check `GET /v1/models` for current model ids."]
+    },
+    {
+      "title": "Responses API (uses your Kimi balance)",
+      "method": "POST",
+      "path": "/v1/responses",
+      "json": {"model": "kimi-k3.1-pro", "input": "Summarise the trade-offs of persistent sandboxes for coding agents.", "max_output_tokens": 2048, "stream": true}
+    },
+    {
+      "title": "Anthropic-compatible Messages (uses your Kimi balance)",
+      "method": "POST",
+      "path": "/anthropic/v1/messages",
+      "json": {"model": "kimi-k3.1-pro", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello"}], "stream": true},
+      "notes": ["Point Anthropic SDKs at the gateway URL plus `/anthropic`. The key is sent as a bearer token, as Kimi documents; `x-api-key` and `anthropic-*` request headers are not forwarded."]
+    },
+    {
+      "title": "Estimate the token count of a request",
+      "method": "POST",
+      "path": "/v1/tokenizers/estimate-token-count",
+      "json": {"model": "kimi-k3.1-pro", "messages": [{"role": "user", "content": "Hello, what is 1+1?"}]}
+    },
+    {
+      "title": "Web search (one call charge when results come back)",
+      "method": "POST",
+      "path": "/v1/tools/search",
+      "json": {"text_query": "Fly.io Sprites", "limit": 5, "timeout_seconds": 30}
+    },
+    {
+      "title": "Fetch a URL as Markdown (one call charge when content comes back)",
+      "method": "POST",
+      "path": "/v1/tools/fetch",
+      "json": {"url": "https://fly.io/docs/"}
+    },
+    {"title": "List uploaded files", "path": "/v1/files"},
+    {"title": "Read a file's extracted content; replace FILE_ID", "path": "/v1/files/FILE_ID/content"},
+    {"title": "Check a batch job; replace BATCH_ID", "path": "/v1/batches/BATCH_ID"}
+  ],
+  "messages": {
+    "400": "Kimi rejected the request (%{status}); check error.message",
+    "403": "Kimi refused the request: the API is not open to this account or the caller's IP is not on the organization allowlist",
+    "404": "Kimi model or resource not found, or this account cannot use it; check GET /v1/models",
+    "429": "Kimi rate limit reached, engine overloaded or balance insufficient; check error.type and retry later or top up",
+    "503": "Kimi service temporarily unavailable; retry later",
+    "provider_unreachable": "Could not reach Moonshot AI; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference", "search"],
+    "keywords": ["moonshot", "kimi", "kimi k3", "kimi k2", "llm", "chat completions", "openai-compatible", "anthropic-compatible", "web search", "batch"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Call Kimi models, web search and URL fetch from a Sprite without putting your Moonshot AI key on it.",
+    "setup": "Sign in at platform.kimi.ai, open API Keys in the console and create a key. The platform is pay-as-you-go and needs a $1 minimum top-up before the API works. Keys from platform.moonshot.cn and Kimi Code subscriptions are separate and will not work.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. Chat Completions, Responses, Messages and batch jobs bill input, output and reasoning tokens from your Kimi balance. `POST /v1/tools/search`, `/v1/tools/search_pro` and `/v1/tools/fetch` charge once per call that returns results or content. Kimi documents file parsing as free for now; listing models and files, estimating tokens and checking batches run no inference. A passing key check does not prove the account has balance; Kimi answers 429 when it runs out."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/models`, `POST /v1/chat/completions`, `POST /v1/responses`, `POST /anthropic/v1/messages`, `POST /v1/tokenizers/estimate-token-count`, `POST /v1/tools/search`, `POST /v1/tools/search_pro`, `POST /v1/tools/fetch`, `GET` and `POST /v1/files`, `GET /v1/files/:file_id`, `GET /v1/files/:file_id/content`, `GET` and `POST /v1/batches` and `GET /v1/batches/:batch_id` are forwarded. Balance, signature verification, file deletion, batch cancellation and the Admin API are not."
+      },
+      {
+        "title": "International platform only",
+        "body": "This connector calls api.moonshot.ai with keys from platform.kimi.ai. Keys from the China platform (api.moonshot.cn) or a Kimi Code plan answer 401 here."
+      }
+    ],
+    "usage_notes": [
+      "Sprites waits 120 seconds for response headers. Use `stream: true` for chat, Responses and Messages calls that may think or write at length, and set `timeout_seconds` (1 to 60) on web search.",
+      "Errors are `{\"error\": {\"type\": \"...\", \"message\": \"...\"}}`; on 429 `error.type` says whether it is a rate limit, an overloaded engine or an empty balance. The web search and fetch tools answer 401 and 403 with an empty body.",
+      "Upload files as multipart form data with a `purpose` (`file-extract`, `batch`, `image` or `video`). Batch input files hold JSONL requests to `/v1/chat/completions`; download results with `GET /v1/files/:file_id/content`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
