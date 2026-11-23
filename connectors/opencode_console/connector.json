@@ -91,7 +91,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /console/api/v1/models` and costs nothing; listing models is free too. Every chat completion, response, message, Gemini and embeddings request is charged to the workspace balance at the model's per-token price (for example GLM 5.3 Flash at $0.15 input and $0.50 output per 1M tokens), and counts toward the member's or service account's budget. The Gemini route also serves the Nano Banana 2.1 image model, priced per output image. Each response reports its cost in `usage.cost` (`usageMetadata` for Gemini)."
+        "body": "Saving or testing the key reads `GET /console/api/v1/models` and costs nothing; listing models is free too. Every chat completion, response, message, Gemini and embeddings request is charged to the workspace balance at the model's per-token price (for example GLM 5.3 Flash at $0.15 input and $0.50 output per 1M tokens), and counts toward the member's or service account's budget. The Gemini route also serves the Nano Banana 2.1 image model, which charges $30 per 1M image output tokens (about $0.034 per 1K image). Requests fail with 402 when the balance is empty and 429 when a budget is reached. Each response reports its cost in `usage.cost` (`usageMetadata` for Gemini)."
       },
       {
         "title": "Scope",

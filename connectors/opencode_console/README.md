@@ -76,11 +76,12 @@ Anomaly.
     https://opencode.ai/docs/console/api/providers/): service-account keys
     only, and its connection IDs would need a second `path_param` shape.
   - Image generation and edits on `/inference/openai/v1/images/...` and
-    `/inference/xai/v1/images/...` (up to $1 per image), and System One
+    `/inference/xai/v1/images/...` (GPT Image 2.5 Sunburst is $1 per image plus tokens), and System One
     decision models (`/inference/systemone/v1/systemone`), to keep the
     connector to text inference. Nano Banana 2.1 is served on the Gemini
     route (`gemini-nano-banana-2.1:generateContent`), so a Sprite can still
-    generate images with it; the Billing notice says so.
+    generate images with it at $30 per 1M image output tokens (about $0.034
+    per 1K image); the Billing notice says so.
   - Every key, member, budget, billing, provider, SSO and workspace setting:
     the docs describe them as Console UI actions, and none of them belongs on
     a Sprite.
