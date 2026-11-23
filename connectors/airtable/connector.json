@@ -93,7 +93,7 @@
   "icon_bg_class": "bg-neutral-500/20",
   "presentation": {
     "tagline": "Read and update your Airtable records from a Sprite without putting your token on it.",
-    "setup": "Open airtable.com/create/tokens and create a personal access token. Add only the scopes the Sprite needs (data.records:read, plus data.records:write to change records, schema.bases:read to list bases and tables, data.recordComments:read or :write for comments) and add only the bases it should reach.",
+    "setup": "Open airtable.com/create/tokens and create a personal access token. Add only the scopes the Sprite needs (data.records:read, plus data.records:write to change records, schema.bases:read to list bases and tables, workspacesAndBases:read to list views, data.recordComments:read or :write for comments) and add only the bases it should reach.",
     "key_label": "Personal access token",
     "key_placeholder": "pat...",
     "notices": [
