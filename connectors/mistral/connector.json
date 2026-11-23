@@ -1,0 +1,156 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "mistral",
+  "display_name": "Mistral AI",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.mistral.ai",
+  "description": "Chat, code completion, embeddings, OCR, moderation, audio and batch jobs on Mistral AI models",
+  "long_description": "Bring a Mistral AI API key from Mistral Studio; the gateway keeps it off your Sprite and sends it as a bearer token to the global endpoint api.mistral.ai. Saving, replacing or testing the key lists the models it can use (GET /v1/models), which uses no tokens. A Sprite can then run chat and fill-in-the-middle completions, create embeddings, run moderation and classifiers, run OCR on documents, transcribe and generate speech, upload and read files, and create, read and cancel batch jobs. Inference requests are billed to your Mistral account per token, page, minute or character. File and batch deletion, fine-tuning, model changes, agents, conversations, libraries and every admin endpoint (API keys, billing, users, workspaces) are not forwarded.",
+  "website_url": "https://console.mistral.ai/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["GET"], "pattern": "/v1/models/:model_id"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/fim/completions"},
+    {"methods": ["POST"], "pattern": "/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/v1/moderations"},
+    {"methods": ["POST"], "pattern": "/v1/chat/moderations"},
+    {"methods": ["POST"], "pattern": "/v1/classifications"},
+    {"methods": ["POST"], "pattern": "/v1/chat/classifications"},
+    {"methods": ["POST"], "pattern": "/v1/ocr"},
+    {"methods": ["POST"], "pattern": "/v1/audio/transcriptions"},
+    {"methods": ["POST"], "pattern": "/v1/audio/speech"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/files"},
+    {"methods": ["GET"], "pattern": "/v1/files/:file_id"},
+    {"methods": ["GET"], "pattern": "/v1/files/:file_id/content"},
+    {"methods": ["GET"], "pattern": "/v1/files/:file_id/url"},
+    {"methods": ["GET", "POST"], "pattern": "/v1/batch/jobs"},
+    {"methods": ["GET"], "pattern": "/v1/batch/jobs/:job_id"},
+    {"methods": ["POST"], "pattern": "/v1/batch/jobs/:job_id/cancel"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._:-]+\\z",
+  "forward_response_headers": ["retry-after", "x-ratelimit-limit-req-minute"],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models",
+    "label": "models",
+    "expect": [
+      ["data", "nonempty_list"],
+      ["data[].id", "text"],
+      ["detail", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List the models this key can use",
+      "path": "/v1/models"
+    },
+    {
+      "title": "Read one model; replace MODEL_ID",
+      "path": "/v1/models/MODEL_ID",
+      "notes": ["Fine-tuned model ids contain colons (`ft:open-mistral-7b:...`) and pass the connector's path rule."]
+    },
+    {
+      "title": "Chat completion (billed per input and output token)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {"model": "mistral-small-latest", "messages": [{"role": "user", "content": "In one sentence, what is a Sprite on Fly.io?"}], "max_tokens": 200},
+      "notes": ["For long answers send `\"stream\": true`: the gateway waits at most 120 seconds for the response headers, and a stream starts sending at once."]
+    },
+    {
+      "title": "Code fill-in-the-middle with Codestral (billed per token)",
+      "method": "POST",
+      "path": "/v1/fim/completions",
+      "json": {"model": "codestral-latest", "prompt": "def fibonacci(n: int) -> int:\n", "suffix": "\nprint(fibonacci(10))", "max_tokens": 128}
+    },
+    {
+      "title": "Create embeddings (billed per input token)",
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "json": {"model": "mistral-embed", "input": ["Sprites are persistent Linux sandboxes.", "Connectors keep API keys off the machine."]}
+    },
+    {
+      "title": "Moderate text (free on Mistral Moderation)",
+      "method": "POST",
+      "path": "/v1/moderations",
+      "json": {"model": "mistral-moderation-latest", "input": ["Text to check"]}
+    },
+    {
+      "title": "OCR a PDF by URL (billed per 1,000 pages)",
+      "method": "POST",
+      "path": "/v1/ocr",
+      "json": {"model": "mistral-ocr-latest", "document": {"type": "document_url", "document_url": "https://arxiv.org/pdf/2201.04234"}, "pages": [0, 1]},
+      "notes": ["`pages` limits the request to the first two pages; long documents can take more than the gateway's 120 seconds, so send them as a batch job instead."]
+    },
+    {
+      "title": "Generate speech (billed per character)",
+      "method": "POST",
+      "path": "/v1/audio/speech",
+      "json": {"model": "voxtral-mini-tts-3-0", "input": "Hello from a Sprite.", "voice_id": "gb_jane_neutral", "response_format": "mp3"},
+      "notes": ["A `voice_id` (or `ref_audio`) is required. The response carries the audio base64-encoded in `audio_data`."]
+    },
+    {
+      "title": "List uploaded files",
+      "path": "/v1/files"
+    },
+    {
+      "title": "Start a batch job with inline requests (billed per token at batch prices)",
+      "method": "POST",
+      "path": "/v1/batch/jobs",
+      "json": {"endpoint": "/v1/chat/completions", "model": "mistral-small-latest", "requests": [{"custom_id": "0", "body": {"max_tokens": 100, "messages": [{"role": "user", "content": "Name a French cheese."}]}}]},
+      "notes": ["Poll `GET /v1/batch/jobs/JOB_ID` until `status` is `SUCCESS`, then download `output_file` with `GET /v1/files/FILE_ID/content`."]
+    },
+    {
+      "title": "Read a batch job; replace JOB_ID",
+      "path": "/v1/batch/jobs/JOB_ID"
+    },
+    {
+      "title": "Cancel a batch job; replace JOB_ID",
+      "method": "POST",
+      "path": "/v1/batch/jobs/JOB_ID/cancel"
+    }
+  ],
+  "messages": {
+    "400": "Mistral rejected the request (%{status}); check the model name and the body's message and code",
+    "402": "Mistral billing blocks this request: credits are exhausted, a spending limit is reached, or pay-as-you-go is off; see console.mistral.ai",
+    "403": "This Mistral key or workspace cannot use that model or resource",
+    "404": "Not found in Mistral; check the model, file or job id",
+    "422": "Mistral could not validate the request; see detail for the field",
+    "429": "Mistral rate limit or model capacity reached; wait for Retry-After and retry",
+    "provider_unreachable": "Could not reach Mistral AI; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["mistral", "mistral ai", "llm", "chat completions", "codestral", "embeddings", "ocr", "document ai", "moderation", "voxtral", "speech to text", "text to speech", "batch inference"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-orange-500/20",
+  "presentation": {
+    "tagline": "Call Mistral AI models for chat, code, embeddings, OCR and audio from a Sprite without putting your key on it.",
+    "setup": "In Mistral Studio open API Keys (console.mistral.ai/api-keys), select New key, set an expiration date and copy the key; it is shown only once. API access needs billing activated on your organization.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /v1/models`, which uses no tokens. Chat, fill-in-the-middle and embeddings are billed per input and output token at the model's price, OCR per 1,000 pages, transcription per audio minute and speech generation per character; Mistral Moderation is free. Batch jobs are billed at half the standard price. Requests draw on your organization's included usage, then prepaid credits with pay-as-you-go; Mistral answers 402 when credits run out or a spending limit is reached."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/models`, `GET /v1/models/:model_id`, `POST /v1/chat/completions`, `POST /v1/fim/completions`, `POST /v1/embeddings`, `POST /v1/moderations`, `POST /v1/chat/moderations`, `POST /v1/classifications`, `POST /v1/chat/classifications`, `POST /v1/ocr`, `POST /v1/audio/transcriptions`, `POST /v1/audio/speech`, `GET` and `POST /v1/files`, `GET /v1/files/:file_id` with its `/content` and `/url`, `GET` and `POST /v1/batch/jobs`, `GET /v1/batch/jobs/:job_id` and `POST /v1/batch/jobs/:job_id/cancel` are forwarded. File and batch deletion, fine-tuning, model updates and deletion, agents, conversations, libraries and the admin API (keys, billing, users, workspaces, audit logs) are not."
+      },
+      {
+        "title": "Global endpoint only",
+        "body": "Requests go to `api.mistral.ai`, where Mistral does not commit to an inference location. The EU (`api.eu.mistral.ai`) and US (`api.us.mistral.ai`) regional endpoints are not covered by this connector."
+      }
+    ],
+    "usage_notes": [
+      "The gateway waits 120 seconds for response headers. Mistral has no request timeout parameter, so stream long chat completions with `\"stream\": true`, keep `max_tokens` and OCR `pages` small, or use a batch job for large work.",
+      "`POST /v1/files` and `POST /v1/audio/transcriptions` take a multipart body (`curl -F file=@doc.pdf -F purpose=ocr`); a transcription can name a `file_url` or an uploaded `file_id` instead of sending the audio. Keep uploads within the gateway's request body limit.",
+      "Error bodies are `{\"object\": \"error\", \"message\", \"type\", \"code\"}` with a four-digit `code`; a bad key is 401 `{\"detail\": \"Invalid API Key\"}` and a 422 lists invalid fields under `detail`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
