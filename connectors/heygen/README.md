@@ -34,14 +34,14 @@ Community submission (`owner: community`), not submitted by HeyGen.
   | `GET /v3/users/me` | [Get Current User](https://developers.heygen.com/reference/get-current-user) |
   | `POST /v3/videos` | [Create Video](https://developers.heygen.com/reference/create-video) |
   | `GET /v3/videos` | [List Videos](https://developers.heygen.com/reference/list-videos) |
-  | `GET /v3/videos/voice-capabilities` | [Voice in avatar videos](https://developers.heygen.com/voice-in-avatar-videos) (`getVideoVoiceCapabilitiesV3` in the spec) |
+  | `GET /v3/videos/voice-capabilities` | [Get Video Voice Capabilities](https://developers.heygen.com/reference/get-video-voice-capabilities) |
   | `GET /v3/videos/:video_id` | [Get Video](https://developers.heygen.com/reference/get-video), [Video details](https://developers.heygen.com/video-details) |
   | `POST /v3/video-agents` | [Create Video Agent Session](https://developers.heygen.com/reference/create-video-agent-session) |
   | `GET /v3/video-agents/styles` | [List Video Agent Styles](https://developers.heygen.com/reference/list-video-agent-styles) |
   | `GET /v3/video-agents/:session_id` | [Get Video Agent Session](https://developers.heygen.com/reference/get-video-agent-session) |
   | `POST /v3/models/videos` | [Create HeyGen Video](https://developers.heygen.com/reference/create-heygen-video) |
   | `GET /v3/models/videos/:video_id` | [Get HeyGen Video](https://developers.heygen.com/reference/get-heygen-video) |
-  | `POST /v3/models/avatars` | [HeyGen Avatar 6](https://developers.heygen.com/docs/models/avatar-6) (`createModelAvatarVideo` in the spec) |
+  | `POST /v3/models/avatars` | [Create Avatar 6 Video](https://developers.heygen.com/reference/create-avatar-6-video) |
   | `POST /v3/models/audio/tts` | [Generate Speech](https://developers.heygen.com/reference/generate-model-speech) |
   | `GET /v3/models/audio/voices` | [List Audio Voices](https://developers.heygen.com/reference/list-audio-voices) |
   | `GET /v3/models/audio/voices/:voice_id` | [Get an Audio Voice](https://developers.heygen.com/reference/get-an-audio-voice) |
@@ -70,7 +70,12 @@ Community submission (`owner: community`), not submitted by HeyGen.
   (`/v3/videos/statuses`, `/v3/avatars/look-templates`,
   `/v3/video-translations/statuses`, `/v3/video-translations/proofreads`,
   `/v3/assets/search`, `/v3/assets/statuses`). All are reads with no side
-  effects.
+  effects. Each has a reference page except `GET /v3/assets/search`
+  (semantic search of public images and icons), which is in the OpenAPI spec
+  with scope `assets:read` but marked `x-excluded` and absent from the
+  reference and the permissions table. The matcher cannot exclude it without
+  listing it, so it stays reachable; a reviewer may prefer a `path_param`
+  that refuses the literal `search`.
 - Forwarded headers: `Idempotency-Key` on requests, which the spec documents
   on `POST /v3/videos`, `/v3/models/videos`, `/v3/models/avatars`,
   `/v3/video-translations` and `/v3/assets` so a retried create returns the
