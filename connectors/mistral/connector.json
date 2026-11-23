@@ -102,7 +102,7 @@
       "method": "POST",
       "path": "/v1/batch/jobs",
       "json": {"endpoint": "/v1/chat/completions", "model": "mistral-small-latest", "requests": [{"custom_id": "0", "body": {"max_tokens": 100, "messages": [{"role": "user", "content": "Name a French cheese."}]}}]},
-      "notes": ["Poll `GET /v1/batch/jobs/JOB_ID` until `status` is `SUCCESS`, then download `output_file` with `GET /v1/files/FILE_ID/content`."]
+      "notes": ["Poll `GET /v1/batch/jobs/JOB_ID` until `status` is no longer `QUEUED` or `RUNNING`; it ends as `SUCCESS`, `FAILED`, `TIMEOUT_EXCEEDED` or `CANCELLED`. Then download `output_file` and `error_file` with `GET /v1/files/FILE_ID/content`."]
     },
     {
       "title": "Read a batch job; replace JOB_ID",
