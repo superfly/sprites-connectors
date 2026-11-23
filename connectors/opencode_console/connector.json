@@ -72,9 +72,9 @@
   ],
   "messages": {
     "400": "OpenCode Console rejected the request (%{status}); check the model ID and body",
-    "402": "OpenCode Console balance or budget exhausted; add credits or raise the budget in the Console",
+    "402": "OpenCode Console balance is empty, or the invoiced credit limit is reached or an invoice is overdue; add credits in the Console",
     "403": "This OpenCode Console key lacks permission for this request; restricted keys need Models › Request, and free-tier models only work inside OpenCode",
-    "429": "OpenCode Console rate limit reached; wait for Retry-After and retry",
+    "429": "OpenCode Console budget reached (Policy budget exceeded); an owner or admin can raise it, or it resets on the 1st of the month",
     "provider_unreachable": "Could not reach OpenCode Console; retry later"
   },
   "discovery": {

@@ -59,6 +59,12 @@ Anomaly.
   (https://opencode.ai/docs/console/api/providers/); it and `retry-after`,
   which the API exposes, are forwarded. `x-request-id` is sent only by the
   Console model list, so it is not forwarded. No rate limits are documented.
+  Paid requests answer 402 when the balance is empty, the invoiced credit
+  limit is reached or an invoice is overdue
+  (https://opencode.ai/docs/console/billing/), and 429
+  `Policy budget exceeded` when a budget is reached
+  (https://opencode.ai/docs/console/budgets/); the 402 and 429 messages say
+  so.
 - Left out on purpose:
   - OpenCode Go (`/inference/go/...` and `GET /inference/go/v1/usage`,
     https://opencode.ai/docs/console/go/#endpoints): Go is a separate
