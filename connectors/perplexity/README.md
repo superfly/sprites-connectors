@@ -75,7 +75,9 @@ Community submission (`owner: community`), not submitted by Perplexity.
   tokens plus tool fees (`web_search` $0.0025, Fast Search $0.001,
   `fetch_url` $0.0005, `people_search` and `finance_search` $0.005, `sandbox`
   $0.03 per started 20-minute block); Monitor $0.001 per succeeded Search run
-  or counted page URL. Invalid and rate-limited requests are not billed.
+  or counted page URL. Invalid, rate-limited and failed Search requests are
+  not billed, nor are Context URLs that fail to fetch; the pricing page makes
+  no such promise for Agent API requests.
 - Rate limits: https://docs.perplexity.ai/docs/admin/rate-limits-usage-tiers.md.
   Search 50 query units per second; Agent, Context and Monitor limits depend on
   the usage tier. A 429 carries `Retry-After`, and successful Agent and Context
