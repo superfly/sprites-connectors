@@ -55,8 +55,11 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   https://platform.kimi.ai/docs/pricing/batch.md). Web search, search pro
   and URL fetch charge once per call that returns results or non-blank
   content; failed and empty calls are free
-  (https://platform.kimi.ai/docs/pricing/websearch.md). The upload page says
-  file parsing is "currently free". The API needs a $1 minimum top-up
+  (https://platform.kimi.ai/docs/pricing/websearch.md). The Responses
+  `web_search` tool adds one call charge per search the model runs
+  (https://platform.kimi.ai/docs/api/responses.md). Cache writes are billed
+  by TTL and batch inference at 60% of the standard price. The upload page
+  says file parsing is "currently free". The API needs a $1 minimum top-up
   (https://platform.kimi.ai/docs/pricing/limits.md). A key on an empty
   account still passes the probe; inference then answers 429
   `exceeded_current_quota_error`, which the Billing notice says.

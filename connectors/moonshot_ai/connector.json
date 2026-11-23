@@ -115,7 +115,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. Chat Completions, Responses, Messages and batch jobs bill input, output and reasoning tokens from your Kimi balance. `POST /v1/tools/search`, `/v1/tools/search_pro` and `/v1/tools/fetch` charge once per call that returns results or content. Kimi documents file parsing as free for now; listing models and files, estimating tokens and checking batches run no inference. A passing key check does not prove the account has balance; Kimi answers 429 when it runs out."
+        "body": "Saving or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. Chat Completions, Responses, Messages and batch jobs bill input, output and reasoning tokens and cache writes from your Kimi balance; batch jobs at 60% of the standard price. A Responses call with the `web_search` tool adds a per-search charge each time the model searches. `POST /v1/tools/search`, `/v1/tools/search_pro` and `/v1/tools/fetch` charge once per call that returns results or content. Kimi documents file parsing as free for now; listing models and files, estimating tokens and checking batches run no inference. A passing key check does not prove the account has balance; Kimi answers 429 when it runs out."
       },
       {
         "title": "Scope",
