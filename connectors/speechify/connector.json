@@ -18,6 +18,7 @@
     {"methods": ["POST"], "pattern": "/v1/audio/stream"},
     {"methods": ["POST"], "pattern": "/v1/audio/stream/with-timestamps"}
   ],
+  "forward_request_headers": ["speechify-version"],
   "forward_response_headers": [
     "retry-after",
     "speechify-request-id",
@@ -40,7 +41,7 @@
     {
       "title": "List English voices",
       "path": "/v1/voices?locale=en&limit=20",
-      "notes": ["Paged: follow `next_cursor` as `cursor` while `has_more` is true. A short or empty page is not the end of the list."]
+      "notes": ["Paged: follow `next_cursor` as `cursor` while `has_more` is true. A short or empty page is not the end of the list. A workspace pinned to API version `2026-06-26` or earlier gets a bare array instead; send `Speechify-Version: 2026-09-30` to get this shape."]
     },
     {
       "title": "Read one voice; replace VOICE_ID",
@@ -103,6 +104,7 @@
     "usage_notes": [
       "Requests go to `api.speechify.ai`, which picks the synthesis region; the EU and US regional hosts are not reachable through this connector.",
       "Choose the audio format with `audio_format` or `output_format` in the body; the `Accept` request header is not forwarded.",
+      "Without a `Speechify-Version` header, responses follow the version your workspace is pinned to. Send `Speechify-Version: 2026-09-30` (the version new workspaces start on) to get the shapes documented today.",
       "Errors are `{\"error\": {\"code\": \"...\", \"message\": \"...\"}, \"request_id\": \"...\"}`. Branch on `error.code`; a 402 is `payment_required` for an empty balance or a plan code such as `voice_cloning_not_included`."
     ],
     "mark_svg": {"file": "mark.svg"}

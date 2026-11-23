@@ -51,11 +51,17 @@ not the consumer Speechify reader app at speechify.com.
   audio starts, so long inputs do not hit that limit.
 - Headers: `Retry-After`, `Speechify-Request-Id`,
   `Speechify-Audio-Content-Type` (the audio format on the timestamps
-  stream) and `RateLimit-Limit`/`-Remaining`/`-Reset` are forwarded. No
-  request headers are forwarded. The stream routes accept `Accept` to choose
-  a format, but `output_format` in the body does the same job and takes
-  precedence. `Speechify-Version` (API version pinning) is not forwarded
-  either. A reviewer could allow `accept` if they want it.
+  stream) and `RateLimit-Limit`/`-Remaining`/`-Reset` are forwarded. The
+  only request header forwarded is `Speechify-Version`
+  (https://docs.speechify.ai/build/guides/concepts/api-versioning). Without
+  it a request gets the workspace's pinned version, or the oldest supported
+  one if the workspace has none, and shapes differ by version: `GET
+  /v1/voices` is a bare array up to `2026-06-26`, and `pcm_16000` is 24 kHz
+  audio before `2026-09-30`. The Stripe connector forwards `Stripe-Version`
+  for the same reason. The stream routes accept `Accept` to choose a
+  format, but `output_format` in the body does the same job and takes
+  precedence, so `Accept` is not forwarded. A reviewer could allow it if
+  they want it.
 - Billing: https://speechify.ai/pricing. Synthesis is billed per spoken
   character (SSML tags and leading or trailing whitespace are not counted)
   against a monthly dollar balance. Simba 3.5 costs $15, $12 or $10 per 1M
