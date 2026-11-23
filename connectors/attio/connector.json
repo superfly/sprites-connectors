@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.attio.com",
   "description": "Read and update Attio CRM records, lists, notes, tasks and comments",
-  "long_description": "Bring an Attio workspace access token (API key); the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the token lists the workspace's objects (GET /v2/objects), which changes nothing and needs the object_configuration:read scope. A Sprite can then read objects, lists and their attributes; query, search, create, upsert and update records such as people, companies and deals; add records to lists and update list entries; read and create notes, tasks and comments; read meetings, call recordings, email metadata and workspace members; and run SQL queries on plans that include them. Attio enforces the token's scopes on every request. Deletes, merges, value-history rewrites, schema changes (objects, lists, attributes, views), webhooks, the email blocklist and sequence unsubscribes are not forwarded.",
+  "long_description": "Bring an Attio workspace access token (API key); the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the token lists the workspace's objects (GET /v2/objects), which changes nothing and needs the object_configuration:read scope. A Sprite can then read objects, lists and their attributes; query, search, create and update records such as people, companies and deals; add records to lists and update list entries; read and create notes, tasks and comments; read meetings, call recordings, email metadata and workspace members; and run SQL queries on plans that include them. Attio enforces the token's scopes on every request. Deletes, merges, value-history rewrites, upsert and overwrite PUTs, schema changes (objects, lists, attributes, views), webhooks, the email blocklist and sequence unsubscribes are not forwarded.",
   "website_url": "https://attio.com/help/apps/other-apps/generating-an-api-key",
   "auth": "bearer",
   "allowed_paths": [
@@ -19,7 +19,7 @@
     {"methods": ["GET"], "pattern": "/v2/objects/:object/attributes/:attribute/options"},
     {"methods": ["GET"], "pattern": "/v2/objects/:object/attributes/:attribute/statuses"},
     {"methods": ["POST"], "pattern": "/v2/objects/:object/records/query"},
-    {"methods": ["POST", "PUT"], "pattern": "/v2/objects/:object/records"},
+    {"methods": ["POST"], "pattern": "/v2/objects/:object/records"},
     {"methods": ["GET", "PATCH"], "pattern": "/v2/objects/:object/records/:record_id"},
     {"methods": ["GET"], "pattern": "/v2/objects/:object/records/:record_id/attributes/:attribute/values"},
     {"methods": ["GET"], "pattern": "/v2/objects/:object/records/:record_id/entries"},
@@ -31,7 +31,7 @@
     {"methods": ["GET"], "pattern": "/v2/lists/:list/attributes/:attribute/options"},
     {"methods": ["GET"], "pattern": "/v2/lists/:list/attributes/:attribute/statuses"},
     {"methods": ["POST"], "pattern": "/v2/lists/:list/entries/query"},
-    {"methods": ["POST", "PUT"], "pattern": "/v2/lists/:list/entries"},
+    {"methods": ["POST"], "pattern": "/v2/lists/:list/entries"},
     {"methods": ["GET", "PATCH"], "pattern": "/v2/lists/:list/entries/:entry_id"},
     {"methods": ["GET"], "pattern": "/v2/lists/:list/entries/:entry_id/attributes/:attribute/values"},
     {"methods": ["GET", "POST"], "pattern": "/v2/notes"},
@@ -90,7 +90,7 @@
       "method": "POST",
       "path": "/v2/objects/people/records",
       "json": {"data": {"values": {"email_addresses": ["ada@example.com"], "name": [{"first_name": "Ada", "last_name": "Lovelace", "full_name": "Ada Lovelace"}]}}},
-      "notes": ["Create answers 409 if a unique attribute such as `email_addresses` already matches a person. To create or update instead, send the same body with `PUT /v2/objects/people/records?matching_attribute=email_addresses`."]
+      "notes": ["Create answers 409 if a unique attribute such as `email_addresses` already matches a person. To change that person instead, find it with `POST /v2/objects/records/search` and update it with `PATCH /v2/objects/people/records/RECORD_ID`."]
     },
     {
       "title": "Read one record; replace RECORD_ID",
@@ -119,7 +119,7 @@
     "400": "Attio rejected the request (%{status}); check the body's code and message",
     "403": "This Attio token lacks a scope this request needs, or the plan does not include it; edit the token's scopes in Workspace settings → Developers",
     "404": "Not found in Attio; check the object or list slug and the record or entry id",
-    "409": "Attio found a conflict with an existing value on a unique attribute; use the upsert (PUT) route to update instead",
+    "409": "Attio found a conflict with an existing value on a unique attribute; find the existing record and update it with PATCH instead",
     "429": "Attio rate limit reached; wait for the Retry-After time and retry",
     "provider_unreachable": "Could not reach Attio; retry later"
   },
@@ -141,7 +141,7 @@
       },
       {
         "title": "Scope",
-        "body": "Forwarded: `GET /v2/self`; `GET` on objects, lists and their attributes, select options and statuses; `POST /v2/objects/:object/records/query`, `POST` and `PUT /v2/objects/:object/records`, `GET` and `PATCH /v2/objects/:object/records/:record_id`, record attribute values and record entries, `POST /v2/objects/records/search`; `POST /v2/lists/:list/entries/query`, `POST` and `PUT /v2/lists/:list/entries`, `GET` and `PATCH /v2/lists/:list/entries/:entry_id` and entry attribute values; `GET` and `POST /v2/notes`, `GET /v2/notes/:note_id`; `GET` and `POST /v2/tasks`, `GET` and `PATCH /v2/tasks/:task_id`; `GET /v2/threads` and `/v2/threads/:thread_id`; `POST /v2/comments`, `GET /v2/comments/:comment_id`; `GET` on meetings and their call recordings, `GET /v2/emails`, `GET` on workspace members; `POST /v2/sql`. Not forwarded: any delete, record merges, attribute value-history rewrites, creating or changing objects, lists, attributes or views, webhooks, files, activities, the workspace blocklist and sequence unsubscribes. Attio enforces the token's scopes on every allowed route."
+        "body": "Forwarded: `GET /v2/self`; `GET` on objects, lists and their attributes, select options and statuses; `POST /v2/objects/:object/records/query`, `POST /v2/objects/:object/records`, `GET` and `PATCH /v2/objects/:object/records/:record_id`, record attribute values and record entries, `POST /v2/objects/records/search`; `POST /v2/lists/:list/entries/query`, `POST /v2/lists/:list/entries`, `GET` and `PATCH /v2/lists/:list/entries/:entry_id` and entry attribute values; `GET` and `POST /v2/notes`, `GET /v2/notes/:note_id`; `GET` and `POST /v2/tasks`, `GET` and `PATCH /v2/tasks/:task_id`; `GET /v2/threads` and `/v2/threads/:thread_id`; `POST /v2/comments`, `GET /v2/comments/:comment_id`; `GET` on meetings and their call recordings, `GET /v2/emails`, `GET` on workspace members; `POST /v2/sql`. Not forwarded: any delete, record merges, attribute value-history rewrites, the upsert and overwrite `PUT` routes (they remove multiselect values not in the request), creating or changing objects, lists, attributes or views, webhooks, files, activities, the workspace blocklist and sequence unsubscribes. Attio enforces the token's scopes on every allowed route."
       }
     ],
     "usage_notes": [

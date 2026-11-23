@@ -63,7 +63,6 @@ and has a page under https://docs.attio.com/rest-api/endpoint-reference/.
 | `GET .../attributes/:attribute/statuses` (objects and lists) | [List statuses](https://docs.attio.com/rest-api/endpoint-reference/attributes/list-statuses) |
 | `POST /v2/objects/:object/records/query` | [List records](https://docs.attio.com/rest-api/endpoint-reference/records/list-records) |
 | `POST /v2/objects/:object/records` | [Create a record](https://docs.attio.com/rest-api/endpoint-reference/records/create-a-record) |
-| `PUT /v2/objects/:object/records` | [Upsert a record](https://docs.attio.com/rest-api/endpoint-reference/records/upsert-a-record) |
 | `GET /v2/objects/:object/records/:record_id` | [Get a record](https://docs.attio.com/rest-api/endpoint-reference/records/get-a-record) |
 | `PATCH /v2/objects/:object/records/:record_id` | [Update a record (append multiselect values)](https://docs.attio.com/rest-api/endpoint-reference/records/update-a-record-append-multiselect-values) |
 | `GET /v2/objects/:object/records/:record_id/attributes/:attribute/values` | [List record attribute values](https://docs.attio.com/rest-api/endpoint-reference/records/list-record-attribute-values) |
@@ -73,7 +72,6 @@ and has a page under https://docs.attio.com/rest-api/endpoint-reference/.
 | `GET /v2/lists/:list` | [Get a list](https://docs.attio.com/rest-api/endpoint-reference/lists/get-a-list) |
 | `POST /v2/lists/:list/entries/query` | [List entries](https://docs.attio.com/rest-api/endpoint-reference/entries/list-entries) |
 | `POST /v2/lists/:list/entries` | [Create an entry](https://docs.attio.com/rest-api/endpoint-reference/entries/create-an-entry-add-record-to-list) |
-| `PUT /v2/lists/:list/entries` | [Upsert a list entry by parent](https://docs.attio.com/rest-api/endpoint-reference/entries/upsert-a-list-entry-by-parent) |
 | `GET /v2/lists/:list/entries/:entry_id` | [Get a list entry](https://docs.attio.com/rest-api/endpoint-reference/entries/get-a-list-entry) |
 | `PATCH /v2/lists/:list/entries/:entry_id` | [Update a list entry (append multiselect values)](https://docs.attio.com/rest-api/endpoint-reference/entries/update-a-list-entry-append-multiselect-values) |
 | `GET /v2/lists/:list/entries/:entry_id/attributes/:attribute/values` | [List attribute values for a list entry](https://docs.attio.com/rest-api/endpoint-reference/entries/list-attribute-values-for-a-list-entry) |
@@ -108,6 +106,12 @@ Left out on purpose:
 - `PUT /v2/objects/:object/records/:record_id` and
   `PUT /v2/lists/:list/entries/:entry_id` (overwrite multiselect values,
   which removes values not in the request). `PATCH` covers updates.
+- The upserts, `PUT /v2/objects/:object/records` ("Upsert a record") and
+  `PUT /v2/lists/:list/entries` ("Upsert a list entry by parent"). When
+  they match an existing record or entry, they overwrite its multiselect
+  values in the same way, so they are left out for the same reason. Create
+  with `POST`, and on a 409 conflict, find the record and update it with
+  `PATCH`.
 - Schema changes: creating or updating objects, lists, attributes, select
   options, statuses and views. List creation also sets workspace access
   permissions.
