@@ -20,8 +20,9 @@ Community submission (`owner: community`), not submitted by Mistral AI.
   effects. The schema on that page gives `{"object": "list", "data": [...]}`,
   but the sample response on the same page shows a bare array. The probe
   asserts only that `data` is a non-empty list, that each `data[].id` is
-  non-empty text and that `detail` (the 401 and 422 error field) is absent.
-  It does not assert `object`. A bad or missing key is 401
+  non-empty text, and that neither `message` (the field of Mistral's usual
+  `{"object": "error", ...}` body) nor `detail` (the 401 and 422 error field)
+  is present. It does not assert `object`. A bad or missing key is 401
   `{"detail": "Invalid API Key"}` per the error glossary. No `errors` rule is
   needed because billing problems are 402, not 401.
 - Routes, with their API reference pages:
