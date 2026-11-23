@@ -1,0 +1,144 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "cohere",
+  "display_name": "Cohere",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.cohere.com",
+  "description": "Command chat, Embed, Rerank, Parse and Transcribe models on Cohere's platform API",
+  "long_description": "Bring a Cohere API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists one model (GET /v1/models?page_size=1), which runs no model. A Sprite can then list and read models, chat with Command models, create embeddings, rerank documents, tokenize and detokenize text, parse document images and transcribe audio. Chat, embed, rerank, parse and transcription requests are billed to your Cohere account, or count against a trial key's limits. Datasets, embed jobs, batches, fine-tuning, connectors, the v1 chat, embed, rerank, generate, summarize and classify endpoints, and Model Vault are not forwarded.",
+  "website_url": "https://dashboard.cohere.com/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["GET"], "pattern": "/v1/models/:model"},
+    {"methods": ["POST"], "pattern": "/v2/chat"},
+    {"methods": ["POST"], "pattern": "/v2/embed"},
+    {"methods": ["POST"], "pattern": "/v2/rerank"},
+    {"methods": ["POST"], "pattern": "/v1/tokenize"},
+    {"methods": ["POST"], "pattern": "/v1/detokenize"},
+    {"methods": ["POST"], "pattern": "/v2/parse"},
+    {"methods": ["POST"], "pattern": "/v2/audio/transcriptions"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._-]+\\z",
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models?page_size=1",
+    "label": "models",
+    "expect": [
+      ["models", "list"],
+      ["models[].name", "text"],
+      ["message", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List chat models (no charge)",
+      "path": "/v1/models?endpoint=chat&page_size=50",
+      "notes": ["`endpoint` can be `chat`, `embed` or `rerank`; follow `next_page_token` with `page_token` for more."]
+    },
+    {
+      "title": "Read one model; replace MODEL_NAME (no charge)",
+      "path": "/v1/models/MODEL_NAME"
+    },
+    {
+      "title": "Chat with Command A+ (billed per input and output token)",
+      "method": "POST",
+      "path": "/v2/chat",
+      "json": {
+        "model": "command-a-plus-05-2026",
+        "messages": [{"role": "user", "content": "Explain retrieval augmented generation in two sentences."}],
+        "max_tokens": 256,
+        "stream": false
+      },
+      "notes": ["Set `stream: true` for Server-Sent Events. The gateway waits 120 seconds for response headers and Cohere has no timeout parameter, so stream long or reasoning generations and cap `max_tokens`."]
+    },
+    {
+      "title": "Embed documents for search (billed per embedded token)",
+      "method": "POST",
+      "path": "/v2/embed",
+      "json": {
+        "model": "embed-v5.0-fast",
+        "input_type": "search_document",
+        "texts": ["Sprites are persistent Linux sandboxes.", "Connectors keep API keys off the Sprite."],
+        "embedding_types": ["float"]
+      },
+      "notes": ["Up to 96 texts per call. Embed queries with `input_type: \"search_query\"`."]
+    },
+    {
+      "title": "Rerank documents against a query (billed per search)",
+      "method": "POST",
+      "path": "/v2/rerank",
+      "json": {
+        "model": "rerank-v5.0-fast",
+        "query": "How do Sprites keep API keys safe?",
+        "documents": ["Connectors hold the key outside the Sprite.", "Sprites persist their disk between runs."],
+        "top_n": 1
+      }
+    },
+    {
+      "title": "Count tokens for a model (no charge)",
+      "method": "POST",
+      "path": "/v1/tokenize",
+      "json": {"text": "Hello from a Sprite.", "model": "command-a-03-2025"}
+    },
+    {
+      "title": "Parse a document image to Markdown; replace IMAGE_URL (billed by Cohere)",
+      "method": "POST",
+      "path": "/v2/parse",
+      "json": {
+        "model": "parse-v5.0",
+        "document": {"type": "image_url", "image_url": "IMAGE_URL"},
+        "output_format": "markdown"
+      },
+      "notes": ["Replace IMAGE_URL with a public http(s) image URL or a data URI. PDFs are not supported yet."]
+    },
+    {
+      "title": "Transcribe audio (multipart upload; billed by Cohere)",
+      "method": "POST",
+      "path": "/v2/audio/transcriptions",
+      "notes": ["Send multipart form fields `model` (`cohere-transcribe-03-2026`), `language` (ISO-639-1, such as `en`) and `file`, for example with `curl -F model=cohere-transcribe-03-2026 -F language=en -F file=@recording.mp3`. Keep the file within the gateway's request body limit."]
+    }
+  ],
+  "messages": {
+    "400": "Cohere rejected the request (%{status}); see the body's message",
+    "402": "Cohere billing problem; check your plan at dashboard.cohere.com",
+    "403": "Cohere key lacks permission for this request (%{status}); check the key and model access",
+    "404": "Cohere model or route not found; check GET /v1/models",
+    "422": "Cohere could not process the request parameters; see the body's message",
+    "429": "Cohere rate limit or trial key limit reached; wait and retry, or use a production key",
+    "498": "Cohere refused a deny-listed token in the request or response",
+    "provider_unreachable": "Could not reach Cohere; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["cohere", "llm", "command", "chat", "embeddings", "rerank", "rag", "semantic search", "tokenize", "document parsing", "transcription"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-emerald-900/20",
+  "presentation": {
+    "tagline": "Chat, embed and rerank with Cohere from a Sprite without putting your API key on it.",
+    "setup": "Sign in at dashboard.cohere.com, open API Keys and create a trial or production key. Trial keys are free but rate-limited and capped at 1,000 calls a month.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key calls `GET /v1/models?page_size=1`, which runs no model and is not priced; on a trial key it may count toward the 1,000 calls a month. With a production key, chat is billed per input and output token, embed per embedded token, rerank per search, and parse and transcription per Cohere's pricing page. Model listing, tokenize and detokenize run no model. Chat responses report what was billed in `usage.billed_units`; embed, rerank and parse responses in `meta.billed_units`."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/models`, `GET /v1/models/:model`, `POST /v2/chat`, `POST /v2/embed`, `POST /v2/rerank`, `POST /v1/tokenize`, `POST /v1/detokenize`, `POST /v2/parse` and `POST /v2/audio/transcriptions` are forwarded, all on api.cohere.com. Datasets, embed jobs, batches, fine-tuning, connectors, the `check-api-key` endpoint, the v1 chat, embed, rerank, generate, summarize and classify endpoints, Model Vault and cloud-marketplace deployments are not."
+      },
+      {
+        "title": "Trial keys",
+        "body": "Trial keys allow 20 chat requests a minute per model, 10 rerank requests a minute, 2,000 embedded inputs a minute and 5 transcriptions a minute, and 1,000 calls a month in total. Newer models such as Command A+ keep trial limits on production keys unless Cohere sales raises them."
+      }
+    ],
+    "usage_notes": [
+      "The gateway waits 120 seconds for response headers. Cohere's chat API has no timeout parameter, so use `stream: true` and a `max_tokens` cap for long or reasoning generations.",
+      "Error bodies are `{\"id\": \"...\", \"message\": \"...\"}`. A wrong key is 401; Cohere also documents 498 for deny-listed tokens and 499 when a request is cancelled."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
