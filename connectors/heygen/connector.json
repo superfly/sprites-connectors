@@ -1,0 +1,144 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "heygen",
+  "display_name": "HeyGen",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.heygen.com",
+  "description": "Generate AI avatar videos, prompt-to-video clips, speech and video translations",
+  "long_description": "Bring a HeyGen API key; the gateway keeps it off your Sprite and sends it in the X-Api-Key header. Saving, replacing or testing the key reads the key owner's profile and balance (GET /v3/users/me), which costs nothing. A Sprite can then browse avatars, looks and voices, create avatar videos, Video Agent videos, HeyGen Video and Avatar 6 clips, speech and video translations, upload input files, and poll each job until it finishes. Every generation draws on your prepaid HeyGen API balance. Finished media come back as presigned links that expire, so download them promptly. Deleting or editing videos, creating avatars or voice clones, webhooks, templates, brand kits, API key, usage and request-log endpoints are not forwarded.",
+  "website_url": "https://platform.heygen.com/api-keys",
+  "auth": {"header": "x-api-key"},
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v3/users/me"},
+    {"methods": ["GET", "POST"], "pattern": "/v3/videos"},
+    {"methods": ["GET"], "pattern": "/v3/videos/voice-capabilities"},
+    {"methods": ["GET"], "pattern": "/v3/videos/:video_id"},
+    {"methods": ["POST"], "pattern": "/v3/video-agents"},
+    {"methods": ["GET"], "pattern": "/v3/video-agents/styles"},
+    {"methods": ["GET"], "pattern": "/v3/video-agents/:session_id"},
+    {"methods": ["POST"], "pattern": "/v3/models/videos"},
+    {"methods": ["GET"], "pattern": "/v3/models/videos/:video_id"},
+    {"methods": ["POST"], "pattern": "/v3/models/avatars"},
+    {"methods": ["POST"], "pattern": "/v3/models/audio/tts"},
+    {"methods": ["GET"], "pattern": "/v3/models/audio/voices"},
+    {"methods": ["GET"], "pattern": "/v3/models/audio/voices/:voice_id"},
+    {"methods": ["GET"], "pattern": "/v3/avatars"},
+    {"methods": ["GET"], "pattern": "/v3/avatars/looks"},
+    {"methods": ["GET"], "pattern": "/v3/avatars/looks/:look_id"},
+    {"methods": ["GET"], "pattern": "/v3/avatars/:group_id"},
+    {"methods": ["POST"], "pattern": "/v3/video-translations"},
+    {"methods": ["GET"], "pattern": "/v3/video-translations/languages"},
+    {"methods": ["GET"], "pattern": "/v3/video-translations/:video_translation_id"},
+    {"methods": ["POST"], "pattern": "/v3/assets"},
+    {"methods": ["GET"], "pattern": "/v3/assets/:asset_id"}
+  ],
+  "forward_request_headers": ["idempotency-key"],
+  "forward_response_headers": ["retry-after", "x-heygen-request-id"],
+  "probe": {
+    "method": "GET",
+    "path": "/v3/users/me",
+    "label": "account",
+    "expect": [
+      ["data", "map"],
+      ["data.username", "string"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Read your profile and remaining API balance",
+      "path": "/v3/users/me"
+    },
+    {
+      "title": "List public avatar looks to pick an avatar_id",
+      "path": "/v3/avatars/looks?ownership=public&limit=10"
+    },
+    {
+      "title": "List voices to pick a voice_id",
+      "path": "/v3/models/audio/voices?type=public&limit=10"
+    },
+    {
+      "title": "Create an avatar video (spends API balance per second of video); replace AVATAR_ID and VOICE_ID",
+      "method": "POST",
+      "path": "/v3/videos",
+      "json": {"type": "avatar", "avatar_id": "AVATAR_ID", "voice_id": "VOICE_ID", "script": "Hello from a Sprite.", "resolution": "720p", "aspect_ratio": "16:9"},
+      "notes": ["Returns a `video_id` at once; rendering runs in the background. Send an `Idempotency-Key` header to retry without creating a second video."]
+    },
+    {
+      "title": "Poll a video until status is completed; replace VIDEO_ID",
+      "path": "/v3/videos/VIDEO_ID",
+      "notes": ["`video_url` and the other media links are presigned and expire. Download the file as soon as `status` is `completed`, and fetch this route again for a fresh link."]
+    },
+    {
+      "title": "Make a video from a prompt with Video Agent (spends API balance per second of video)",
+      "method": "POST",
+      "path": "/v3/video-agents",
+      "json": {"prompt": "A 20-second explainer on why agents need persistent sandboxes, with one presenter.", "mode": "generate", "orientation": "landscape"},
+      "notes": ["Poll `GET /v3/video-agents/SESSION_ID` for its `video_id`, then `GET /v3/videos/VIDEO_ID` for the file."]
+    },
+    {
+      "title": "Generate a 5-second HeyGen Video clip from text (spends API balance per second of video)",
+      "method": "POST",
+      "path": "/v3/models/videos",
+      "json": {"mode": "text_to_video", "model": "heygen-video-1", "prompt": "A paper airplane gliding over a city at dawn", "duration": 5, "resolution": "480p"},
+      "notes": ["Returns 202 with a `video_id`; poll `GET /v3/models/videos/VIDEO_ID`."]
+    },
+    {
+      "title": "Generate speech with the free turbo model; replace VOICE_ID",
+      "method": "POST",
+      "path": "/v3/models/audio/tts",
+      "json": {"model": "heygen-voice-1-turbo-free", "voice_id": "VOICE_ID", "text": "Hello from a Sprite."},
+      "notes": ["`heygen-voice-1-turbo-free` is free until November 30, 2026 and answers 429 when its shared capacity is full; `heygen-voice-1` and `heygen-voice-1-turbo` spend API balance. The response holds an expiring `audio_url`."]
+    },
+    {
+      "title": "Translate a video into Spanish (spends API balance per second of source video)",
+      "method": "POST",
+      "path": "/v3/video-translations",
+      "json": {"video": {"type": "url", "url": "https://example.com/talk.mp4"}, "output_languages": ["Spanish (Spain)"], "mode": "speed"},
+      "notes": ["Language names come from `GET /v3/video-translations/languages`. Poll `GET /v3/video-translations/VIDEO_TRANSLATION_ID` for each returned id."]
+    }
+  ],
+  "messages": {
+    "400": "HeyGen rejected the request (%{status}); see error.code and error.message",
+    "402": "HeyGen API balance too low or a plan or usage limit was reached; top up at platform.heygen.com",
+    "403": "This HeyGen key cannot use this endpoint or resource; check its permission scopes at platform.heygen.com/api-keys",
+    "404": "Not found in HeyGen; check the id and that it belongs to this workspace",
+    "429": "HeyGen rate limit or quota reached; wait for the Retry-After header and retry",
+    "provider_unreachable": "Could not reach HeyGen; retry later"
+  },
+  "discovery": {
+    "categories": ["media", "ai-inference"],
+    "keywords": ["heygen", "video", "ai video", "avatar", "talking head", "text to video", "text to speech", "voice", "video translation", "dubbing", "lip sync"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-emerald-500/20",
+  "presentation": {
+    "tagline": "Generate avatar videos, prompt-to-video clips, speech and translations from a Sprite without putting your HeyGen key on it.",
+    "setup": "Open platform.heygen.com/api-keys, generate an API key and add API balance; API calls do not use HeyGen web-plan credits. A key with restricted permission scopes works for the routes its scopes cover.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /v3/users/me` and costs nothing. Listing and polling are free. `POST /v3/videos`, `POST /v3/video-agents`, `POST /v3/models/videos`, `POST /v3/models/avatars` and `POST /v3/video-translations` draw on your prepaid HeyGen API balance, mostly per second of output (translations per second of source video); rates depend on the engine and resolution and are on the pricing page at platform.heygen.com/pricing. `POST /v3/models/audio/tts` spends API balance except with `heygen-voice-1-turbo-free`, which HeyGen offers free until November 30, 2026. Every render is billed, including a retried create sent without an `Idempotency-Key`."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v3/users/me`; `GET` and `POST /v3/videos`; `GET /v3/videos/voice-capabilities` and `/v3/videos/:video_id`; `POST /v3/video-agents` with `GET /v3/video-agents/styles` and `/v3/video-agents/:session_id`; `POST /v3/models/videos`, `POST /v3/models/avatars` and `GET /v3/models/videos/:video_id`; `POST /v3/models/audio/tts`; `GET /v3/models/audio/voices` and `/v3/models/audio/voices/:voice_id`; `GET /v3/avatars`, `/v3/avatars/:group_id`, `/v3/avatars/looks` and `/v3/avatars/looks/:look_id`; `POST /v3/video-translations` with `GET /v3/video-translations/languages` and `/v3/video-translations/:video_translation_id`; and `POST /v3/assets` with `GET /v3/assets/:asset_id` are forwarded. Deleting or editing videos, creating avatars, consent and voice clones, webhooks, templates, brand kits and glossaries, batches, API key, usage and request-log endpoints are not."
+      },
+      {
+        "title": "Download results",
+        "body": "Video, audio and thumbnail links in HeyGen responses are presigned URLs that expire. Download finished files to the Sprite as soon as a job completes; to get a fresh link later, read the job again."
+      }
+    ],
+    "usage_notes": [
+      "Generation is asynchronous: create routes return an id at once, and `GET /v3/videos/:video_id`, `/v3/models/videos/:video_id`, `/v3/video-agents/:session_id` or `/v3/video-translations/:video_translation_id` report `status` until the job completes or fails. Poll every 10 to 30 seconds; status polling allows 500 requests a minute.",
+      "`POST /v3/models/audio/tts` holds the request open until the audio is ready, and Sprites waits at most 120 seconds for response headers. Split long scripts into several requests.",
+      "Send an `Idempotency-Key` header on `POST /v3/videos`, `/v3/models/videos`, `/v3/models/avatars`, `/v3/video-translations` and `/v3/assets` so a retry after a timeout returns the original job instead of starting and billing a second one. `POST /v3/video-agents` and `POST /v3/models/audio/tts` do not document it.",
+      "`POST /v3/assets` takes a multipart upload of up to 50 MB (32 MB for images) and returns an `asset_id` other routes accept. Files can also be passed to most routes by public HTTPS URL.",
+      "Errors are `{\"error\": {\"code\", \"message\", \"param\", \"doc_url\", \"request_id\"}}`; the `X-HeyGen-Request-Id` header is passed back for support requests."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
