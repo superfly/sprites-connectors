@@ -66,7 +66,9 @@ not the consumer Speechify reader app at speechify.com.
   character (SSML tags and leading or trailing whitespace are not counted)
   against a monthly dollar balance. Simba 3.5 costs $15, $12 or $10 per 1M
   characters on Starter, Pro or Scale; Simba 3.0 and 3.2 cost $10, $8 or $6.
-  Free includes 500K characters a month and then pauses.
+  Free's monthly balance covers 500K characters of Simba 3.0 or 3.2, or
+  333K of Simba 3.5 (the model every synthesis example uses), and then
+  pauses; paid plans then spend any top-up.
 - Rate limits: https://docs.speechify.ai/build/api-reference/get-started/api-limits.
   They are per account and shared by every synthesis route. Free allows 3
   concurrent requests at 1 per second; Enterprise allows 100 at 150 per

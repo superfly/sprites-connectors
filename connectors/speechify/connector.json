@@ -88,13 +88,13 @@
   "icon_bg_class": "bg-neutral-500/20",
   "presentation": {
     "tagline": "Turn text into lifelike speech from a Sprite without putting your Speechify key on it.",
-    "setup": "Sign in at platform.speechify.ai, open API Keys and create a key. The free plan includes 500K characters a month with no card.",
+    "setup": "Sign in at platform.speechify.ai, open API Keys and create a key. The free plan needs no card; each month it covers 500K characters of Simba 3.0 or 3.2, or 333K of Simba 3.5.",
     "key_label": "API key",
     "key_placeholder": "sk_...",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key lists the available models with `GET /v1/audio/models`, which costs nothing; listing and reading voices is free too. `POST /v1/audio/speech`, `POST /v1/audio/stream` and `POST /v1/audio/stream/with-timestamps` are billed per spoken character (SSML tags are not counted) against your monthly balance: Simba 3.5 lists at $15, $12 or $10 per 1M characters on Starter, Pro or Scale, and Simba 3.0 and 3.2 at $10, $8 or $6. The free plan includes 500K characters a month and then pauses until the next month."
+        "body": "Saving or testing the key lists the available models with `GET /v1/audio/models`, which costs nothing; listing and reading voices is free too. `POST /v1/audio/speech`, `POST /v1/audio/stream` and `POST /v1/audio/stream/with-timestamps` are billed per spoken character (SSML tags are not counted) against your monthly balance: Simba 3.5 lists at $15, $12 or $10 per 1M characters on Starter, Pro or Scale, and Simba 3.0 and 3.2 at $10, $8 or $6. The free plan's monthly balance covers 500K characters of Simba 3.0 or 3.2, or 333K of Simba 3.5, and then requests pause until the next month; on a paid plan, usage past the balance spends any top-up."
       },
       {
         "title": "Scope",
