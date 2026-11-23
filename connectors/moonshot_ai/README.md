@@ -77,10 +77,12 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   `engine_overloaded_error`), `x-ratelimit-limit`, `x-ratelimit-remaining`
   and `x-ratelimit-reset` (documented on the search and fetch 429s),
   `x-msh-track-id` (documented request id on the tools endpoints) and
-  `msh-request-id` (seen on every other response; the errors page asks for
-  the request id when reporting a 500). No request headers are forwarded,
-  so the optional `X-Msh-Request-Nonce` request-signature header of the
-  inference routes is not available.
+  `msh-request-id` (the request id on the other routes, named as the
+  `Msh-Request-Id` response header in Kimi's MoonPalace debugging guide,
+  https://platform.kimi.ai/docs/guide/use-moonpalace.md; the errors page
+  asks for the request id when reporting a 500). No request headers are
+  forwarded, so the optional `X-Msh-Request-Nonce` request-signature header
+  of the inference routes is not available.
 - Errors: https://platform.kimi.ai/docs/api/errors.md. Bodies are
   `{"error": {"type": "...", "message": "..."}}`. 400 bad request or content
   filter, 401 bad key, 403 API not open to the account or IP not on the
