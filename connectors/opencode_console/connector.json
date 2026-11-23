@@ -20,7 +20,7 @@
     {"methods": ["POST"], "pattern": "/inference/google/v1beta/models/:model_method"}
   ],
   "path_param": "\\A[A-Za-z0-9._-]+:(?:generateContent|streamGenerateContent)\\z",
-  "forward_response_headers": ["x-request-id", "retry-after"],
+  "forward_response_headers": ["x-opencode-log-id", "retry-after"],
   "probe": {
     "method": "GET",
     "path": "/console/api/v1/models",

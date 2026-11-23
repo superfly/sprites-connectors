@@ -54,8 +54,11 @@ Anomaly.
   `{"error": {"type", "message"}}`, Anthropic
   `{"type": "error", "error": {...}}`, Gemini
   `{"error": {"code", "status", "message"}}`, Console list
-  `{"_tag": "Unauthorized"}`. Responses carry `x-request-id` and the API
-  exposes `retry-after`; both are forwarded. No rate limits are documented.
+  `{"_tag": "Unauthorized"}`. Inference responses carry `x-opencode-log-id`,
+  the request ID Console shows in Activity › Logs
+  (https://opencode.ai/docs/console/api/providers/); it and `retry-after`,
+  which the API exposes, are forwarded. `x-request-id` is sent only by the
+  Console model list, so it is not forwarded. No rate limits are documented.
 - Left out on purpose:
   - OpenCode Go (`/inference/go/...` and `GET /inference/go/v1/usage`,
     https://opencode.ai/docs/console/go/#endpoints): Go is a separate
