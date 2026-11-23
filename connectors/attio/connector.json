@@ -131,13 +131,13 @@
   "icon_bg_class": "bg-neutral-500/20",
   "presentation": {
     "tagline": "Work with your Attio CRM from a Sprite without putting your access token on it.",
-    "setup": "A workspace admin opens Workspace settings → Developers in Attio, clicks + New access token, names it and sets its scopes. The token needs `object_configuration:read` for the key check. Add `record_permission:read`, `list_configuration:read`, `list_entry:read`, `note:read`, `task:read` and `comment:read` for read-only use, and the matching `read-write` scopes only for what the Sprite should change.",
+    "setup": "A workspace admin opens Workspace settings → Developers in Attio, clicks + New access token, names it and sets its scopes. The token needs `object_configuration:read` for the key check. Add `record_permission:read`, `list_configuration:read`, `list_entry:read`, `note:read`, `task:read`, `user_management:read` (tasks need it) and `comment:read` for read-only use, and the matching `read-write` scopes only for what the Sprite should change.",
     "key_label": "Access token",
     "key_placeholder": "64-character access token",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the token lists your workspace's objects with `GET /v2/objects`, which changes nothing. Attio lists no per-request charge for its REST API. Records a Sprite creates count toward your plan's record limit, and additional records are a paid add-on. `POST /v2/sql` works only on plans that include SQL access. Attio allows 100 read and 25 write requests per second per workspace, and `POST /v2/sql` 2 per second."
+        "body": "Saving or testing the token lists your workspace's objects with `GET /v2/objects`, which changes nothing. Attio lists no per-request charge for its REST API. Records a Sprite creates count toward your plan's record limit, and additional records are a paid add-on. `POST /v2/sql` works only on plans that include SQL access, and `GET /v2/emails` only once Attio support enables it for the workspace. Attio allows 100 read and 25 write requests per second, and `POST /v2/sql` 2 per second."
       },
       {
         "title": "Scope",
@@ -146,7 +146,7 @@
     ],
     "usage_notes": [
       "Objects and lists are addressed by slug (`people`, `companies`, `deals`) or by id; records, entries, notes, tasks and other resources by UUID.",
-      "Most list and query routes page with `limit` and `offset` (in the body for `POST .../query`, in the query string for `GET` lists). `GET /v2/meetings` and `GET /v2/emails` page with `limit` and the `cursor` the previous response returned. There is no pagination header.",
+      "Most list and query routes page with `limit` and `offset` (in the body for `POST .../query`, in the query string for `GET` lists). `GET /v2/meetings`, call recordings and `GET /v2/emails` page with `limit` and the `cursor` the previous response returned. There is no pagination header.",
       "Errors are `{\"status_code\": 400, \"type\": \"invalid_request_error\", \"code\": \"validation_type\", \"message\": \"...\"}`. A 429 carries `Retry-After` as an HTTP date, which the gateway passes back."
     ],
     "mark_svg": {"file": "mark.svg"}

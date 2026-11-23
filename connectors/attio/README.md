@@ -38,13 +38,13 @@ Community submission (`owner: community`), not submitted by Attio.
   have score-based limits over a 10-second window. A 429 carries
   `Retry-After` as an HTTP date, which is forwarded. `POST /v2/sql` is
   limited to 2 per second and needs a plan with SQL access (the endpoint
-  page says Enterprise; the pricing page lists "SQL access through the API"
-  as a plan feature). Pagination is `limit`/`offset` in the body or query string, or
-  `cursor` for meetings and emails
+  page says Enterprise; the pricing page lists "SQL access through the API
+  and MCP" on Ultra only). Pagination is `limit`/`offset` in the body or
+  query string, or `cursor` for meetings, call recordings and emails
   (https://docs.attio.com/rest-api/guides/pagination); there is no
   pagination header.
-- Billing: https://attio.com/pricing. Attio charges per seat and lists no
-  per-request API charge. Plans have record limits (50,000 records on Free)
+- Billing: https://attio.com/pricing. Attio charges per workspace plan and
+  per added user, and lists no per-request API charge. Plans have record limits (50,000 records on Free)
   and sell additional records, so records a Sprite creates count toward that.
 
 ## Routes
@@ -83,7 +83,7 @@ and has a page under https://docs.attio.com/rest-api/endpoint-reference/.
 | `POST /v2/comments`, `GET /v2/comments/:comment_id` | [Create a comment](https://docs.attio.com/rest-api/endpoint-reference/comments/create-a-comment), [Get a comment](https://docs.attio.com/rest-api/endpoint-reference/comments/get-a-comment) |
 | `GET /v2/meetings`, `GET /v2/meetings/:meeting_id` | [List meetings](https://docs.attio.com/rest-api/endpoint-reference/meetings/list-meetings), [Get a meeting](https://docs.attio.com/rest-api/endpoint-reference/meetings/get-a-meeting) |
 | `GET /v2/meetings/:meeting_id/call_recordings`, `GET .../call_recordings/:call_recording_id` | [List call recordings](https://docs.attio.com/rest-api/endpoint-reference/call-recordings/list-call-recordings), [Get call recording](https://docs.attio.com/rest-api/endpoint-reference/call-recordings/get-call-recording) |
-| `GET /v2/emails` | [List emails](https://docs.attio.com/rest-api/endpoint-reference/emails/list-emails) (metadata only; content is never returned) |
+| `GET /v2/emails` | [List emails](https://docs.attio.com/rest-api/endpoint-reference/emails/list-emails) (metadata only; content is never returned; alpha, enabled per workspace by Attio support) |
 | `GET /v2/workspace_members`, `GET /v2/workspace_members/:workspace_member_id` | [List workspace members](https://docs.attio.com/rest-api/endpoint-reference/workspace-members/list-workspace-members), [Get a workspace member](https://docs.attio.com/rest-api/endpoint-reference/workspace-members/get-a-workspace-member) |
 | `POST /v2/sql` | [Query SQL](https://docs.attio.com/rest-api/endpoint-reference/sql/query-sql) |
 
