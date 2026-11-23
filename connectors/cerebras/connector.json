@@ -56,7 +56,7 @@
     {"title": "Read one model; replace MODEL_ID", "path": "/v1/models/MODEL_ID"}
   ],
   "messages": {
-    "402": "Cerebras credits exhausted or expired; add credits in the Cerebras Cloud console",
+    "402": "Cerebras requires payment; check your credits in the Cerebras Cloud console",
     "404": "Cerebras model not found or not available to this key; check GET /v1/models",
     "429": "Cerebras rate limit reached (requests or tokens per minute); retry later or lower max_completion_tokens",
     "503": "Cerebras Inference is temporarily unavailable; retry later"
@@ -72,7 +72,7 @@
     "setup": "Sign in at cloud.cerebras.ai, open API Keys in the left nav (on paid accounts, pick a project first) and click Generate API Key. Copy the key and paste it here. New accounts get $5 of trial credits after adding a payment method.",
     "key_label": "API key",
     "notices": [
-      {"title": "Billing", "body": "Saving, replacing or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. It does not check your credit balance. Chat and text completions are charged per input and output token to your Cerebras account, at the model's price (for example $0.35 per million input tokens and $0.75 per million output tokens for `gpt-oss-120b`). Reading models is free. Trial credits expire 30 days after they are granted, and Cerebras answers 402 when credits run out."},
+      {"title": "Billing", "body": "Saving, replacing or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. It does not check your credit balance. Chat and text completions are charged per input and output token to your Cerebras account, at the model's price (for example $0.35 per million input tokens and $0.75 per million output tokens for `gpt-oss-120b`). Reading models is free. Trial credits expire 30 days after they are granted; when credits run out or expire, API access stops until you buy more."},
       {"title": "Scope", "body": "Only `GET /v1/models`, `GET /v1/models/:model_id`, `POST /v1/chat/completions` and `POST /v1/completions` are forwarded. Completions can stream with SSE. Batch jobs, files, Dedicated Inference management and metrics, API keys, projects, billing and team management are not forwarded. Rate limits apply per organization and model, in requests and tokens per minute."}
     ],
     "usage_notes": [
