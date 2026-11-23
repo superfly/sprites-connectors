@@ -106,7 +106,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the token reads `GET /v1/users/me` and spends no API units; listing and reading styles is free too. Everything else spends prepaid API units ($1 = 1,000 units): generation costs 7 to 300 units per image depending on the model (default `recraftv4_1`: 35 raster, 80 vector), plus 5 when style references create a style; image to image, inpainting, outpainting and background operations 40 or 80, creating a style 5, erasing a region 2, crisp upscale 4, vectorize 10 (40 with Vectorizer Pro), remove background and enhance prompt 10, remix 40, enhance details 210 and creative upscale 250. Each response's `credits` field is what the request cost."
+        "body": "Saving or testing the token reads `GET /v1/users/me` and spends no API units; listing and reading styles is free too. Everything else spends prepaid API units ($1 = 1,000 units): generation costs 7 to 300 units per image depending on the model (default `recraftv4_1`: 35 raster, 80 vector), plus 5 when style references create a style; image to image costs the same per image as generating with its model (default `recraftv4_1`); inpainting, outpainting and background operations (V3 only) 40 raster or 80 vector per image; creating a style 5, erasing a region 2, crisp upscale 4, vectorize 10 (40 with Vectorizer Pro), remove background and enhance prompt 10, remix 40, enhance details 210 and creative upscale 250. Each response's `credits` field is what the request cost."
       },
       {
         "title": "Scope",

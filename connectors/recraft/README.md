@@ -61,7 +61,11 @@ Community submission (`owner: community`), not submitted by Recraft.
   - `GET /v1/users/me`: the probe, above.
 - Prices: https://www.recraft.ai/docs/api-reference/pricing ($1 = 1,000 API
   units; every response's `credits` field is what the request cost). The
-  Billing notice and example titles use those numbers.
+  Billing notice and example titles use those numbers. Image to image is
+  priced like generation with the chosen model (default `recraftv4_1`,
+  https://www.recraft.ai/docs/api-reference/tools/image-to-image); only
+  inpainting, outpainting and the background tools are fixed at 40 or 80
+  units, because they take only `recraftv3` and `recraftv3_vector`.
 - Inputs and results:
   https://www.recraft.ai/docs/api-reference/image-inputs-and-results. Every
   image endpoint takes JSON (images as public URLs or data URLs) or
