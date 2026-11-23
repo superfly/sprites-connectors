@@ -60,7 +60,7 @@
       "json": {"search_engine": "search-prime", "search_query": "Fly.io Sprites", "count": 5}
     },
     {
-      "title": "Read a web page as Markdown",
+      "title": "Read a web page as Markdown (not on Z.ai's price list; may use your balance)",
       "method": "POST",
       "path": "/reader",
       "json": {"url": "https://fly.io/docs/", "return_format": "markdown", "timeout": 20}
@@ -108,7 +108,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key sends `POST /tokenizer` with a two-character message; it runs no generation, and Z.ai's pricing page lists no charge for it. Every other call uses your Z.ai balance or usage bundles at pay-as-you-go rates, never Coding Plan quota: chat and OCR are billed per token (GLM-5.3 is $1.4 input and $4.4 output per million tokens), web search costs $0.01 a search, GLM-Image $0.015 an image, CogVideoX-3 $0.2 a video and GLM-ASR $0.03 per million tokens."
+        "body": "Saving or testing the key sends `POST /tokenizer` with a two-character message; it runs no generation, and Z.ai's pricing page lists no charge for it. `POST /reader` is not on the pricing page either, so it may use your balance at a rate Z.ai does not publish. Every other call uses your Z.ai balance or usage bundles at pay-as-you-go rates, never Coding Plan quota: chat and OCR are billed per token (GLM-5.3 is $1.4 input and $4.4 output per million tokens), web search costs $0.01 a search, GLM-Image $0.015 an image, CogVideoX-3 $0.2 a video and GLM-ASR $0.03 per million tokens."
       },
       {
         "title": "Scope",

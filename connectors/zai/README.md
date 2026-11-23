@@ -52,7 +52,9 @@ Community submission (`owner: community`), not submitted by Z.ai.
   GLM-5.3 is $1.4 input / $4.4 output; web search $0.01 a use; GLM-Image
   $0.015 an image; CogVideoX-3 $0.2 a video; GLM-ASR-2512 $0.03 per million
   tokens; GLM-OCR $0.03 per million tokens; GLM-4.7-Flash and GLM-4.5-Flash
-  are free.
+  are free. The pricing page lists no price for `/reader` (Web Reader) or
+  `/tokenizer`; the reader example title and the Billing notice say so rather
+  than calling either free.
 - Errors: https://docs.z.ai/api-reference/api-code. Bodies are
   `{"error": {"code": "...", "message": "..."}}`, where `code` is a business
   code. A wrong or missing key is 401 (1000, 1001, 1003, or `"401"` in
