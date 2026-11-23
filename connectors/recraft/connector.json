@@ -116,7 +116,7 @@
     "usage_notes": [
       "Send JSON with `Content-Type: application/json` and pass input images as public URLs or data URLs (`image_url`, `mask_url`, `image_urls`, `style_reference_urls`); multipart uploads also work but must fit the gateway's request body limit.",
       "Result URLs are public and kept for only about 24 hours. Use `response_format: \"b64_json\"` to get the image bytes in the response, or download the file right away.",
-      "Recraft has no timeout parameter and the gateway waits 120 seconds for response headers, so keep `n` small on slow models (Pro, creative upscale, enhance details).",
+      "Recraft has no timeout parameter and the gateway waits 120 seconds for response headers, so keep `n` small, above all with Pro and vector models, and expect creative upscale and enhance details to be slow.",
       "Errors are plain text (401 `request unauthorized`, 404 `404 page not found`) or JSON; read the body as text before parsing it."
     ],
     "mark_svg": {"file": "mark.svg"}

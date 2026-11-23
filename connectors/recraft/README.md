@@ -83,7 +83,10 @@ Community submission (`owner: community`), not submitted by Recraft.
 - Timeouts: generation and the image tools are synchronous and Recraft
   documents no timeout parameter, so the examples cannot set one below the
   gateway's 120-second header deadline. They use `n: 1`, and a usage note
-  says to keep `n` small on slow models.
+  says to keep `n` small. Recraft's V4.1 announcement gives median times per
+  image of 1.1 s (Flash V2) to 17 s (Utility Pro Vector), and its MCP
+  troubleshooting notes say upscales can take minutes; creative upscale and
+  enhance details take no `n`, so the note only warns that they are slow.
 - Left out on purpose: `DELETE /v1/styles/{style_id}` (destructive; a Sprite
   does not need to delete the user's styles). Token management, billing and
   workspace access live only in the Recraft app and API portal
