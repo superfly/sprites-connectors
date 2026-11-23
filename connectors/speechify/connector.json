@@ -1,0 +1,110 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "speechify",
+  "display_name": "Speechify",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.speechify.ai",
+  "description": "Text-to-speech with lifelike voices in 48 languages, as files or streams",
+  "long_description": "Bring a SpeechifyAI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists one voice (GET /v1/voices?limit=1), which is free. A Sprite can then list voices and models, read one voice, and synthesize speech as a single JSON response with Base64 audio, as a raw audio stream, or as a stream of audio with word timestamps. Synthesis is billed per spoken character against your Speechify balance. Voice cloning and deletion, consent challenges, projects and their members, webhooks, workspace entitlements and the WebSocket text-input stream are not forwarded.",
+  "website_url": "https://platform.speechify.ai/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/voices"},
+    {"methods": ["GET"], "pattern": "/v1/voices/:voice_id"},
+    {"methods": ["GET"], "pattern": "/v1/audio/models"},
+    {"methods": ["POST"], "pattern": "/v1/audio/speech"},
+    {"methods": ["POST"], "pattern": "/v1/audio/stream"},
+    {"methods": ["POST"], "pattern": "/v1/audio/stream/with-timestamps"}
+  ],
+  "forward_response_headers": [
+    "retry-after",
+    "speechify-request-id",
+    "speechify-audio-content-type",
+    "ratelimit-limit",
+    "ratelimit-remaining",
+    "ratelimit-reset"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/voices?limit=1",
+    "label": "voices",
+    "expect": [
+      ["voices", "list"],
+      ["has_more", "boolean"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List English voices",
+      "path": "/v1/voices?locale=en&limit=20",
+      "notes": ["Paged: follow `next_cursor` as `cursor` while `has_more` is true. A short or empty page is not the end of the list."]
+    },
+    {
+      "title": "Read one voice; replace VOICE_ID",
+      "path": "/v1/voices/VOICE_ID"
+    },
+    {
+      "title": "List the models this workspace can use",
+      "path": "/v1/audio/models"
+    },
+    {
+      "title": "Synthesize speech as Base64 MP3 (spends credits per spoken character)",
+      "method": "POST",
+      "path": "/v1/audio/speech",
+      "json": {"input": "Hello from a Sprite.", "voice_id": "geffen_32", "model": "simba-3.5", "audio_format": "mp3"},
+      "notes": ["The audio is Base64 in `audio_data`; `billable_characters_count` says what was billed. Up to 2,000 spoken characters per request."]
+    },
+    {
+      "title": "Stream long-form speech as raw MP3 (spends credits per spoken character)",
+      "method": "POST",
+      "path": "/v1/audio/stream",
+      "json": {"input": "A longer passage to read aloud.", "voice_id": "geffen_32", "model": "simba-3.5", "output_format": "mp3_24000_128"},
+      "notes": ["Up to 20,000 spoken characters. Write the body to a file, for example with curl's `-o speech.mp3`."]
+    },
+    {
+      "title": "Stream speech with word timestamps (spends credits per spoken character)",
+      "method": "POST",
+      "path": "/v1/audio/stream/with-timestamps",
+      "json": {"input": "Captions follow every word.", "voice_id": "geffen_32", "model": "simba-3.5", "output_format": "mp3_24000_128"},
+      "notes": ["Server-Sent Events: `speech.chunk` events carry Base64 audio and speech marks, and `speech.done` ends the stream with `billable_characters_count`."]
+    }
+  ],
+  "messages": {
+    "400": "Speechify rejected the request (%{status}); check error.code and error.fields in the body",
+    "402": "Speechify balance exhausted or feature not on this plan; top up or upgrade at platform.speechify.ai/billing",
+    "403": "This Speechify key is not allowed to do that; check the key's workspace, project and role",
+    "429": "Speechify rate or concurrency limit reached; wait for Retry-After and retry",
+    "provider_unreachable": "Could not reach Speechify; retry later"
+  },
+  "discovery": {
+    "categories": ["media"],
+    "keywords": ["speechify", "text to speech", "tts", "speech synthesis", "voices", "audio", "streaming", "ssml", "accessibility"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Turn text into lifelike speech from a Sprite without putting your Speechify key on it.",
+    "setup": "Sign in at platform.speechify.ai, open API Keys and create a key. The free plan includes 500K characters a month with no card.",
+    "key_label": "API key",
+    "key_placeholder": "sk_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key lists one voice with `GET /v1/voices?limit=1`, which costs nothing; listing voices and models is free too. `POST /v1/audio/speech`, `POST /v1/audio/stream` and `POST /v1/audio/stream/with-timestamps` are billed per spoken character (SSML tags are not counted) against your monthly balance: Simba 3.5 lists at $15, $12 or $10 per 1M characters on Starter, Pro or Scale, and Simba 3.0 and 3.2 at $10, $8 or $6. The free plan includes 500K characters a month and then pauses until the next month."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/voices`, `GET /v1/voices/:voice_id`, `GET /v1/audio/models`, `POST /v1/audio/speech`, `POST /v1/audio/stream` and `POST /v1/audio/stream/with-timestamps` are forwarded. Voice cloning and deletion, consent challenges, voice sample downloads, projects and members, webhooks, workspace entitlements and the WebSocket input stream are not. Rate and concurrency limits are per account and shared by every synthesis route: 1 request a second and 3 at once on Free, rising to 150 and 100 on Enterprise."
+      }
+    ],
+    "usage_notes": [
+      "Requests go to `api.speechify.ai`, which picks the synthesis region; the EU and US regional hosts are not reachable through this connector.",
+      "Choose the audio format with `audio_format` or `output_format` in the body; the `Accept` request header is not forwarded.",
+      "Errors are `{\"error\": {\"code\": \"...\", \"message\": \"...\"}, \"request_id\": \"...\"}`. Branch on `error.code`; a 402 is `payment_required` for an empty balance or a plan code such as `voice_cloning_not_included`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
