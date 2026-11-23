@@ -48,7 +48,13 @@ Community submission (`owner: community`), not submitted by Airtable.
   table name in place of the table ID; names made of letters, digits, `-` and
   `_` work, but names with spaces or other punctuation (URL-encoded) do not,
   so the usage notes tell the Sprite to use table IDs, which Airtable itself
-  recommends. No `path_param` widening was added.
+  recommends. `path_param` keeps the default character set but refuses the
+  segment `bases`: without it, `GET /v0/bases/:base_id/webhooks`
+  ([list webhooks](https://airtable.com/developers/web/api/list-webhooks))
+  matches `GET /v0/:base_id/:table_id/:record_id`. The exclusion uses `$`
+  rather than `\z` because the checker translates only the outer anchors;
+  a segment cannot hold a newline, so the two agree. A table named `bases`
+  must be addressed by its ID.
 - Left out on purpose:
   - `PUT` on both record routes: Airtable documents it as a destructive
     update that clears every field not sent. `PATCH` covers updates.

@@ -20,6 +20,7 @@
     {"methods": ["GET", "PATCH"], "pattern": "/v0/:base_id/:table_id/:record_id"},
     {"methods": ["GET", "POST"], "pattern": "/v0/:base_id/:table_id/:record_id/comments"}
   ],
+  "path_param": "\\A(?!bases$)[A-Za-z0-9_-]+\\z",
   "forward_response_headers": ["retry-after"],
   "probe": {
     "method": "GET",
