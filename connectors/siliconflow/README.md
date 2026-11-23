@@ -47,7 +47,8 @@ Community submission (`owner: community`), not submitted by SiliconFlow.
   the bearer token the gateway sends is enough. Video generation is
   asynchronous: submit returns a `requestId`, and status (a POST with
   `{"requestId": ...}` in the body) answers `InQueue`, `InProgress`,
-  `Succeed` or `Failed`. Image and video URLs expire after an hour.
+  `Succeed` or `Failed`. The submit page says the result is kept for 10
+  minutes, so poll promptly. Image and video URLs expire after an hour.
 - Timeouts: no endpoint documents a request timeout parameter. Sprites
   waits 120 seconds for response headers, so the chat example notes that
   long answers and reasoning models should use `stream: true` (supported on

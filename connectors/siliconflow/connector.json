@@ -75,7 +75,7 @@
       "method": "POST",
       "path": "/v1/video/submit",
       "json": {"model": "Wan-AI/Wan2.2-T2V-A14B", "prompt": "A paper boat drifting down a rainy street", "image_size": "1280x720"},
-      "notes": ["Returns a `requestId`; poll `POST /v1/video/status` until `status` is `Succeed` or `Failed`."]
+      "notes": ["Returns a `requestId`; poll `POST /v1/video/status` until `status` is `Succeed` or `Failed`. SiliconFlow keeps the result for only 10 minutes, so poll promptly."]
     },
     {
       "title": "Poll a video generation; replace REQUEST_ID",
