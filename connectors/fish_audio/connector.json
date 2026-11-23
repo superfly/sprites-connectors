@@ -42,7 +42,7 @@
       "json": {"text": "Hello from a Sprite!", "format": "mp3"},
       "notes": [
         "The response body is the audio file; save it with `--output hello.mp3`.",
-        "Add `\"reference_id\": \"MODEL_ID\"` to speak with a voice model. Other models (`s2.1-pro`, `s2-pro`, `drama-3`) spend API credit; without a `model` header the request is served and billed as `s2.1-pro`."
+        "Add `\"reference_id\": \"MODEL_ID\"` to speak with a voice model. Every other model (such as `s2.1-pro`, `s2-pro`, `s1` or `drama-3`) spends API credit; without a `model` header the request is served and billed as `s2.1-pro`."
       ]
     },
     {
@@ -92,7 +92,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /wallet/self/api-credit` and costs nothing. Text-to-speech is billed per million UTF-8 bytes of input text: `s2.1-pro` and `s2-pro` $15, `drama-3` $50 ($10 until 2026-11-30), `s2.1-pro-free` $0. Speech-to-text (`POST /v1/asr`) is $0.36 per audio hour, rounded up to the second, including silence. Voice design is $0.01 per successful request. Audio infill uses `drama-3`. Creating a voice model and reading models and the balance are not listed as billed. Requests that return an error are not billed."
+        "body": "Saving or testing the key reads `GET /wallet/self/api-credit` and costs nothing. Text-to-speech is billed per million UTF-8 bytes of input text: `s2.1-pro`, `s2-pro` and the deprecated `s1` $15, `drama-3` $50 ($10 until 2026-11-30), `s2.1-pro-free` $0. Speech-to-text (`POST /v1/asr`) is $0.36 per audio hour, rounded up to the second, including silence. Voice design is $0.01 per successful request. Audio infill runs on `drama-3` and needs API credit; Fish Audio does not list its price. Creating a voice model and reading models and the balance are not listed as billed. Requests that return an error are not billed."
       },
       {
         "title": "Scope",

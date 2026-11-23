@@ -48,10 +48,11 @@ Community submission (`owner: community`), not submitted by Fish Audio.
   downgraded to private, so a Sprite cannot publish a voice.
 - Pricing and rate limits:
   https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits.
-  TTS per million UTF-8 bytes (`s2.1-pro`/`s2-pro` $15, `drama-3` $50 with a
-  $10 launch price through 2026-11-30, `s2.1-pro-free` $0); ASR $0.36 per
-  audio hour; voice design $0.01 per successful request; errors are not
-  billed. Limits are concurrent requests per account (5 below $100 paid, 15,
+  TTS per million UTF-8 bytes (`s2.1-pro`/`s2-pro` $15, `s1` $15 until it
+  retires on 2026-12-31, `drama-3` $50 with a $10 launch price through
+  2026-11-30, `s2.1-pro-free` $0); ASR $0.36 per audio hour; voice design
+  $0.01 per successful request; errors are not billed. Audio infill runs on
+  `drama-3` and answers 402 without credit, but no infill price is listed. Limits are concurrent requests per account (5 below $100 paid, 15,
   50, custom); at the limit the API answers 429 without `Retry-After`.
 - Errors: https://docs.fish.audio/api-reference/errors. JSON
   `{"message": ..., "status": ...}`; `transcribe-1-pro` adds `code` and
