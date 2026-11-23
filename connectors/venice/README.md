@@ -49,8 +49,9 @@ Community submission (`owner: community`), not submitted by Venice.
   per million characters; transcription per second of audio. The three
   `/augment` endpoints are $0.01 per request, and `enable_web_search` or
   `enable_web_scraping` inside a chat adds $10 per 1,000 requests or URLs. The
-  pricing page lists no separate price for background removal; it is billed at
-  the model's price from `GET /models`.
+  pricing page lists no price for background removal, and
+  `POST /image/background-remove` takes no `model`, so it has no price in
+  `GET /models` either; the OpenAPI spec only marks it as dynamically priced.
 - Rate limits: https://docs.venice.ai/api-reference/rate-limiting. Limits are
   per model and tier and readable from the probe route. Inference responses
   carry `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` (reset in Unix
