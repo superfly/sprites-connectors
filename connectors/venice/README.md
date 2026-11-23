@@ -75,7 +75,7 @@ Community submission (`owner: community`), not submitted by Venice.
     `GET /api_keys/:id`, `/api_keys/generate_web3_key`) and
     `GET /api_keys/rate_limits/log`.
   - Billing: `GET /billing/balance`, `/billing/usage-history`,
-    `/billing/usage-analytics` (and the removed `/billing/usage`). The probe
+    `/billing/usage-analytics` (and the deprecated `/billing/usage`). The probe
     route already shows the key's balances.
   - x402 wallet routes (`/x402/balance`, `/x402/top-up`,
     `/x402/transactions`), a different auth scheme that moves money.
