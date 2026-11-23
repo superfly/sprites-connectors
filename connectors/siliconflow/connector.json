@@ -101,7 +101,7 @@
   "icon_svg": {"file": "icon.svg"},
   "icon_bg_class": "bg-violet-500/20",
   "presentation": {
-    "tagline": "Cheap inference for open models from a Sprite without putting your SiliconFlow key on it.",
+    "tagline": "Run open models on SiliconFlow from a Sprite without putting your SiliconFlow key on it.",
     "setup": "Sign in at cloud.siliconflow.com, open API Keys (cloud.siliconflow.com/account/ak), click Create API Key and paste it here. Keys from the China platform (siliconflow.cn) do not work with this connector.",
     "key_label": "API key",
     "notices": [
