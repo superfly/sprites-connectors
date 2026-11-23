@@ -83,7 +83,10 @@ Community submission (`owner: community`), not submitted by DeepInfra.
 - Errors: the OpenAI-compatible text routes answer
   `{"error": {"message", "type", "param", "code"}}` (a bad key is
   `"code": "invalid_api_key"`). Images, native inference and account routes
-  answer FastAPI's `{"detail": ...}`. A bad or missing key is 401 on every
+  answer a bad key or missing scope with FastAPI's `{"detail": ...}`.
+  The OpenAPI also documents `DeepError`,
+  `{"error": "..."}`, for native inference's 403, 404 and 423 and for the
+  probe route's 404. A bad or missing key is 401 on every
   route, so no `errors` rule is needed. 402 means the account cannot be
   charged (documented on the [Pi integration](https://docs.deepinfra.com/integrations/pi)
   page). 404 is an unknown model or path.

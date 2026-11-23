@@ -138,7 +138,7 @@
     "usage_notes": [
       "OpenAI-compatible routes live under `/v1/openai`, so an OpenAI SDK pointed at this connection's gateway URL plus `/v1/openai` works unchanged for models, chat, completions, Responses, embeddings and images.",
       "The gateway waits 120 seconds for response headers and DeepInfra has no per-request timeout parameter, so stream long generations (`stream: true`), keep `max_tokens` bounded and avoid `service_tier: \"flex\"`, which can queue for up to 10 minutes.",
-      "Errors on the OpenAI-compatible routes are `{\"error\": {\"message\", \"type\", \"code\"}}`; other routes answer `{\"detail\": ...}`. A request outside the key's scopes is a 403 naming the missing scope. Public models allow 200 concurrent requests per model by default and answer 429 above that or when a model is busy."
+      "Errors on the OpenAI-compatible routes are `{\"error\": {\"message\", \"type\", \"code\"}}`; images, account and native inference routes answer a bad key or missing scope with `{\"detail\": ...}`, and native inference also answers `{\"error\": \"...\"}` for an unknown or unavailable model. A request outside the key's scopes is a 403 naming the missing scope. Public models allow 200 concurrent requests per model by default and answer 429 above that or when a model is busy."
     ],
     "mark_svg": {"file": "mark.svg"}
   }
