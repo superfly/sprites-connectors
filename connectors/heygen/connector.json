@@ -116,7 +116,7 @@
   "icon_bg_class": "bg-emerald-500/20",
   "presentation": {
     "tagline": "Generate avatar videos, prompt-to-video clips, speech and translations from a Sprite without putting your HeyGen key on it.",
-    "setup": "Open platform.heygen.com/api-keys, generate an API key and add API balance; API calls do not use HeyGen web-plan credits. A key with restricted permission scopes works for the routes its scopes cover.",
+    "setup": "Open platform.heygen.com/api-keys, generate an API key and add API balance; API calls do not use HeyGen web-plan credits. A key with restricted permission scopes must include `account:read`, which the key check uses, and works for the routes its other scopes cover.",
     "key_label": "API key",
     "notices": [
       {

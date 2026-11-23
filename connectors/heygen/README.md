@@ -12,7 +12,9 @@ Community submission (`owner: community`), not submitted by HeyGen.
   that bills web-plan credits and is not used here. Keys can be restricted to
   permission scopes (https://developers.heygen.com/docs/api-key-permissions);
   a restricted key works for the routes its scopes cover and answers 403
-  `insufficient_api_key_scope` elsewhere.
+  `insufficient_api_key_scope` elsewhere. The probe needs `account:read`
+  (`GET /v3/users/me`), so a restricted key without it fails the key check
+  with an unclassified 403; the setup text says to include it.
 - Probe: `GET /v3/users/me`, "Get Current User",
   https://developers.heygen.com/reference/get-current-user (guide:
   https://developers.heygen.com/user-profile). The API key page names it as
