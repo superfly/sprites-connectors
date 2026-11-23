@@ -57,7 +57,7 @@
       "method": "POST",
       "path": "/v1/chat/completions",
       "json": {"model": "jina-ocr-v1", "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": "PAGE_IMAGE_URL"}}]}]},
-      "notes": ["Send one page per request; input and output tokens are both charged. Errors on this route use OpenAI's `{\"error\": {...}}` envelope."]
+      "notes": ["Send one page per request; input and output tokens are both charged. Errors about the request itself (400, 404, 409 and 5xx) use OpenAI's `{\"error\": {...}}` envelope here; key, balance, validation and rate-limit errors keep the usual `detail` shape."]
     },
     {
       "title": "Start a batch embedding job (uses tokens for every line)",
@@ -117,7 +117,7 @@
     ],
     "usage_notes": [
       "Sprites waits 120 seconds for Jina AI's response headers, and Jina's API has no timeout parameter. Keep inline embedding, rerank and OCR requests small (one PDF or page image at a time) and send large workloads as a batch job.",
-      "Errors are `{\"detail\": \"...\", \"code\": \"...\", \"request_id\": \"...\"}`, with `errors` listing fields on a 422; `/v1/chat/completions` uses OpenAI's `{\"error\": {...}}` envelope instead. A 403 with `AUTHZ_INSUFFICIENT_BALANCE` means the key is valid but out of tokens.",
+      "Errors are `{\"detail\": \"...\", \"code\": \"...\", \"request_id\": \"...\"}`, with `errors` listing fields on a 422; `/v1/chat/completions` answers 400, 404, 409 and 5xx in OpenAI's `{\"error\": {...}}` envelope instead. A 403 with `AUTHZ_INSUFFICIENT_BALANCE` means the key is valid but out of tokens.",
       "Rate limits apply per key in requests and tokens per minute; read the current limits at jina.ai/api-dashboard/rate-limit."
     ],
     "mark_svg": {"file": "mark.svg"}

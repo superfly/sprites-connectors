@@ -61,8 +61,9 @@ operation id is given so it can be found on the reference page.
   free trial tokens). `jina-ocr-v1` is charged for input and output tokens;
   the model description says an A4 page is about 903 input tokens.
 - Errors: `{"detail", "code", "request_id"}` (`ErrorResponse`), with
-  `errors` per field on 422; `/v1/chat/completions` uses OpenAI's
-  `{"error": {...}}` envelope with the same codes. A wrong, malformed or
+  `errors` per field on 422. `/v1/chat/completions` answers 400, 404, 409,
+  500, 503 and 504 in OpenAI's `{"error": {...}}` envelope with the same
+  codes; its 401, 403, 422 and 429 use `ErrorResponse`. A wrong, malformed or
   missing key is 401 (`AUTH_INVALID_API_KEY`, `AUTH_INVALID_FORMAT`,
   `AUTH_MISSING_API_KEY`), so no `errors` rule is needed. 403
   (`AUTHZ_INSUFFICIENT_BALANCE`, `AUTHZ_RESOURCE_LIMIT_EXCEEDED`) is a valid
