@@ -13,8 +13,8 @@ Community submission (`owner: community`), not submitted by Cohere.
   pages document none.
 - Probe: `GET /v1/models?page_size=1`,
   https://docs.cohere.com/reference/list-models. It runs no model and is not
-  priced. Cohere's pricing pages bill chat, embed, rerank, parse and
-  transcription, not model listing. `page_size=1` keeps the response small.
+  priced. Cohere's pricing pages bill chat, embed and rerank, and parse
+  responses report billed pages, but nothing bills model listing. `page_size=1` keeps the response small.
   The probe asserts that `models` is a list, that each model's `name` is
   non-empty text, and that `message` (the field Cohere's error bodies carry)
   is absent. An empty list passes, because the probe checks the key, not
@@ -54,7 +54,11 @@ Community submission (`owner: community`), not submitted by Cohere.
 - Pricing: https://docs.cohere.com/v2/docs/how-does-cohere-pricing-work and
   https://cohere.com/pricing. Chat is billed per input and output token
   (`usage.billed_units`), embed per embedded token and rerank per search
-  (`meta.billed_units`). Trial usage is free but limited.
+  (`meta.billed_units`). Parse responses report billed pages in
+  `meta.billed_units.pages`; the pricing page lists no parse price.
+  Transcription on the API is free but rate-limited, per
+  https://docs.cohere.com/v2/docs/transcribe ("Availability"); production
+  use goes through Model Vault. Trial usage is free but limited.
 - Rate limits: https://docs.cohere.com/docs/rate-limits. On trial keys:
   chat 20 requests a minute per model, embed 2,000 inputs a minute, rerank
   10 requests a minute, tokenize 100, transcription 5, parse 500, and other

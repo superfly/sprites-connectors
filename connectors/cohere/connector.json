@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.cohere.com",
   "description": "Command chat, Embed, Rerank, Parse and Transcribe models on Cohere's platform API",
-  "long_description": "Bring a Cohere API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists one model (GET /v1/models?page_size=1), which runs no model. A Sprite can then list and read models, chat with Command models, create embeddings, rerank documents, tokenize and detokenize text, parse document images and transcribe audio. Chat, embed, rerank, parse and transcription requests are billed to your Cohere account, or count against a trial key's limits. Datasets, embed jobs, batches, fine-tuning, connectors, the v1 chat, embed, rerank, generate, summarize and classify endpoints, and Model Vault are not forwarded.",
+  "long_description": "Bring a Cohere API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists one model (GET /v1/models?page_size=1), which runs no model. A Sprite can then list and read models, chat with Command models, create embeddings, rerank documents, tokenize and detokenize text, parse document images and transcribe audio. Chat, embed, rerank and parse requests are billed to a production key, and transcription is free but rate-limited; on a trial key every call counts against its limits. Datasets, embed jobs, batches, fine-tuning, connectors, the v1 chat, embed, rerank, generate, summarize and classify endpoints, and Model Vault are not forwarded.",
   "website_url": "https://dashboard.cohere.com/api-keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -84,7 +84,7 @@
       "json": {"text": "Hello from a Sprite.", "model": "command-a-03-2025"}
     },
     {
-      "title": "Parse a document image to Markdown; replace IMAGE_URL (billed by Cohere)",
+      "title": "Parse a document image to Markdown; replace IMAGE_URL (billed per page parsed)",
       "method": "POST",
       "path": "/v2/parse",
       "json": {
@@ -95,10 +95,10 @@
       "notes": ["Replace IMAGE_URL with a public http(s) image URL or a data URI. PDFs are not supported yet."]
     },
     {
-      "title": "Transcribe audio (multipart upload; billed by Cohere)",
+      "title": "Transcribe audio (multipart upload; free on Cohere's API, rate-limited)",
       "method": "POST",
       "path": "/v2/audio/transcriptions",
-      "notes": ["Send multipart form fields `model` (`cohere-transcribe-03-2026`), `language` (ISO-639-1, such as `en`) and `file`, for example with `curl -F model=cohere-transcribe-03-2026 -F language=en -F file=@recording.mp3`. Keep the file within the gateway's request body limit."]
+      "notes": ["Send multipart form fields `model` (`cohere-transcribe-03-2026`), `language` (ISO-639-1, such as `en`) and `file`, for example with `curl -F model=cohere-transcribe-03-2026 -F language=en -F file=@recording.mp3`. Cohere accepts files up to 25 MB, but the gateway accepts request bodies of at most 8,000,000 bytes (8 MB)."]
     }
   ],
   "messages": {
@@ -124,7 +124,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key calls `GET /v1/models?page_size=1`, which runs no model and is not priced; on a trial key it may count toward the 1,000 calls a month. With a production key, chat is billed per input and output token, embed per embedded token, rerank per search, and parse and transcription per Cohere's pricing page. Model listing, tokenize and detokenize run no model. Chat responses report what was billed in `usage.billed_units`; embed, rerank and parse responses in `meta.billed_units`."
+        "body": "Saving or testing the key calls `GET /v1/models?page_size=1`, which runs no model and is not priced; on a trial key it may count toward the 1,000 calls a month. With a production key, chat is billed per input and output token, embed per embedded token, rerank per search and parse per page parsed. Cohere's Transcribe page says transcription on the API is free but rate-limited, with production use through Model Vault. Model listing, tokenize and detokenize run no model. Chat responses report what was billed in `usage.billed_units`; embed, rerank and parse responses in `meta.billed_units`."
       },
       {
         "title": "Scope",
