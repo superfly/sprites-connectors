@@ -63,13 +63,13 @@
       "title": "Responses API (uses your Kimi balance)",
       "method": "POST",
       "path": "/v1/responses",
-      "json": {"model": "kimi-k3.1-pro", "input": "Summarise the trade-offs of persistent sandboxes for coding agents.", "max_output_tokens": 2048, "stream": true}
+      "json": {"model": "kimi-k3.1-pro", "input": "Summarise the trade-offs of persistent sandboxes for coding agents.", "reasoning": {"effort": "low"}, "max_output_tokens": 2048, "stream": true}
     },
     {
       "title": "Anthropic-compatible Messages (uses your Kimi balance)",
       "method": "POST",
       "path": "/anthropic/v1/messages",
-      "json": {"model": "kimi-k3.1-pro", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hello"}], "stream": true},
+      "json": {"model": "kimi-k3.1-pro", "max_tokens": 1024, "output_config": {"effort": "low"}, "messages": [{"role": "user", "content": "Hello"}], "stream": true},
       "notes": ["Point Anthropic SDKs at the gateway URL plus `/anthropic`. The key is sent as a bearer token, as Kimi documents; `x-api-key` and `anthropic-*` request headers are not forwarded."]
     },
     {

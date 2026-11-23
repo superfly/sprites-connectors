@@ -63,8 +63,9 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
 - Timeouts: Sprites waits 120 seconds for response headers. K3 models
   always think (`reasoning_effort` defaults to `max`) and Kimi's own 504
   page says long non-streaming requests should use `stream: true`, so the
-  inference examples stream and set `reasoning_effort: low` and a token
-  cap. The web search example sets `timeout_seconds: 30` (Kimi allows 1 to
+  inference examples stream, cap their tokens and set low reasoning effort
+  (`reasoning_effort` on Chat Completions, `reasoning.effort` on Responses
+  and `output_config.effort` on Messages, each defaulting to `max`). The web search example sets `timeout_seconds: 30` (Kimi allows 1 to
   60, and applies none when omitted).
 - Rate limits: https://platform.kimi.ai/docs/pricing/limits.md (concurrency,
   RPM, TPM and TPD by recharge tier, plus a separate per-second limit for
