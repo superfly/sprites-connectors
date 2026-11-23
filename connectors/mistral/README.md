@@ -52,7 +52,10 @@ Community submission (`owner: community`), not submitted by Mistral AI.
 - Pricing: https://docs.mistral.ai/inference/pricing. Text models are billed
   per million input and output tokens, OCR per 1,000 pages, transcription per
   audio minute and speech per million characters. Mistral Moderation is free
-  and batch processing is half price. `GET /v1/models` is not billed.
+  and batch processing is half price
+  (https://docs.mistral.ai/inference/batch-processing). The classification
+  routes also take fine-tuned classifier models, which are billed at their
+  own price. `GET /v1/models` is not billed.
 - Errors: https://docs.mistral.ai/resources/error-glossary. Most errors are
   `{"object": "error", "message", "type", "param", "code", "raw_status_code"}`
   with a four-digit `code`. Exceptions: 401 is `{"detail": "Invalid API Key"}`,

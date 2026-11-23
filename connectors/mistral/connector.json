@@ -136,7 +136,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /v1/models`, which uses no tokens. Chat, fill-in-the-middle and embeddings are billed per input and output token at the model's price, OCR per 1,000 pages, transcription per audio minute and speech generation per character; Mistral Moderation is free. Batch jobs are billed at half the standard price. Requests draw on your organization's included usage, then prepaid credits with pay-as-you-go; Mistral answers 402 when credits run out or a spending limit is reached."
+        "body": "Saving or testing the key reads `GET /v1/models`, which uses no tokens. Chat, fill-in-the-middle and embeddings are billed per input and output token at the model's price, OCR per 1,000 pages, transcription per audio minute and speech generation per character. Mistral Moderation is free on the moderation and classification routes; a classification with another model is billed at that model's price. Batch jobs are billed at half the standard price. Requests draw on your organization's included usage, then prepaid credits with pay-as-you-go; Mistral answers 402 when credits run out or a spending limit is reached."
       },
       {
         "title": "Scope",
