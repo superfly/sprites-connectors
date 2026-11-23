@@ -51,7 +51,7 @@
       "title": "Text completion (charged per token to your Cerebras account)",
       "method": "POST",
       "path": "/v1/completions",
-      "json": {"model": "gpt-oss-120b", "prompt": "Fast inference matters for agents because", "max_tokens": 64, "stream": false}
+      "json": {"model": "qwen-3.8-27b", "prompt": "Fast inference matters for agents because", "max_tokens": 64, "stream": false}
     },
     {"title": "Read one model; replace MODEL_ID", "path": "/v1/models/MODEL_ID"}
   ],
