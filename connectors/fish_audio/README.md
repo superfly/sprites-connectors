@@ -14,7 +14,8 @@ Community submission (`owner: community`), not submitted by Fish Audio.
   https://fish.audio/app/api-keys/.
 - The `model` request header is forwarded. Fish Audio selects the model with it
   on `/v1/tts` (falls back to `s2.1-pro`, a paid model, when missing),
-  `/v1/asr` (falls back to `transcribe-1`), `/v1/voice-design` (required,
+  `/v1/asr` (falls back to `transcribe-1` until that model retires on
+  2026-12-31, then to `transcribe-1-pro`), `/v1/voice-design` (required,
   `voice-design-1`) and `/v1/audio/infill` (required, `drama-3`; without it the
   API answers 404 "no service on this path serves the requested model").
   Without forwarding it a Sprite could not use the free TTS model, voice
@@ -22,7 +23,9 @@ Community submission (`owner: community`), not submitted by Fish Audio.
   speech-to-text page). Fish Audio sends no `Retry-After` on 429.
 - Probe: `GET /wallet/self/api-credit`, "Get API Credit",
   https://docs.fish.audio/api-reference/endpoint/wallet/get-api-credit. It is
-  the only documented read that needs a key and has no side effects; `self` is
+  the cheapest keyed read among the forwarded routes and has no side effects
+  (other keyed reads, such as `GET /wallet/{user_id}/package` and
+  `GET /v1/agent/agents`, exist but are not forwarded); `self` is
   the documented default for `user_id`. It returns `_id`, `user_id`, `credit`
   (a decimal string), `cumulative_top_up`, `created_at`, `updated_at` and
   `has_phone_sha256`, all required in the schema. The probe asserts `_id`,
@@ -45,13 +48,21 @@ Community submission (`owner: community`), not submitted by Fish Audio.
 
   Model ids are 32 hex characters and fit the default `:param` rule.
   `POST /model` creates a voice model; the docs say public requests are
-  downgraded to private, so a Sprite cannot publish a voice.
+  downgraded to private, so a Sprite cannot publish a voice to the Voice
+  Library. `visibility=unlist` is honoured: the docs say an unlisted voice
+  can be used by anyone who has its link. `PATCH` and `DELETE /model/{id}`
+  are not forwarded, so voice models a Sprite creates can only be changed or
+  deleted at fish.audio. The Scope notice says both.
 - Pricing and rate limits:
   https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits.
-  TTS per million UTF-8 bytes (`s2.1-pro`/`s2-pro` $15, `s1` $15 until it
-  retires on 2026-12-31, `drama-3` $50 with a $10 launch price through
-  2026-11-30, `s2.1-pro-free` $0); ASR $0.36 per audio hour; voice design
-  $0.01 per successful request; errors are not billed. Audio infill runs on
+  TTS per million UTF-8 bytes (`s2.1-pro`/`s2-pro` $15, `drama-3` $50,
+  `s2.1-pro-free` $0 "under fair-use limits" per the models overview); ASR
+  $0.36 per audio hour; voice design $0.01 per successful request. The docs
+  say speech-to-text and voice-design requests that return an error are not
+  billed; they say nothing about TTS or infill errors. The notices leave out
+  the deprecated `s1` ($15 until it retires on 2026-12-31, then served and
+  billed as `s2.1-pro`) and the `drama-3` launch promotion that ends on
+  2026-11-30, because both go stale. Audio infill runs on
   `drama-3` and answers 402 without credit, but no infill price is listed. Limits are concurrent requests per account (5 below $100 paid, 15,
   50, custom); at the limit the API answers 429 without `Retry-After`.
 - Errors: https://docs.fish.audio/api-reference/errors. JSON
@@ -97,6 +108,20 @@ data. An unknown path (`GET /v1/nonexistent`) answers 404.
 The probe has not been run with a real key; no Fish Audio account was
 available. The assertions follow the documented response schema.
 `node scripts/check-connectors.mjs fish_audio` and the ajv schema check pass.
+
+Still open for a reviewer:
+
+- Run the probe with a real key on a new account with no API credit, and
+  with a team key. The docs say an API key belongs to a team and the wallet
+  route takes an undocumented `team_id` query parameter, so the response for
+  those keys is not documented.
+- Confirm with a real key that `POST /v1/audio/infill` without
+  `model: drama-3` answers 404; the docs only say the header is required.
+- Decide whether a Sprite should create voice models (`POST /model`) when it
+  cannot delete them through the gateway.
+- Look at `icon.svg` on a dark tile: the whale's body is `#000000` and only
+  the grey tail bars may show. Fish Audio's docs repository has a
+  `branding/dark/` variant.
 
 ## Icons
 
