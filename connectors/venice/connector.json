@@ -6,7 +6,7 @@
   "tier": "community",
   "owner": "community",
   "base_url": "https://api.venice.ai/api/v1",
-  "description": "Private, OpenAI-compatible chat, embeddings, images, speech and web search with Venice",
+  "description": "OpenAI-compatible chat, embeddings, images, speech and web search with Venice",
   "long_description": "Bring a Venice API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's own tier, balances and rate limits (GET /api_keys/rate_limits), which costs nothing. A Sprite can then list models, run chat completions and the Responses API, create embeddings, generate, edit, upscale and remove the background of images, synthesize and transcribe speech, and search the web, scrape a page or parse a document. Inference and tools spend your Venice balance: DIEM first, then earned credits, bundled credits and USD. API key management, billing and usage history, video, music, voice cloning and changing, characters, decisions, crypto RPC and x402 wallet routes are not forwarded.",
   "website_url": "https://venice.ai/settings/api",
   "auth": "bearer",
@@ -37,7 +37,13 @@
     "x-ratelimit-reset-requests",
     "x-ratelimit-limit-tokens",
     "x-ratelimit-remaining-tokens",
-    "x-ratelimit-reset-tokens"
+    "x-ratelimit-reset-tokens",
+    "x-ratelimit-remaining",
+    "x-ratelimit-resets",
+    "x-venice-is-blurred",
+    "x-venice-is-content-violation",
+    "x-venice-model-deprecation-warning",
+    "x-venice-model-deprecation-date"
   ],
   "probe": {
     "method": "GET",
@@ -103,11 +109,12 @@
       "title": "Scrape a page as Markdown ($0.01 per request)",
       "method": "POST",
       "path": "/augment/scrape",
-      "json": {"url": "https://sprites.dev"}
+      "json": {"url": "https://fly.io/sprites"}
     }
   ],
   "messages": {
     "400": "Venice rejected the request (%{status}); see the body's error and details",
+    "401": "Venice rejected the key: it is wrong, revoked or expired, or the account's subscription is inactive. A model limited to Pro users also answers 401",
     "402": "Venice balance or this key's spend limit is exhausted; top up or raise the key's limit at venice.ai/settings/api",
     "403": "Venice refused the request; if the key is restricted to IP addresses, the gateway's address is not on its list",
     "429": "Venice rate limit reached or model overloaded; wait until x-ratelimit-reset-requests and retry",
@@ -122,13 +129,13 @@
   "icon_svg": {"file": "icon.svg"},
   "icon_bg_class": "bg-sky-500/20",
   "presentation": {
-    "tagline": "Private, OpenAI-compatible inference from a Sprite without putting your Venice key on it.",
+    "tagline": "OpenAI-compatible inference on Venice's private and anonymized models from a Sprite without putting your Venice key on it.",
     "setup": "Sign in at venice.ai, open Settings → API (venice.ai/settings/api), choose Generate New API Key and pick the Inference Only key type. Copy the key when it is shown; Venice shows it once.",
     "key_label": "API key",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /api_keys/rate_limits` and spends nothing; the model, style and trait lists are free too. Chat, Responses and embeddings are billed per token, image generation, edits and upscaling per image, speech per character and transcription per second of audio, at each model's price in `GET /models`. Background removal is also charged, but takes no model and has no published price. `/augment/search`, `/augment/scrape` and `/augment/text-parser` cost $0.01 per request, and web search or scraping turned on inside a chat adds a fee per request or URL. Venice charges DIEM first, then earned credits, bundled credits and USD, within any per-key spend limit you set."
+        "body": "Saving or testing the key reads `GET /api_keys/rate_limits` and spends nothing; the model, style and trait lists are free too. Chat, Responses and embeddings are billed per token, image generation, edits and upscaling per image, speech per character and transcription per second of audio, at each model's price in `GET /models`. Background removal is also charged, but takes no model and has no published price. `/augment/search`, `/augment/scrape` and `/augment/text-parser` cost $0.01 per request, and web search, X search or scraping turned on inside a chat adds a fee per request, search result or URL. Venice charges DIEM first, then earned credits, bundled credits and USD, within any per-key spend limit you set."
       },
       {
         "title": "Scope",
@@ -138,8 +145,10 @@
     "usage_notes": [
       "Use an Inference Only key. An Admin key also works here, but it can manage your other keys elsewhere and this connector never needs that.",
       "Sprites waits 120 seconds for response headers and Venice has no request timeout parameter, so stream long chat and Responses calls with `stream: true` (Server-Sent Events).",
-      "Errors are `{\"error\": \"...\"}`; validation errors add `details`, and some OpenAI-compatible errors use `{\"error\": {\"message\", \"type\", \"code\"}}`. A wrong key is 401; a key limited to IP addresses answers 403 from the gateway's address.",
-      "Inference responses carry `x-ratelimit-*` headers with the remaining requests and tokens and the reset time in Unix milliseconds; they are forwarded. Venice also answers 429 after 50 failed requests in 30 seconds per model and key."
+      "Errors are `{\"error\": \"...\"}`; validation errors add `details`, and some OpenAI-compatible errors use `{\"error\": {\"message\", \"type\", \"code\"}}`. A wrong, revoked or expired key is 401, and so are an inactive subscription and a model limited to Pro users; a key limited to IP addresses answers 403 from the gateway's address.",
+      "Inference responses carry `x-ratelimit-*` headers with the remaining requests and tokens and the reset time in Unix milliseconds; they are forwarded. Venice also answers 429 after 50 failed requests in 30 seconds per model and key; `x-ratelimit-remaining` and `x-ratelimit-resets` show that budget and are forwarded too.",
+      "Venice labels each model private (hosted by Venice with zero data retention) or anonymized (a third-party model, called with identifying metadata stripped). Read `model_spec.privacy` in `GET /models` before choosing a model.",
+      "With `return_binary: true` an image response has no JSON body; the forwarded `x-venice-is-blurred` and `x-venice-is-content-violation` headers report a blurred image or a content policy violation. `x-venice-model-deprecation-warning` and `x-venice-model-deprecation-date` appear when the model is deprecated."
     ],
     "mark_svg": {"file": "mark.svg"}
   }

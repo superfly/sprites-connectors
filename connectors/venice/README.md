@@ -48,7 +48,8 @@ Community submission (`owner: community`), not submitted by Venice.
   per token; images per image or edit; upscaling per image (2x or 4x); speech
   per million characters; transcription per second of audio. The three
   `/augment` endpoints are $0.01 per request, and `enable_web_search` or
-  `enable_web_scraping` inside a chat adds $10 per 1,000 requests or URLs. The
+  `enable_web_scraping` inside a chat adds $10 per 1,000 requests or URLs;
+  `enable_x_search` on supported Grok models adds $10 per 1,000 results. The
   pricing page lists no price for background removal, and
   `POST /image/background-remove` takes no `model`, so it has no price in
   `GET /models` either; the OpenAPI spec only marks it as dynamically priced.
@@ -58,11 +59,30 @@ Community submission (`owner: community`), not submitted by Venice.
   per model and tier and readable from the probe route. Inference responses
   carry `x-ratelimit-{limit,remaining,reset}-{requests,tokens}` (reset in Unix
   milliseconds); those six are forwarded. A separate budget answers 429 after
-  50 failed requests per 30 seconds per model and key.
+  50 failed requests per 30 seconds per model and key; its headers,
+  `x-ratelimit-remaining` and `x-ratelimit-resets`, are sent on every response
+  to a request with a key (seen on the 401 to a made-up key) and are forwarded
+  too.
+- Other forwarded response headers, from the header table at
+  https://docs.venice.ai/api-reference/api-spec and the OpenAPI spec:
+  `x-venice-is-blurred` and `x-venice-is-content-violation` (which report a
+  blurred image or a content policy violation when `return_binary: true`
+  replaces the JSON body), and `x-venice-model-deprecation-warning` and
+  `x-venice-model-deprecation-date`.
+- Privacy: Venice marks each model `private` (hosted by Venice, zero data
+  retention) or `anonymized` (a third-party model, called with identifying
+  metadata stripped) in `model_spec.privacy`. On 2026-11-24 `GET /models`
+  listed 76 private and 71 anonymized text models, so the description and
+  tagline do not call the whole service private, and a usage note points at
+  the field.
 - Errors: https://docs.venice.ai/api-reference/error-codes. Bodies are
   `{"error": "..."}`, with `details` and `issues` on validation errors and an
   OpenAI-style `{"error": {"message", "type", "param", "code"}}` for some
-  cases such as context length. 402 is insufficient balance or a key spend
+  cases such as context length. 401 is a wrong, revoked or expired key, and
+  the error table also lists it for an inactive Pro subscription
+  (`AUTHENTICATION_FAILED_INACTIVE_KEY`) and a model limited to Pro users
+  (`PRO_ONLY_MODEL`), so the manifest has a 401 message that names all of
+  these. 402 is insufficient balance or a key spend
   limit; a request with no credentials also gets 402 with an x402 payment
   challenge, which the gateway never sends because it always adds the key.
   503 is a model at capacity; 504 is a timeout, for which Venice recommends
@@ -75,8 +95,9 @@ Community submission (`owner: community`), not submitted by Venice.
     `GET /api_keys/:id`, `/api_keys/generate_web3_key`) and
     `GET /api_keys/rate_limits/log`.
   - Billing: `GET /billing/balance`, `/billing/usage-history`,
-    `/billing/usage-analytics` (and the deprecated `/billing/usage`). The probe
-    route already shows the key's balances.
+    `/billing/usage-analytics` (and the retired `/billing/usage`, which
+    answers 410 since its sunset on 2026-09-16). The probe route already shows
+    the key's balances.
   - x402 wallet routes (`/x402/balance`, `/x402/top-up`,
     `/x402/transactions`), a different auth scheme that moves money.
   - Video and music/long-form audio queues (`/video/*`, `/audio/queue`,
@@ -107,6 +128,16 @@ documented. **The probe has not been run with a real key**; the assertions
 follow the documented response. `node scripts/check-connectors.mjs venice`
 and the ajv schema check pass.
 
+Open questions for a reviewer:
+
+- Run the probe once with a real Inference Only key, and with a key on an
+  account that has no balance if one is available.
+- The probe asserts only that `data.accessPermitted` is a boolean, so a key
+  for which it is `false` passes. Venice's docs say the field reports whether
+  the key can spend right now, so an unfunded or capped key connects and then
+  gets 402 on paid routes. Decide whether that is the wanted behaviour.
+- Whether `mark.svg` is acceptable under Venice's brand rules; see Icons.
+
 ## Icons
 
 Both icons are the Venice "keys" symbol from the official brand kit at
@@ -115,5 +146,8 @@ https://venice.ai/brand/venice-keys-svg.zip, file
 `venice-keys-deep-blue.svg`, unchanged). `icon.svg` keeps the brand's Deep
 Blue `#0E2942`; `mark.svg` is the same two paths in `currentColor`. The brand
 page asks that the keys not be redrawn, recoloured to low contrast, faded or
-decorated. The logo is Venice's trademark, used here to identify the service;
+decorated, and says the logo appears only in Deep Blue, Off White, white or
+black. `mark.svg` uses `currentColor`, so it takes the theme's text colour,
+which may be none of those four; a reviewer has to decide whether that is
+acceptable. The logo is Venice's trademark, used here to identify the service;
 no licence is claimed.
