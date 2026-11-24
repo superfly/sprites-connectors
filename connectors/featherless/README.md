@@ -42,7 +42,8 @@ Community submission (`owner: community`), not submitted by Featherless.
   still work but Featherless says official support has ended. Speech returns
   raw audio by default. The example uses `delivery: "json"` for a base64
   envelope. Voice cloning sends a reference clip inline in the speech body;
-  Featherless stages it temporarily and stores no voice.
+  Featherless may stage it behind a single-use URL that expires after about
+  two minutes.
 - Timeouts: Featherless documents no server-side timeout parameter for
   completions. Sprites waits 120 seconds for response headers, so the chat
   example sets `max_tokens: 256` and a usage note recommends `stream: true`
