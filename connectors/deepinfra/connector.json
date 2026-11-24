@@ -6,8 +6,8 @@
   "tier": "community",
   "owner": "community",
   "base_url": "https://api.deepinfra.com",
-  "description": "Pay-per-token inference for open models: chat, responses, embeddings, images, reranking and speech",
-  "long_description": "Bring a DeepInfra API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account's per-model rate limits (GET /v1/me/rate_limit), which runs no model and costs nothing. A Sprite can then list models and call DeepInfra's OpenAI-compatible chat completions, text completions, Responses, embeddings and image generation endpoints under /v1/openai, including SSE streaming, and run any model by name (or your own private deployment) through the native inference endpoint, which covers reranking, text to speech and speech recognition. Every inference request is charged to your DeepInfra account. API key and scoped-JWT management, billing, usage, logs, account and team settings, deployment management, LoRA adapters, custom voices, files and batches, GPU rentals, sandboxes and hosted agents are not forwarded.",
+  "description": "Pay-per-use model inference: chat, responses, embeddings, images, reranking and speech",
+  "long_description": "Bring a DeepInfra API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account's per-model rate limits (GET /v1/me/rate_limit), which runs no model and costs nothing. A Sprite can then list models and call DeepInfra's OpenAI-compatible chat completions, text completions, Responses, embeddings and image generation endpoints under /v1/openai, including SSE streaming, and run any model by name (or your own private deployment) through the native inference endpoint, which covers reranking, text to speech, speech recognition and video models. The native endpoint also accepts a webhook field that makes DeepInfra send the result to a URL named in the request. Every inference request is charged to your DeepInfra account. API key and scoped-JWT management, billing, usage, logs, account and team settings, deployment management, LoRA adapters, custom voices, files and batches, GPU rentals, sandboxes and hosted agents are not forwarded.",
   "website_url": "https://deepinfra.com/dash/keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -36,7 +36,7 @@
     {
       "title": "List models with their pricing and context length",
       "path": "/v1/openai/models",
-      "notes": ["Each entry's `metadata.pricing` gives the model's price: per million tokens for language, embedding and reranking models, per image unit, per second of audio or per million characters for others. Use an `id` from here as `model` below."]
+      "notes": ["Each entry's `metadata.pricing` gives the model's price: per million tokens for language and embedding models, per image unit, per second of audio input, per second of video output or per million characters for others. Use an `id` from here as `model` below. Reranking model ids are listed at deepinfra.com/models/reranker."]
     },
     {
       "title": "Chat completion (charged per token to your DeepInfra account)",
@@ -78,7 +78,7 @@
       "method": "POST",
       "path": "/v1/openai/images/generations",
       "json": {"model": "black-forest-labs/FLUX-1-schnell", "prompt": "A small hot-air balloon over a city at dawn", "size": "1024x1024", "n": 1},
-      "notes": ["The image comes back base64-encoded in `data[].b64_json`; DeepInfra supports only `b64_json`."]
+      "notes": ["The image is returned as `b64_json` by default, base64-encoded in `data[].b64_json`."]
     },
     {
       "title": "Rerank documents for a query (charged per token)",
@@ -110,7 +110,7 @@
   ],
   "messages": {
     "402": "DeepInfra could not charge the account; add funds or a payment method in the DeepInfra dashboard",
-    "403": "This DeepInfra key lacks a scope the request needs (the key check needs `account:read`, inference needs `inference`); change the key's scopes at deepinfra.com/dash/keys",
+    "403": "This DeepInfra key lacks a scope the request needs (the key check needs `account:read`, inference needs `inference`, and DeepInfra's OpenAPI marks the model list as needing `models:read`); change the key's scopes at deepinfra.com/dash/keys",
     "404": "DeepInfra model not found; check the model id with GET /v1/openai/models",
     "429": "DeepInfra rate limit reached or the model is busy; retry after a short wait",
     "provider_unreachable": "Could not reach DeepInfra; retry later"
@@ -122,23 +122,24 @@
   "icon_svg": {"file": "icon.svg"},
   "icon_bg_class": "bg-indigo-500/20",
   "presentation": {
-    "tagline": "Run open models on DeepInfra from a Sprite without putting your API key on it.",
-    "setup": "Sign in at deepinfra.com, open Dashboard → API Keys (deepinfra.com/dash/keys) and create a key. A new key's default scopes (`inference`, `models:read`, `account:read`, `lora:read`, `voice:read`) are enough; a scoped key needs at least `inference` and `account:read`.",
+    "tagline": "Run models on DeepInfra from a Sprite without putting your API key on it.",
+    "setup": "Sign in at deepinfra.com, open Dashboard → API Keys (deepinfra.com/dash/keys) and create a key. A new key's default scopes (`inference`, `models:read`, `account:read`, `lora:read`, `voice:read`) are enough; a scoped key needs at least `inference` and `account:read`, and DeepInfra's OpenAPI marks listing models as needing `models:read`.",
     "key_label": "API key",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /v1/me/rate_limit`, which runs no model and costs nothing; listing models is free too. Every other forwarded request runs a model and is charged to your DeepInfra account at that model's price on deepinfra.com/pricing: language, embedding and reranking models mostly per token, speech recognition by the length of the audio, text to speech per input character, image models per image, and other models by inference time, as each model's page says. DeepInfra needs a card or prepaid balance before it serves requests. `service_tier: \"priority\"` adds 50% and `\"flex\"` takes 20% off. Requests a model rejects with `fail_fast` are not billed."
+        "body": "Saving or testing the key reads `GET /v1/me/rate_limit`, which runs no model and costs nothing; listing models is free too. Every other forwarded request runs a model and is charged to your DeepInfra account at that model's price on deepinfra.com/pricing: language, embedding and reranking models mostly per token, speech recognition by the length of the audio, text to speech per input character, image models per image, video models per second of output, and other models by inference time, as each model's page says. Requests to your own private deployments are billed per GPU-hour instead, and a deployment that autoscales can add instances under load. DeepInfra needs a card or prepaid balance before it serves requests. `service_tier: \"priority\"` adds 50% and `\"flex\"` takes 20% off. Requests a model rejects with `fail_fast` are not billed."
       },
       {
         "title": "Scope",
-        "body": "Only `GET /v1/openai/models`, `POST /v1/openai/chat/completions`, `POST /v1/openai/completions`, `POST /v1/openai/responses`, `POST /v1/openai/embeddings`, `POST /v1/openai/images/generations`, `POST /v1/inference/:owner/:model` and `GET /v1/me/rate_limit` are forwarded. The native inference route runs any `owner/model` the key may use, and `/v1/inference/deploy/DEPLOY_ID` for your own private deployments. API keys, scoped JWTs, billing, usage, logs, account and team settings, managing private deployments, LoRA adapters, custom voices, files, batches, GPU rentals, sandboxes and hosted agents are not."
+        "body": "Only `GET /v1/openai/models`, `POST /v1/openai/chat/completions`, `POST /v1/openai/completions`, `POST /v1/openai/responses`, `POST /v1/openai/embeddings`, `POST /v1/openai/images/generations`, `POST /v1/inference/:owner/:model` and `GET /v1/me/rate_limit` are forwarded. The native inference route runs any `owner/model` the key may use, video models included, and `/v1/inference/deploy/DEPLOY_ID` for your own private deployments; the chat and completions routes also reach those deployments by `model` name. The native route accepts a `webhook` field: with it DeepInfra queues the request and sends the result to whatever URL the request names. API keys, scoped JWTs, billing, usage, logs, account and team settings, managing private deployments, LoRA adapters, custom voices, files, batches, GPU rentals, sandboxes and hosted agents are not."
       }
     ],
     "usage_notes": [
       "OpenAI-compatible routes live under `/v1/openai`, so an OpenAI SDK pointed at this connection's gateway URL plus `/v1/openai` works unchanged for models, chat, completions, Responses, embeddings and images.",
       "The gateway waits 120 seconds for response headers and DeepInfra has no per-request timeout parameter, so stream long generations (`stream: true`), keep `max_tokens` bounded and avoid `service_tier: \"flex\"`, which can queue for up to 10 minutes.",
-      "Errors on the OpenAI-compatible routes are `{\"error\": {\"message\", \"type\", \"code\"}}`; images, account and native inference routes answer a bad key or missing scope with `{\"detail\": ...}`, and native inference also answers `{\"error\": \"...\"}` for an unknown or unavailable model. A request outside the key's scopes is a 403 naming the missing scope. Public models allow 200 concurrent requests per model by default and answer 429 above that or when a model is busy."
+      "Video models on the native inference route can run for several minutes, longer than the gateway's 120-second deadline, so a synchronous video request can time out at the gateway.",
+      "Errors on the OpenAI-compatible text routes are `{\"error\": {\"message\", \"type\", \"code\"}}`; the model list, images, account and native inference routes answer a bad key or missing scope with `{\"detail\": ...}`, and native inference also answers `{\"error\": \"...\"}` for an unknown or unavailable model. A request outside the key's scopes is a 403 naming the missing scope. Public models allow 200 concurrent requests per model by default and answer 429 above that or when a model is busy."
     ],
     "mark_svg": {"file": "mark.svg"}
   }
