@@ -63,15 +63,22 @@ Upstash.
   call.
 - Rate limits: https://context7.com/docs/api-guide#rate-limits. Responses
   carry `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`, and a
-  429 adds `Retry-After`; all four are forwarded. The search, fetch and
-  context responses also document `X-Context7-Search-Status`,
-  `X-Context7-Search-Reason`, `X-Context7-Search-Version` and
-  `X-Context7-Content-Check` (whether a version was verified, why a search
-  returned nothing, whether a page passed the content check); these are
-  forwarded too. A reviewer may prefer to drop them.
+  429 adds `Retry-After`; all four are forwarded. The search and fetch
+  responses also document `X-Context7-Search-Status` and
+  `X-Context7-Search-Reason`; search adds `X-Context7-Search-Version` and
+  fetch adds `X-Context7-Content-Check` (whether a version was verified, why
+  results are partial, whether the content check could run); these are
+  forwarded too. The library search and context routes document none of
+  them. A reviewer may prefer to drop them.
 - Errors: https://context7.com/docs/api-guide#error-handling. Every error is
   `{"error": "...", "message": "..."}`, with 400, 401, 402, 403, 404, 409,
-  422, 429, 500, 503 and 504 in use.
+  422, 429, 500, 503 and 504 in use. The OpenAPI document adds 502
+  `page_unavailable` on `/api/v3/fetch`. The `bearerAuth` description there
+  says a key that its teamspace's policy refuses (keys limited to owners and
+  admins, or turned off for OAuth only) gets 403 `api_key_admins_only` or
+  `api_keys_disabled`, so the 403 message covers the key as well as
+  libraries and pages. There is no probe rule for it: the key is valid but
+  refused, and the usage route does not list a 403.
 - Timeouts: none of the forwarded routes is a long-running job and none has
   a timeout parameter; a page that is too slow to read is a 502 from
   Context7.
@@ -108,7 +115,16 @@ On 2026-11-23:
   `unauthorized`, and `/api/v2/nonexistent` answered 404, so every route
   exists.
 - The probe has **not** been run with a real key; no Context7 key was
-  available. The assertions follow the documented usage response.
+  available. The assertions follow the documented usage response. A
+  reviewer should run it once with a key created without **Write access**.
+- Open: the usage route documents a 429, and the docs say only that calls to
+  it do not count as requests. Whether a Free key that has used all of its
+  monthly calls still gets 200 from `GET /api/v2/usage` is not known; if it
+  gets 429, that user could not save or test the key until the allowance
+  returns. Checking needs an exhausted Free key.
+- Open: whether `GET /api/v2/usage` answers 403 `api_key_admins_only` or
+  `api_keys_disabled` for a key its teamspace's policy refuses has not been
+  observed; it needs a teamspace with that policy.
 - `node scripts/check-connectors.mjs context7` and the ajv schema check
   pass.
 

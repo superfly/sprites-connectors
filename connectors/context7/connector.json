@@ -67,9 +67,10 @@
   ],
   "messages": {
     "402": "Context7 teamspace spending limit reached; an owner can raise it in billing settings, or wait for the monthly reset",
-    "403": "Context7 refused the request: the teamspace's policies or plan do not allow this library or page",
+    "403": "Context7 refused the request: the teamspace does not allow this API key, or its policies or plan do not allow this library or page",
     "429": "Context7 rate limit or monthly allowance reached; wait for the Retry-After header and retry",
-    "503": "Context7 search could not be completed; retry later",
+    "502": "Context7 could not read the page; the response message says why",
+    "503": "Context7 could not complete the search or read the page; retry later",
     "provider_unreachable": "Could not reach Context7; retry later"
   },
   "discovery": {
@@ -94,7 +95,7 @@
       }
     ],
     "usage_notes": [
-      "Error bodies are `{\"error\": \"...\", \"message\": \"...\"}`. A wrong key is 401 `invalid_api_key`. Search answers 404 `no_documentation_found` when nothing matches; treat it as an empty result.",
+      "Error bodies are `{\"error\": \"...\", \"message\": \"...\"}`. A wrong key is 401 `invalid_api_key`. Context7's docs say a key that its teamspace's policy refuses is 403 `api_key_admins_only` or `api_keys_disabled`. Search answers 404 `no_documentation_found` when nothing matches; treat it as an empty result.",
       "`GET /api/v2/context` can answer 202 while a library is still being processed (retry later) and 301 with a `redirectUrl` naming the library's new ID.",
       "Search and documentation responses carry `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`, and a 429 carries `Retry-After`; all are forwarded, along with Context7's `X-Context7-Search-*` status headers."
     ],
