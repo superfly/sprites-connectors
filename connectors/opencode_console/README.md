@@ -12,21 +12,37 @@ Anomaly.
   workspace header is needed. Keys can be Restricted; Models › Request is
   enough for everything forwarded here
   (https://opencode.ai/docs/console/api/#restricted-keys). Requests outside a
-  key's permissions return 403; revoked and expired keys return 401.
+  key's permissions return 403; revoked and expired keys return 401. A Read
+  only key, or a restricted key with Models set to Read, can list models but
+  not call them (https://opencode.ai/docs/console/api/#permissions), so it
+  passes the probe and inference then answers 403; no free route proves
+  Models › Request, and the setup text and the 403 message say so. Service
+  account keys default to All
+  (https://opencode.ai/docs/console/api/#who-can-grant-what), and in a
+  workspace that enforces SSO a personal key works only while its member has
+  an active SSO session, owners excepted
+  (https://opencode.ai/docs/console/api/#personal-api-keys); the setup text
+  says both.
 - Base URL `https://opencode.ai`. The inference APIs live under
   `/inference` and the Console model list under `/console/api`, both on the
   same origin, so one base URL covers them.
 - Probe: `GET /console/api/v1/models`,
   https://opencode.ai/docs/console/api/models/#console-model-list. It
-  requires a key (the public `/inference/v1/models` list answers 200 without
-  one, so it cannot prove a key), returns an object keyed by provider ID with
-  `opencode` for OpenCode Models, and is never cached. It does no inference
+  requires a key, returns an object keyed by provider ID with
+  `opencode` for OpenCode Models, and is never cached. The
+  `/inference/v1/models` list answers 200 with no key but 401 to a made-up
+  key, and the gateway always sends the key, so it could serve as the probe
+  too; see the open questions under Verification. It does no inference
   and costs nothing. Asserts `opencode` and `opencode.models` are objects and
   that `error` and `_tag` are absent; the endpoint's 401 body is
   `{"_tag": "Unauthorized"}`. The documented 403 (key without Models › Read)
   means a valid key with too little permission, so it has no `errors` rule
   and falls through as an unexpected response, with a message telling the
-  user which permission to grant.
+  user which permission to grant. A workspace can disable the whole OpenCode
+  Models provider (https://opencode.ai/docs/console/providers/#opencode-models).
+  The docs do not show the list in that state; if `opencode` is then missing,
+  the probe fails for a valid key. The `unexpected_response` message names
+  that and a missing Models › Read permission as possible causes.
 - Routes:
   - `GET /console/api/v1/models` and `GET /inference/v1/models`:
     https://opencode.ai/docs/console/api/models/.
@@ -55,10 +71,12 @@ Anomaly.
   `{"type": "error", "error": {...}}`, Gemini
   `{"error": {"code", "status", "message"}}`, Console list
   `{"_tag": "Unauthorized"}`. Inference responses carry `x-opencode-log-id`,
-  the request ID Console shows in Activity › Logs
-  (https://opencode.ai/docs/console/api/providers/); it and `retry-after`,
-  which the API exposes, are forwarded. `x-request-id` is sent only by the
-  Console model list, so it is not forwarded. No rate limits are documented.
+  the request ID
+  (https://opencode.ai/docs/console/providers/#token); it and `retry-after`
+  are forwarded. No docs page mentions `retry-after`; the Console model list
+  names it in `access-control-expose-headers`. `x-request-id` is sent only by
+  the Console model list, so it is not forwarded. No rate limits are
+  documented.
   Paid requests answer 402 when the balance is empty, the invoiced credit
   limit is reached or an invoice is overdue
   (https://opencode.ai/docs/console/billing/), and 429
@@ -68,10 +86,10 @@ Anomaly.
 - Left out on purpose:
   - OpenCode Go (`/inference/go/...` and `GET /inference/go/v1/usage`,
     https://opencode.ai/docs/console/go/#endpoints): Go is a separate
-    subscription for coding-agent traffic, and its inference routes answer
-    400 `MissingSessionID` unless the client sends `x-opencode-session`,
-    which would need a forwarded request header. A reviewer may decide to add
-    it later.
+    subscription for coding-agent traffic, and the docs say Go requires the
+    `x-opencode-session` header
+    (https://opencode.ai/docs/console/harnesses/#sessions), which would need
+    a forwarded request header. A reviewer may decide to add it later.
   - Connected providers (`/inference/custom/<connection_id>/...`,
     https://opencode.ai/docs/console/api/providers/): service-account keys
     only, and its connection IDs would need a second `path_param` shape.
@@ -94,14 +112,37 @@ a made-up key returned HTTP 401 `{"_tag":"Unauthorized"}` and was classified
 chat completions, responses, embeddings, messages, Gemini
 `:generateContent` and `:streamGenerateContent?alt=sse`, and both model
 lists; an unknown path under `/inference/openai/v1/` answered 404, so the 401s
-show the paths exist. `GET /inference/v1/models` without a key answered 200,
-confirming it is not a valid probe. The route matcher in `scripts/lib`
+show the paths exist. `GET /inference/v1/models` answered 200 without a key
+and 401 with the made-up key. The route matcher in `scripts/lib`
 allows `:generateContent` and `:streamGenerateContent` and refuses
 `:countTokens`, a bare model segment and `/inference/go/...`.
 
 **The probe has not been run with a real key**; the assertions follow the
 documented response. `node scripts/check-connectors.mjs opencode_console` and
 the ajv schema check pass.
+
+Open questions for a reviewer:
+
+- Run the probe with a real key in four states: a member's personal key; a
+  service account key restricted to Models › Request (the docs say Request
+  "also calls" models on top of listing them, but the model list's error
+  table says restricted keys need Models › Read); a workspace with no
+  credits; and a workspace with the OpenCode Models provider disabled.
+- Whether to switch the probe to `GET /inference/v1/models`, asserting
+  `object` equals `list` and `data` is a list. It rejects a made-up key with
+  401 and does not depend on which providers a workspace has, so it would
+  presumably also pass for a workspace with OpenCode Models disabled.
+- Whether to forward `x-opencode-session`. The docs ask clients to send it
+  with every request, pay-as-you-go included, so Console can route a
+  conversation consistently and reuse its prompt cache
+  (https://opencode.ai/docs/console/harnesses/#sessions). No request header
+  is forwarded today. Do not forward `x-opencode-org-id` or `x-org-id`, which
+  the inference API lists in `access-control-allow-headers`.
+- The 120-second wait for response headers in the usage note is a Sprites
+  gateway figure that this repository does not state; confirm it.
+- Whether an inference 429 can also be an upstream rate limit, and whether
+  `retry-after` is sent with it. The docs describe only the budget case, and
+  the 429 message follows them.
 
 ## Icons
 

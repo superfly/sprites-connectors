@@ -73,8 +73,9 @@
   "messages": {
     "400": "OpenCode Console rejected the request (%{status}); check the model ID and body",
     "402": "OpenCode Console balance is empty, or the invoiced credit limit is reached or an invoice is overdue; add credits in the Console",
-    "403": "This OpenCode Console key lacks permission for this request; restricted keys need Models › Request, and free-tier models only work inside OpenCode",
+    "403": "This OpenCode Console key lacks permission for this request; Read only keys and restricted keys without Models › Request cannot call models, and free-tier models only work inside OpenCode",
     "429": "OpenCode Console budget reached (Policy budget exceeded); an owner or admin can raise it, or it resets on the 1st of the month",
+    "unexpected_response": "Unexpected OpenCode Console response; the key could not be verified. The key may lack Models › Read, or an owner or admin may have disabled OpenCode models for this workspace",
     "provider_unreachable": "Could not reach OpenCode Console; retry later"
   },
   "discovery": {
@@ -85,7 +86,7 @@
   "icon_bg_class": "bg-neutral-500/20",
   "presentation": {
     "tagline": "Call OpenCode Console models from a Sprite without putting your oc_sk_ key on it.",
-    "setup": "In the OpenCode Console (opencode.ai/console), add credits, then open Account › Personal API keys and click Add API key, or create a key for a service account under Settings › Service accounts. A key with Restricted permissions and Models set to Request is enough. The key starts with `oc_sk_` and is shown once.",
+    "setup": "In the OpenCode Console (opencode.ai/console), add credits, then open Account › Personal API keys and click Add API key, or create a key for a service account under Settings › Service accounts. A key with Restricted permissions and Models set to Request is enough; service account keys default to All, so choose Restricted when you create one. A Read only key, or a restricted key with Models set to Read, can list models but not call them, so it passes the key check and inference then answers 403. If the workspace enforces SSO, a personal key works only while you have an active SSO session unless you are an owner, so use a service account key there. The key starts with `oc_sk_` and is shown once.",
     "key_label": "API key",
     "key_placeholder": "oc_sk_...",
     "notices": [
