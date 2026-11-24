@@ -1,0 +1,119 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "baseten",
+  "display_name": "Baseten",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://inference.baseten.co",
+  "description": "Hosted open models through OpenAI- and Anthropic-compatible APIs, plus System One decision models",
+  "long_description": "Bring a Baseten API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists the Model APIs catalog (GET /v1/models), which bills no tokens. A Sprite can then call Baseten Model APIs (hosted language models such as GLM, Kimi, DeepSeek and gpt-oss) through OpenAI Chat Completions, OpenAI Responses and Anthropic Messages, and classify, route and score inputs with System One decision models. Every inference request bills tokens to your Baseten workspace. Only the shared Model APIs host inference.baseten.co is reachable: the management API (api.baseten.co: API keys, billing, usage, teams, models and deployments) and dedicated model deployments are not forwarded.",
+  "website_url": "https://app.baseten.co/settings/api_keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/responses"},
+    {"methods": ["POST"], "pattern": "/v1/messages"},
+    {"methods": ["POST"], "pattern": "/v1/systemone"}
+  ],
+  "forward_request_headers": ["x-session-affinity"],
+  "forward_response_headers": [
+    "retry-after",
+    "x-baseten-request-id",
+    "x-ratelimit-limit-requests",
+    "x-ratelimit-remaining-requests",
+    "x-ratelimit-limit-tokens",
+    "x-ratelimit-remaining-tokens"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/models",
+    "label": "model catalog",
+    "expect": [
+      ["data", "list"],
+      ["data[].id", "text"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List the Model APIs catalog (no tokens billed)",
+      "path": "/v1/models"
+    },
+    {
+      "title": "Chat Completions (bills input and output tokens)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {"model": "zai-org/GLM-5.3", "messages": [{"role": "user", "content": "Reply with exactly: Hello from Baseten."}], "max_tokens": 1024},
+      "notes": ["Set `model` to a slug from `GET /v1/models`. Reasoning models count reasoning tokens against `max_tokens`. For long generations send `stream: true`; the gateway waits 120 seconds for response headers and Model APIs have no request timeout parameter."]
+    },
+    {
+      "title": "OpenAI Responses (bills input and output tokens)",
+      "method": "POST",
+      "path": "/v1/responses",
+      "json": {"model": "zai-org/GLM-5.3", "input": "Reply with exactly: Hello from Baseten.", "max_output_tokens": 1024},
+      "notes": ["Requests are stateless: send the whole conversation as `input` each time; there is no `GET /v1/responses/{id}`."]
+    },
+    {
+      "title": "Anthropic Messages (bills input and output tokens)",
+      "method": "POST",
+      "path": "/v1/messages",
+      "json": {"model": "zai-org/GLM-5.3", "max_tokens": 1024, "messages": [{"role": "user", "content": "Reply with exactly: Hello from Baseten."}]},
+      "notes": ["`max_tokens` is required. Anthropic SDKs send the key as `x-api-key`, which Baseten does not read; the gateway sends `Authorization: Bearer` instead, so point the SDK's base URL at the gateway."]
+    },
+    {
+      "title": "Classify, route and score with System One (bills tokens)",
+      "method": "POST",
+      "path": "/v1/systemone",
+      "json": {
+        "model": "decision-models/baseten-elephant-9b-latest",
+        "state": "Please refund the duplicate subscription charge.",
+        "questions": {
+          "route": {"type": "choice", "instructions": "Which team should handle this request?", "criteria": {"billing": "Billing, payments, and refunds", "technical_support": "Technical troubleshooting"}},
+          "refund": {"type": "noul", "instructions": "Is the customer asking for a refund?"},
+          "urgency": {"type": "score", "instructions": "How urgent is the request?", "criteria": ["Routine request", "Needs attention today", "Immediate emergency"]}
+        }
+      },
+      "notes": ["`service_tier: \"flex\"` costs about 90% of the default price and `\"priority\"` about 2x."]
+    }
+  ],
+  "messages": {
+    "400": "Baseten rejected the request (%{status}); check the body's error field and the model's supported parameters",
+    "402": "Baseten payment required; check billing and payment at app.baseten.co/settings/billing",
+    "403": "This Baseten key cannot call that Model API; check the key's permissions and Model API access",
+    "404": "Baseten model not found; check the model slug against GET /v1/models",
+    "413": "Baseten request too large; reduce the payload or prompt",
+    "422": "Baseten could not validate the request; see the body's error field",
+    "429": "Baseten rate limit or capacity reached; back off and retry",
+    "529": "Baseten Model API overloaded; retry with backoff",
+    "provider_unreachable": "Could not reach Baseten; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-models"],
+    "keywords": ["baseten", "llm", "inference", "model apis", "openai compatible", "anthropic compatible", "chat completions", "responses", "messages", "glm", "kimi", "deepseek", "gpt-oss", "classification", "decision models", "system one"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Call Baseten's hosted language and decision models from a Sprite without putting your Baseten key on it.",
+    "setup": "Sign in at app.baseten.co, open Organization settings → API keys and choose Create API key. Prefer a team key with the Invoke Model APIs permission, scoped to the Model APIs the Sprite needs; personal keys carry all of your permissions, must expire within 90 days and are revoked after 30 days without use.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key lists models with `GET /v1/models` and bills nothing. Chat Completions, Responses, Messages and System One requests bill input and output tokens at each model's per-million-token price; cached input tokens are discounted, Fast model variants have their own prices, System One's `flex` tier costs about 90% of the default price and `priority` about 2x, and server-side web search passes the search provider's cost through. If your workspace enforces a monthly budget, Baseten rejects Model API requests once it is reached."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/models`, `POST /v1/chat/completions`, `POST /v1/responses`, `POST /v1/messages` and `POST /v1/systemone` on `inference.baseten.co` are forwarded. The management API (API keys, billing, usage and costs, teams, models and deployments), dedicated deployment hosts and the regional `inference-eu` host are not. Rate limits are per model and per workspace (by default 15 to 120 requests a minute depending on account tier)."
+      }
+    ],
+    "usage_notes": [
+      "The gateway waits 120 seconds for response headers and Model APIs have no request timeout parameter. For long generations or reasoning-heavy models, send `stream: true` so headers arrive at once, and cap `max_tokens`.",
+      "Send `x-session-affinity` with a stable id on related requests to improve prompt cache reuse; it is the one request header forwarded.",
+      "Error bodies are JSON with an `error` message (System One adds `error_type`). A streamed response can end early without an error status; check the final event and `finish_reason`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
