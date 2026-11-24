@@ -75,8 +75,8 @@
   ],
   "messages": {
     "400": "Speechify rejected the request (%{status}); check error.code and error.fields in the body",
-    "402": "Speechify balance exhausted or feature not on this plan; top up or upgrade at platform.speechify.ai/billing",
-    "403": "This Speechify key is not allowed to do that; check the key's workspace, project and role",
+    "402": "Speechify balance exhausted, spend limit reached or feature not on this plan; check error.code, then top up or upgrade at platform.speechify.ai/billing, or raise the limit",
+    "403": "This Speechify key is not allowed to do that; check the key's scopes, workspace, project and role",
     "429": "Speechify rate or concurrency limit reached; wait for Retry-After and retry",
     "provider_unreachable": "Could not reach Speechify; retry later"
   },
@@ -88,7 +88,7 @@
   "icon_bg_class": "bg-neutral-500/20",
   "presentation": {
     "tagline": "Turn text into lifelike speech from a Sprite without putting your Speechify key on it.",
-    "setup": "Sign in at platform.speechify.ai, open API Keys and create a key. The free plan needs no card; each month it covers 500K characters of Simba 3.0 or 3.2, or 333K of Simba 3.5.",
+    "setup": "Sign in at platform.speechify.ai, open API Keys and create a key. A personal key works as is; a service-account key needs the `audio:all` and `voices:read` scopes. The free plan needs no card; each month it covers 500K characters of Simba 3.0 or 3.2, or 333K of Simba 3.5.",
     "key_label": "API key",
     "key_placeholder": "sk_...",
     "notices": [
@@ -103,9 +103,9 @@
     ],
     "usage_notes": [
       "Requests go to `api.speechify.ai`, which picks the synthesis region; the EU and US regional hosts are not reachable through this connector.",
-      "Choose the audio format with `audio_format` or `output_format` in the body; the `Accept` request header is not forwarded.",
+      "Choose the audio format in the body: `output_format` on any synthesis route, or `audio_format` on `POST /v1/audio/speech` only. The `Accept` request header is not forwarded.",
       "Without a `Speechify-Version` header, responses follow the version your workspace is pinned to. Send `Speechify-Version: 2026-09-30` (the version new workspaces start on) to get the shapes documented today.",
-      "Errors are `{\"error\": {\"code\": \"...\", \"message\": \"...\"}, \"request_id\": \"...\"}`. Branch on `error.code`; a 402 is `payment_required` for an empty balance or a plan code such as `voice_cloning_not_included`."
+      "Errors are `{\"error\": {\"code\": \"...\", \"message\": \"...\"}, \"request_id\": \"...\"}`. Branch on `error.code`; a 402 is `payment_required` for an empty balance, `spend_cap_exceeded`, `spend_budget_exceeded` or `project_spend_limit_exceeded` for a spend limit on the key, workspace or project, or a plan code such as `voice_cloning_not_included`."
     ],
     "mark_svg": {"file": "mark.svg"}
   }

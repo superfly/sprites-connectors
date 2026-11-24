@@ -9,11 +9,18 @@ not the consumer Speechify reader app at speechify.com.
 
 - Authentication: https://docs.speechify.ai/build/api-reference/get-started/authentication.
   Base URL `https://api.speechify.ai`, `Authorization: Bearer <key>`. Keys are
-  created only in the console at https://platform.speechify.ai/api-keys;
-  there is no key-management endpoint. A missing or wrong key is 401. A 403
-  means the key authenticated but lacks the workspace role or project, so no
+  created only in the console at https://platform.speechify.ai/api-keys.
+  The one exception, `POST /v1/auth/service-account-keys`, lets a
+  service-account key marked as a minter mint short-lived child keys; it is
+  not forwarded. A missing or wrong key is 401. A 403 means the key
+  authenticated but lacks the scope, workspace role or project, so no
   `errors` rule is needed. The deprecated JWT access tokens
   (`POST /v1/auth/token`) are not used.
+- Scopes: https://docs.speechify.ai/build/guides/get-started/service-accounts.
+  A personal key carries `all`. A service-account key carries only the
+  scopes set on its account: `audio:all` for synthesis and `voices:read` for
+  the two voice routes, so `setup` asks for both. The docs do not say which
+  scope `GET /v1/audio/models` needs (see Verification).
 - Regions: https://docs.speechify.ai/build/guides/get-started/regions. The
   same API also answers on `eu.api.speechify.ai` and `us.api.speechify.ai`,
   which only pin the synthesis region. A connector has one base URL, so this
@@ -76,8 +83,12 @@ not the consumer Speechify reader app at speechify.com.
   `concurrency_limit_reached`.
 - Errors: every non-2xx is
   `{"error": {"code", "message", "fields"?, "details"?, "docs_url"?}, "request_id"}`.
-  Statuses are 400, 401, 402 (`payment_required` or a plan code such as
-  `voice_cloning_not_included`), 403, 404, 409, 413, 429, 500, 502 and 503.
+  Statuses are 400, 401, 402 (`payment_required`, a plan code such as
+  `voice_cloning_not_included`, or a spend limit: `spend_cap_exceeded` on
+  the key, `spend_budget_exceeded` on the workspace or
+  `project_spend_limit_exceeded` on the project, see
+  https://docs.speechify.ai/build/guides/concepts/spend-limits), 403, 404,
+  409, 413, 429, 500, 502 and 503.
   See https://docs.speechify.ai/build/api-reference/overview.
 - Left out on purpose:
   - `POST /v1/voices` and `POST /v1/voices/consent-challenges`: voice cloning,
@@ -90,6 +101,7 @@ not the consumer Speechify reader app at speechify.com.
   - `/v1/webhooks/endpoints/*`, including secret rotation: account
     configuration.
   - `GET /v1/workspaces/current/entitlements`: account and plan details.
+  - `POST /v1/auth/service-account-keys`: mints API keys.
   - `GET /v1/audio/stream/ws`: WebSocket text input, which a connector
     route cannot proxy.
   - `POST /v1/audio/watermark/detect`: a forensic multipart upload that text
@@ -100,14 +112,22 @@ not the consumer Speechify reader app at speechify.com.
 On 2026-11-23, `BOGUS=not-a-real-key node scripts/probe.mjs speechify
 --key-env BOGUS` sent `GET /v1/audio/models` and got HTTP 401
 `{"error":{"code":"unauthorized","message":"Unauthorized"},"request_id":"..."}`,
-which it classified `invalid_api_key`. With the same made-up key, curl got 401
-from every allowed route: `GET /v1/voices`, `GET /v1/voices/geffen_32`,
-`GET /v1/audio/models`, `POST /v1/audio/speech`, `POST /v1/audio/stream`
-and `POST /v1/audio/stream/with-timestamps`. An unknown path
-(`GET /v1/nonexistent-route`) got 404 `not_found`, so the 401s show the
-paths exist. **The probe has not been run with a real key**, so no fixture
+which it classified `invalid_api_key`. A 401 does not show that a route
+exists: the API answers 401 before routing for any path under `/v1/audio/`,
+`/v1/voices/` and `/v1/auth/` (on 2026-11-24 `GET /v1/audio/nonexistent-xyz`
+with a made-up key got 401). The six routes and their methods are taken from
+Speechify's OpenAPI spec, https://docs.speechify.ai/openapi.json, which lists
+each of them. **The probe has not been run with a real key**, so no fixture
 was recorded; the assertions follow the documented List Models response.
 `node scripts/check-connectors.mjs speechify` and the ajv schema check pass.
+
+Still for a reviewer with a real key:
+
+- Run the probe and confirm every assertion reads `ok`.
+- Confirm `GET /v1/audio/models` answers 200 for a service-account key that
+  holds only `audio:all`, the scope Speechify's docs recommend for a
+  text-to-speech worker. If it answers 403, the probe rejects that key and
+  needs a different route or an `errors` rule.
 
 ## Icons
 
