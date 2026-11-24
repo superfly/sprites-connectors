@@ -87,15 +87,20 @@ Community submission (`owner: community`), not submitted by Bright Data.
   `POST /request` has no documented timeout parameter, and the Web Unlocker
   error page says some waits run 30 to 150 seconds, so the usage notes send
   slow, rendered pages through the async `/unblocker/req` instead.
-- Billing: Web Unlocker is billed per 1,000 successful requests
-  (https://docs.brightdata.com/products/web-unlocker/features); SERP API the
+- Billing: Web Unlocker is billed per 1,000 successful requests, and for
+  every request once a zone turns on custom headers and cookies or manual
+  expect elements
+  (https://docs.brightdata.com/products/web-unlocker/features#how-billing-changes-with-custom-features); SERP API the
   same, with async submits billed and collection free, and every request
   billed when a SERP zone uses custom headers or cookies
   (https://docs.brightdata.com/products/serp-api/pricing-and-billing).
   Scraper API is $1.50 per 1,000 delivered records on pay-as-you-go as of
   September 2026, and records that fail because the input was wrong are
-  still billed; new accounts get 5,000 free credits a month, one per record
-  (https://docs.brightdata.com/products/scrapers/scrapers-library/faqs). The
+  still billed
+  (https://docs.brightdata.com/products/scrapers/scrapers-library/faqs). New
+  accounts get 5,000 free credits a month in one pool shared by Web
+  Unlocker, SERP and Scraper API, one credit per request or record
+  (https://docs.brightdata.com/general/account/billing-and-pricing/free-tier). The
   error codes page says failed records are not charged, which contradicts
   the FAQ for bad input, so the Billing notice follows the stricter FAQ.
 - Errors: Scraper API errors are plain text (`Invalid credentials`,

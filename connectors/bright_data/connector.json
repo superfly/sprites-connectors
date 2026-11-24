@@ -126,7 +126,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /status`, which is not a billed product request. Web Unlocker and SERP API requests are billed per 1,000 successful requests at your zone's rate; failed requests are not, unless the SERP zone uses custom headers or cookies. For async requests the submit is billed and collecting the result is free. Scraper API jobs are billed per delivered record ($1.50 per 1,000 on pay-as-you-go), including records that fail because the input was wrong. New accounts get 5,000 free credits a month (one per scraper record). Progress, snapshot downloads, cancel, snapshot lists and zone lists are reads, not product requests."
+        "body": "Saving or testing the key reads `GET /status`, which is not a billed product request. Web Unlocker and SERP API requests are billed per 1,000 successful requests at your zone's rate; failed requests are not, unless the zone has custom headers, cookies or (on Web Unlocker) manual expect elements turned on, in which case every request is billed. For async requests the submit is billed and collecting the result is free. Scraper API jobs are billed per delivered record ($1.50 per 1,000 on pay-as-you-go), including records that fail because the input was wrong. New accounts get 5,000 free credits a month, shared by Web Unlocker, SERP and Scraper API (one credit per request or record). Progress, snapshot downloads, cancel, snapshot lists and zone lists are reads, not product requests."
       },
       {
         "title": "Scope",
