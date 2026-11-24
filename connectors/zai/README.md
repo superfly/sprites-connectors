@@ -14,8 +14,11 @@ Community submission (`owner: community`), not submitted by Z.ai.
   2026-10-16, Standard keys use pay-as-you-go balance or usage bundles; GLM
   Coding Plan and Team Plan keys belong to the Coding Plan endpoint
   (`/api/coding/paas/v4`). This connector is the standard API only, as the
-  setup text says. The China host `open.bigmodel.cn` is a separate platform
-  and is not covered.
+  setup text says. The same page says that for keys created from that date
+  "the key type determines how calls are billed" and that changing the
+  endpoint does not change it, so the "not Coding Plan quota" sentences in
+  the manifest are scoped to Standard keys. The China host
+  `open.bigmodel.cn` is a separate platform and is not covered.
 - Probe: `POST /tokenizer` with `{"model": "glm-4.6", "messages": [{"role":
   "user", "content": "hi"}]}`, https://docs.z.ai/api-reference/tools/tokenizer.
   It returns `{"id", "created", "request_id", "usage": {"prompt_tokens", ...,
@@ -63,8 +66,10 @@ Community submission (`owner: community`), not submitted by Z.ai.
   plan limits; the `messages` map explains these. No response headers are
   forwarded: Z.ai documents no rate-limit or request-id headers (responses
   carry an undocumented `x-log-id`).
-- Rate limits: https://docs.z.ai/api-reference/rate-limit is empty at the
-  time of writing; limits appear only as 429 error codes.
+- Rate limits: https://docs.z.ai/api-reference/rate-limit redirects to the
+  console page https://z.ai/manage-apikey/rate-limits, which shows each
+  account's limits; the docs publish no figures. In responses, limits appear
+  only as 429 error codes. The `429` message names the console page.
 - Left out on purpose: the agents API (`/api/v1/agents`,
   `/api/v1/agents/async-result`, `/api/v1/agents/conversation`) and
   `POST /files`, which only uploads glossaries for the translation agent; both
@@ -84,6 +89,25 @@ including a made-up `POST /made-up-route`, so the routes rest on the OpenAPI
 spec and reference pages above. The probe has not been run with a real key;
 the assertions follow the documented `TokenizerResponse` schema.
 `node scripts/check-connectors.mjs zai` and the ajv schema check pass.
+
+Still to check with a real key:
+
+- Run the probe with a Standard API Key on an account with no balance.
+  `/tokenizer` only accepts `glm-4.6`, a paid model, and Z.ai's error table
+  gives 429 with code 1113 for an empty balance. If the tokenizer answers
+  that way, a valid key on an unfunded account fails the probe; there is no
+  `errors` rule for 429, so decide whether the `429` message is enough.
+- Try `GET /models` with the same key. It is not in Z.ai's docs or OpenAPI
+  spec. If it exists and answers 200 only to a valid key, it may be a better
+  probe and a route OpenAI SDK clients expect.
+- Save a Coding Plan key and see what the probe and a chat call return. The
+  key management page and the Coding Plan FAQ
+  (https://docs.z.ai/devpack/faq) disagree on whether such a key uses plan
+  quota or the account balance on this endpoint.
+- Run the chat example. GLM-5.3 always reasons and `reasoning_effort`
+  defaults to `max` (https://docs.z.ai/guides/llm/glm-5.3); the docs do not
+  say whether reasoning counts against `max_tokens`. If the reply is cut off
+  at 1024 tokens, add `"reasoning_effort": "low"` or raise `max_tokens`.
 
 ## Icons
 

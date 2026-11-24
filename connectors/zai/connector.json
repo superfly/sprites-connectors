@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.z.ai/api/paas/v4",
   "description": "GLM chat completions, web search, page reading, OCR, images, video and transcription on Z.ai's standard API",
-  "long_description": "Bring a Z.ai Standard API Key; the gateway keeps it off your Sprite and sends it as a bearer token to Z.ai's international standard API (api.z.ai/api/paas/v4). Saving, replacing or testing the key counts the tokens of a two-character message with POST /tokenizer, which runs no generation. A Sprite can then call the OpenAI-compatible chat completions route with GLM models, count tokens, search the web, read a web page, parse document layouts with GLM-OCR, generate images and videos, poll asynchronous results and transcribe audio. These calls use your Z.ai balance or usage bundles, not GLM Coding Plan quota. The Coding Plan and Anthropic-compatible endpoints, agents, file uploads, the China host open.bigmodel.cn, and key, billing and account management are not forwarded.",
+  "long_description": "Bring a Z.ai Standard API Key; the gateway keeps it off your Sprite and sends it as a bearer token to Z.ai's international standard API (api.z.ai/api/paas/v4). Saving, replacing or testing the key counts the tokens of a two-character message with POST /tokenizer, which runs no generation. A Sprite can then call the OpenAI-compatible chat completions route with GLM models, count tokens, search the web, read a web page, parse document layouts with GLM-OCR, generate images and videos, poll asynchronous results and transcribe audio. With a Standard API Key these calls use your Z.ai balance or usage bundles, not GLM Coding Plan quota. Z.ai's docs say a newly created key's type decides how its calls are billed, so save a Standard key here. The Coding Plan and Anthropic-compatible endpoints, agents, file uploads, the China host open.bigmodel.cn, and key, billing and account management are not forwarded.",
   "website_url": "https://z.ai/manage-apikey/apikey-list",
   "auth": "bearer",
   "allowed_paths": [
@@ -92,7 +92,7 @@
   "messages": {
     "400": "Z.ai rejected the request (%{status}); check error.code and error.message, for example 1211 for an unknown model",
     "403": "This Z.ai key has no permission for that API",
-    "429": "Z.ai rate limit, usage limit or balance reached; check error.code (1113 means the balance is empty, 1302 the rate limit)",
+    "429": "Z.ai rate limit, usage limit or balance reached; check error.code (1113 means the balance is empty, 1302 the rate limit). Your limits are listed at z.ai/manage-apikey/rate-limits",
     "provider_unreachable": "Could not reach Z.ai; retry later"
   },
   "discovery": {
@@ -108,7 +108,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key sends `POST /tokenizer` with a two-character message; it runs no generation, and Z.ai's pricing page lists no charge for it. `POST /reader` is not on the pricing page either, so it may use your balance at a rate Z.ai does not publish. Every other call uses your Z.ai balance or usage bundles at pay-as-you-go rates, never Coding Plan quota: chat and OCR are billed per token (GLM-5.3 is $1.4 input and $4.4 output per million tokens), web search costs $0.01 a search, GLM-Image $0.015 an image, CogVideoX-3 $0.2 a video and GLM-ASR $0.03 per million tokens."
+        "body": "Saving or testing the key sends `POST /tokenizer` with a two-character message; it runs no generation, and Z.ai's pricing page lists no charge for it. `POST /reader` is not on the pricing page either, so it may use your balance at a rate Z.ai does not publish. With a Standard API Key, every other call uses your Z.ai balance or usage bundles at pay-as-you-go rates, not Coding Plan quota: chat and OCR are billed per token (GLM-5.3 is $1.4 input and $4.4 output per million tokens), web search costs $0.01 a search, GLM-Image $0.015 an image, CogVideoX-3 $0.2 a video and GLM-ASR $0.03 per million tokens. Z.ai's docs say a newly created key's type, not the endpoint, decides how its calls are billed, so save a Standard key here, not a Coding Plan or Team Plan key."
       },
       {
         "title": "Scope",
