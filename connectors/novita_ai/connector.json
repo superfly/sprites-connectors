@@ -95,7 +95,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /openapi/v1/billing/balance/detail`, which runs no model and costs nothing. Chat completions, text completions, embeddings and rerank are billed per token against your Novita AI balance at each model's price, which `GET /openai/v1/models` returns per million tokens in 1/10000 USD. Listing and reading models and reading the balance are free."
+        "body": "Saving or testing the key reads `GET /openapi/v1/billing/balance/detail`, which runs no model and costs nothing. Chat completions, text completions, embeddings and rerank are billed per token against your Novita AI balance at each model's price on novita.ai/pricing. `GET /openai/v1/models` returns chat models' prices per million tokens in 1/10000 USD; embedding and rerank models are not in that list. Listing and reading models and reading the balance are free."
       },
       {
         "title": "Scope",

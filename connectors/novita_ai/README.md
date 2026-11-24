@@ -43,8 +43,12 @@ Community submission (`owner: community`), not submitted by Novita AI.
   `meta-llama/llama-3.3-70b-instruct` (its `endpoints` include
   `completions`), `baai/bge-m3` (the embeddings page's documented model) and
   `baai/bge-reranker-v2-m3` (`?model_type=reranker`).
-- Billing: per token at each model's price, which the model list returns per
-  million tokens in 1/10000 USD (https://novita.ai/pricing).
+- Billing: per token at each model's price (https://novita.ai/pricing). The
+  default model list returns chat models' prices per million tokens in
+  1/10000 USD (its `pricing.*.price_per_m_decimal` fields give the same
+  prices in USD); embedding and rerank models are only listed with the
+  undocumented `?model_type=embedding` or `?model_type=reranker`, so the
+  Billing notice points to the pricing page for those.
 - Errors: https://docs.novita.ai/api-reference/basic-error-code and
   https://docs.novita.ai/guides/error. Bodies are
   `{"code", "reason", "message", "metadata"}`. A wrong key is 401
