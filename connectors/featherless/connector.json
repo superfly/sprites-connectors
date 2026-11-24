@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.featherless.ai",
   "description": "OpenAI-compatible inference on thousands of open models with Featherless",
-  "long_description": "Bring a Featherless API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's plan (GET /v1/plan), which runs no inference. A Sprite can then list and inspect models, run chat and text completions (including SSE streaming), create embeddings, tokenize text, score questions with the classifier, list speech voices and synthesize speech. On the Developer plan inference uses your Featherless credits; on Chat plans it counts against your concurrent-unit allowance. Credit balance, usage activity, the concurrency stream, API keys, billing and account management are not forwarded.",
+  "long_description": "Bring a Featherless API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's plan (GET /v1/plan), which runs no inference. A Sprite can then list and inspect models, run chat and text completions (including SSE streaming), create embeddings, tokenize text, score questions with the classifier, list speech voices and synthesize speech. On the Developer and Pay-As-You-Go plans inference uses your Featherless credits; on Chat plans it counts against your concurrent-unit allowance. Credit balance, usage activity, the concurrency stream, API keys, billing and account management are not forwarded.",
   "website_url": "https://featherless.ai/account/api-keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -47,7 +47,7 @@
       "notes": ["Model ids are `owner/model`, such as `Qwen/Qwen3.8-27B`. Cold models must load before they answer."]
     },
     {
-      "title": "Chat completion (uses your Featherless credits on the Developer plan)",
+      "title": "Chat completion (uses Featherless credits on Developer and Pay-As-You-Go)",
       "method": "POST",
       "path": "/v1/chat/completions",
       "json": {
@@ -59,7 +59,7 @@
       "notes": ["Set `stream: true` for SSE. Long or reasoning-heavy answers can take more than the gateway's 120-second wait for response headers without streaming; stream them or lower `max_tokens`."]
     },
     {
-      "title": "Create embeddings (uses your Featherless credits on the Developer plan)",
+      "title": "Create embeddings (uses Featherless credits on Developer and Pay-As-You-Go)",
       "method": "POST",
       "path": "/v1/embeddings",
       "json": {"model": "Qwen/Qwen3-Embedding-8B", "input": ["Sprites run applications in isolated environments."]}
@@ -71,7 +71,7 @@
       "json": {"model": "Qwen/Qwen3.8-27B", "text": "Where was the 2020 world series played?"}
     },
     {
-      "title": "Classify text against typed questions (uses your Featherless credits on the Developer plan)",
+      "title": "Classify text against typed questions (uses Featherless credits on Developer and Pay-As-You-Go)",
       "method": "POST",
       "path": "/v1/classifier",
       "json": {
@@ -91,7 +91,7 @@
       "path": "/v1/audio/voices?model=hexgrad/Kokoro-82M"
     },
     {
-      "title": "Synthesize speech as base64 JSON (billed per input character on the Developer plan)",
+      "title": "Synthesize speech as base64 JSON (uses Featherless credits per input character on Developer and Pay-As-You-Go)",
       "method": "POST",
       "path": "/v1/audio/speech",
       "json": {"model": "hexgrad/Kokoro-82M", "input": "Hello from a Sprite.", "voice": "af_bella", "response_format": "mp3", "delivery": "json"},
