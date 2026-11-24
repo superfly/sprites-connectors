@@ -49,10 +49,11 @@ Community submission (`owner: community`), not submitted by Novita AI.
   https://docs.novita.ai/guides/error. Bodies are
   `{"code", "reason", "message", "metadata"}`. A wrong key is 401
   (`FAILED_TO_AUTH` on the LLM routes, `UNAUTHORIZED` on the balance route),
-  so no `errors` rule is needed. The LLM table also lists 403 for
-  `INVALID_API_KEY`, but neither route returned it for a made-up key; 403 is
-  otherwise used for insufficient balance, model access denied and identity
-  verification, so it is not classified as a bad key.
+  so no `errors` rule is needed. The LLM table lists 403 only for
+  `NOT_ENOUGH_BALANCE` and `ACCESS_DENY`, and the error guide adds model
+  access denied and identity verification; `INVALID_API_KEY` 403 appears only
+  in the image, video and audio table, and neither route returned it for a
+  made-up key. So 403 is not classified as a bad key.
 - Rate limits: https://docs.novita.ai/guides/llm-rate-limits. RPM and TPM
   per model, by account tier T1 to T5 from monthly top-ups; 429 on excess.
 - Left out on purpose:
