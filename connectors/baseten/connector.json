@@ -80,10 +80,10 @@
   ],
   "messages": {
     "400": "Baseten rejected the request (%{status}); check the body's error field and the model's supported parameters",
-    "402": "Baseten payment required; check billing or the workspace budget at app.baseten.co",
+    "402": "Baseten payment required; check billing and payment at app.baseten.co/settings/billing",
     "403": "This Baseten key cannot call that Model API; check the key's permissions and Model API access",
     "404": "Baseten model not found; check the model slug against GET /v1/models",
-    "413": "Baseten request too large for the model's context limit",
+    "413": "Baseten request too large; reduce the payload or prompt",
     "422": "Baseten could not validate the request; see the body's error field",
     "429": "Baseten rate limit or capacity reached; back off and retry",
     "529": "Baseten Model API overloaded; retry with backoff",
