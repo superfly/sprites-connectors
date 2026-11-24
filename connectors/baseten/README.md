@@ -48,7 +48,7 @@ Community submission (`owner: community`), not submitted by Baseten.
   limits are per model, as requests and tokens per minute; defaults run from
   15 RPM and 100k TPM (unverified Basic) to 120 RPM and 1M TPM (Pro).
 - Headers. Forwarded responses: `retry-after`
-  (https://docs.baseten.co/inference/errors#429-too-many-requests),
+  (https://docs.baseten.co/inference/errors#529-overloaded),
   `x-baseten-request-id` (asked for by support, errors page) and the four
   `x-ratelimit-*` headers (pricing-and-limits, "Response headers").
   Forwarded request: `x-session-affinity`, documented under "Session
