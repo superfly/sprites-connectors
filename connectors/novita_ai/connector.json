@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "novita_ai",
+  "display_name": "Novita AI",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.novita.ai",
+  "description": "OpenAI-compatible LLM chat, completions, embeddings and rerank on Novita AI",
+  "long_description": "Bring a Novita AI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account balance (GET /openapi/v1/billing/balance/detail), which runs no model and costs nothing. A Sprite can then list and read models, run chat and text completions (including SSE streaming), create embeddings and rerank documents through the OpenAI-compatible API under /openai/v1, and read the balance. Every completion, embedding and rerank request is billed to your Novita AI balance per token. Batches and files, image, audio and video generation, GPU instances, serverless GPU endpoints, API key policies and bill listings are not forwarded.",
+  "website_url": "https://novita.ai/settings/key-management",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/openai/v1/models"},
+    {"methods": ["GET"], "pattern": "/openai/v1/models/:owner/:model"},
+    {"methods": ["POST"], "pattern": "/openai/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/openai/v1/completions"},
+    {"methods": ["POST"], "pattern": "/openai/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/openai/v1/rerank"},
+    {"methods": ["GET"], "pattern": "/openapi/v1/billing/balance/detail"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._-]+\\z",
+  "forward_response_headers": ["x-request-id"],
+  "probe": {
+    "method": "GET",
+    "path": "/openapi/v1/billing/balance/detail",
+    "label": "balance",
+    "expect": [
+      ["availableBalance", "text"],
+      ["cashBalance", "text"],
+      ["creditLimit", "text"],
+      ["code", "absent"],
+      ["reason", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Chat completion (billed per token to your Novita AI balance)",
+      "method": "POST",
+      "path": "/openai/v1/chat/completions",
+      "json": {
+        "model": "deepseek/deepseek-v4.1-flash",
+        "messages": [{"role": "user", "content": "Explain what a Sprite is in two sentences."}],
+        "max_tokens": 256,
+        "stream": false
+      },
+      "notes": ["There is no timeout parameter. For long answers or reasoning models set `stream: true`, so tokens start arriving before the gateway's 120-second response deadline."]
+    },
+    {
+      "title": "Text completion (billed per token)",
+      "method": "POST",
+      "path": "/openai/v1/completions",
+      "json": {"model": "meta-llama/llama-3.3-70b-instruct", "prompt": "Persistent sandboxes for agents are", "max_tokens": 64},
+      "notes": ["Only some models accept `/completions`; `GET /openai/v1/models` lists each model's `endpoints`."]
+    },
+    {
+      "title": "Create embeddings (billed per input token)",
+      "method": "POST",
+      "path": "/openai/v1/embeddings",
+      "json": {"model": "baai/bge-m3", "input": "Sprites run applications in isolated environments."}
+    },
+    {
+      "title": "Rerank documents against a query (billed per token)",
+      "method": "POST",
+      "path": "/openai/v1/rerank",
+      "json": {"model": "baai/bge-reranker-v2-m3", "query": "persistent sandbox", "documents": ["Sprites keep their disk between runs.", "Bananas are yellow."], "top_n": 1}
+    },
+    {"title": "List models with prices", "path": "/openai/v1/models"},
+    {"title": "Read one model", "path": "/openai/v1/models/deepseek/deepseek-v4.1-flash"},
+    {
+      "title": "Read the account balance",
+      "path": "/openapi/v1/billing/balance/detail",
+      "notes": ["Amounts are strings in 1/10000 USD: `10000` is $1.00."]
+    }
+  ],
+  "messages": {
+    "400": "Novita AI rejected the request body (%{status}); see the message field",
+    "403": "Novita AI denied access: the balance may be too low, the key may not be allowed this model, or the model needs identity verification; see the reason field",
+    "404": "Novita AI model not found; check GET /openai/v1/models",
+    "429": "Novita AI request or token rate limit reached; back off and retry",
+    "503": "Novita AI service unavailable; retry later, or use stream: true for long generations",
+    "provider_unreachable": "Could not reach Novita AI; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["novita", "llm", "language models", "chat completions", "embeddings", "rerank", "openai-compatible", "deepseek", "qwen"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Run Novita AI's OpenAI-compatible LLMs from a Sprite without putting your API key on it.",
+    "setup": "Sign in at novita.ai, open Settings → Key Management and create an API key (it starts with `sk_`). The full key is shown only once. Model access and IP restrictions set on the key still apply.",
+    "key_label": "API key",
+    "key_placeholder": "sk_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /openapi/v1/billing/balance/detail`, which runs no model and costs nothing. Chat completions, text completions, embeddings and rerank are billed per token against your Novita AI balance at each model's price, which `GET /openai/v1/models` returns per million tokens in 1/10000 USD. Listing and reading models and reading the balance are free."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /openai/v1/models`, `GET /openai/v1/models/:owner/:model`, `POST /openai/v1/chat/completions`, `POST /openai/v1/completions`, `POST /openai/v1/embeddings`, `POST /openai/v1/rerank` and `GET /openapi/v1/billing/balance/detail` are forwarded, so a Sprite can read the account balance. Batches and files, image, audio and video generation, GPU instances and serverless endpoints, API key policies and bill listings are not."
+      }
+    ],
+    "usage_notes": [
+      "Point an OpenAI SDK at the gateway's `/openai/v1` base; model ids look like `deepseek/deepseek-v4.1-flash`.",
+      "Errors are `{\"code\": 401, \"reason\": \"FAILED_TO_AUTH\", \"message\": \"...\", \"metadata\": {}}`. A wrong key is 401; a 403 means a valid key that lacks balance, model access or identity verification.",
+      "Non-streaming generations that run longer than 120 seconds hit the gateway's response deadline; use `stream: true` for long outputs."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
