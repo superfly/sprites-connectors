@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.cerebras.ai",
   "description": "Fast OpenAI-compatible chat and text completions with Cerebras Inference",
-  "long_description": "Bring a Cerebras Inference API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists models (GET /v1/models), which runs no inference and costs nothing; it does not check your credit balance or rate limits. A Sprite can then list and read models and create chat completions and text completions, including SSE streaming. Completions are charged per token to your Cerebras account. Batch jobs, file uploads and deletes, Dedicated Inference model and endpoint management, metrics, API keys, projects, billing and team management are not forwarded.",
+  "long_description": "Bring a Cerebras Inference API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists models (GET /v1/models), which runs no inference and costs nothing; it does not check your rate limits. A Sprite can then list and read models and create chat completions and text completions, including SSE streaming. Completions are charged per token to your Cerebras account. Batch jobs, file uploads and deletes, Dedicated Inference model and endpoint management, metrics, API keys, projects, billing and team management are not forwarded.",
   "website_url": "https://cloud.cerebras.ai",
   "auth": "bearer",
   "allowed_paths": [
@@ -58,7 +58,7 @@
   "messages": {
     "402": "Cerebras requires payment; check your credits in the Cerebras Cloud console",
     "404": "Cerebras model not found or not available to this key; check GET /v1/models",
-    "429": "Cerebras rate limit reached (requests or tokens per minute); retry later or lower max_completion_tokens",
+    "429": "Cerebras rate limit reached (requests or tokens); retry later or lower max_completion_tokens",
     "503": "Cerebras Inference is temporarily unavailable; retry later"
   },
   "discovery": {
@@ -69,11 +69,11 @@
   "icon_bg_class": "bg-orange-500/20",
   "presentation": {
     "tagline": "Fast OpenAI-compatible inference from a Sprite without putting your Cerebras key on it.",
-    "setup": "Sign in at cloud.cerebras.ai, open API Keys in the left nav (on paid accounts, pick a project first) and click Generate API Key. Copy the key and paste it here. New accounts get $5 of trial credits after adding a payment method.",
+    "setup": "Sign in at cloud.cerebras.ai, open API Keys in the left nav (on paid accounts, pick a project first) and click Generate API Key. Copy the key and paste it here. Cerebras's docs say API access stays inactive until you add a verified payment method; adding one also gives a new account $5 of trial credits.",
     "key_label": "API key",
     "notices": [
-      {"title": "Billing", "body": "Saving, replacing or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. It does not check your credit balance. Chat and text completions are charged per input and output token to your Cerebras account, at the model's price (for example $0.35 per million input tokens and $0.75 per million output tokens for `gpt-oss-120b`). Reading models is free. Trial credits expire 30 days after they are granted; when credits run out or expire, API access stops until you buy more."},
-      {"title": "Scope", "body": "Only `GET /v1/models`, `GET /v1/models/:model_id`, `POST /v1/chat/completions` and `POST /v1/completions` are forwarded. Completions can stream with SSE. Batch jobs, files, Dedicated Inference management and metrics, API keys, projects, billing and team management are not forwarded. Rate limits apply per organization and model, in requests and tokens per minute."}
+      {"title": "Billing", "body": "Saving, replacing or testing the key calls `GET /v1/models`, which runs no inference and costs nothing. Chat and text completions are charged per input and output token to your Cerebras account, at the model's price (for example $0.35 per million input tokens and $0.75 per million output tokens for `gpt-oss-120b`). Reading models is free. Trial credits expire 30 days after they are granted; when credits run out or expire, API access stops until you buy more."},
+      {"title": "Scope", "body": "Only `GET /v1/models`, `GET /v1/models/:model_id`, `POST /v1/chat/completions` and `POST /v1/completions` are forwarded. Completions can stream with SSE. Batch jobs, files, Dedicated Inference management and metrics, API keys, projects, billing and team management are not forwarded. Rate limits apply per organization and model, and per project where an admin sets them, in requests and tokens per minute; on the Free Trial some models also have hourly and daily token caps."}
     ],
     "usage_notes": [
       "Errors are `{\"message\": \"...\", \"type\": \"...\", \"param\": \"...\", \"code\": \"...\"}`; a wrong key is 401 with `code: wrong_api_key`. A 429 message says whether the uncached or total token limit was hit.",

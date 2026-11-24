@@ -16,8 +16,10 @@ Community submission (`owner: community`), not submitted by Cerebras.
   It runs no inference, so it costs nothing. Asserts `object` equals `list`
   (documented as "always `list`"), `data` is a list whose entries have a
   non-empty `id`, and the error fields `code` and `error` are absent. An empty
-  model list passes: the probe checks the key, not model availability, credit
-  balance or rate limits. Do not confuse it with `GET /public/v1/models`
+  model list passes: the probe checks the key, not model availability or rate
+  limits. Whether it also fails for an account with no payment method or no
+  credits is untested (see Verification). Do not confuse it with
+  `GET /public/v1/models`
   (https://inference-docs.cerebras.ai/api-reference/models/public-models),
   which needs no key and answers 200 to anyone, so it proves nothing and is
   not forwarded.
@@ -59,11 +61,15 @@ Community submission (`owner: community`), not submitted by Cerebras.
   `gpt-oss-120b` $0.35 input and $0.75 output
   (https://inference-docs.cerebras.ai/models/openai-oss), `qwen-3.8-27b`
   $0.99 and $1.49 (https://inference-docs.cerebras.ai/models/qwen-3.8-27b).
-  New accounts get $5 of trial credits that expire after 30 days
-  (https://inference-docs.cerebras.ai/console/account-billing). Rate limits
-  are per organization and model in requests and tokens per minute; the token
-  estimate includes `max_completion_tokens` before the request runs
-  (https://inference-docs.cerebras.ai/support/rate-limits).
+  New accounts get $5 of trial credits after adding a verified payment
+  method; the credits expire after 30 days
+  (https://inference-docs.cerebras.ai/console/account-billing). The
+  rate-limits FAQ says API access stays inactive until a payment method is
+  added, and stops when trial credits run out or expire. Rate limits are per
+  organization and model in requests and tokens per minute, with hourly and
+  daily token caps on some Free Trial models and optional project-level
+  limits; the token estimate includes `max_completion_tokens` before the
+  request runs (https://inference-docs.cerebras.ai/support/rate-limits).
 - Left out on purpose:
   - Batch (`/v1/batches`) and Files (`/v1/files`, including multipart upload,
     file content and `DELETE /v1/files/:id`): asynchronous bulk jobs a Sprite
@@ -93,6 +99,24 @@ bearer token, answered 403 `{"detail": "Not authenticated"}`.
 The probe has not been run with a real key; the assertions follow the
 documented list-models response. `node scripts/check-connectors.mjs cerebras`
 and the ajv schema check pass.
+
+Still to check with a real key:
+
+- Run the probe with a key from an account that has no payment method, and
+  with one whose credits are used up or expired. Cerebras's docs say API
+  access is inactive in both cases
+  (https://inference-docs.cerebras.ai/support/rate-limits) but not what
+  `GET /v1/models` answers. If it is not 200, a valid key is refused when it
+  is saved, and the setup text and Billing notice should say so.
+- The console's API Keys page also issues Management API keys for Dedicated
+  Inference, separate from inference keys
+  (https://inference-docs.cerebras.ai/dedicated/management-api). Check what
+  the probe answers for one. If it is 200, add a setup sentence telling users
+  to paste an inference key.
+- Confirm `qwen-3.8-27b` answers on `POST /v1/completions`.
+- Look at the response headers of a 200 and a 429 completion. If Cerebras
+  sends rate-limit or `Retry-After` headers, a reviewer may want to forward
+  them.
 
 ## Icons
 
