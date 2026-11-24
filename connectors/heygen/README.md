@@ -73,9 +73,24 @@ Community submission (`owner: community`), not submitted by HeyGen.
   effects. Each has a reference page except `GET /v3/assets/search`
   (semantic search of public images and icons), which is in the OpenAPI spec
   with scope `assets:read` but marked `x-excluded` and absent from the
-  reference and the permissions table. The matcher cannot exclude it without
-  listing it, so it stays reachable; a reviewer may prefer a `path_param`
-  that refuses the literal `search`.
+  reference and the permissions table. The Scope notice names all six as
+  read-only routes that are also reachable. Whether to declare them in
+  `allowed_paths` or refuse them with a `path_param` is a reviewer question
+  (see Verification).
+- Callbacks and upload destinations: `POST /v3/videos`, `/v3/video-agents`,
+  `/v3/models/videos`, `/v3/models/avatars` and `/v3/video-translations`
+  accept `callback_url` in the body, which makes HeyGen POST that job's
+  completion event to any URL the caller names
+  (https://developers.heygen.com/docs/webhooks, "Using Callbacks Instead";
+  the `avatar_video.success` payload in
+  https://developers.heygen.com/docs/webhook-events carries a presigned
+  download `url`). `output_upload` on `POST /v3/videos` and `output_uploads`
+  on `POST /v3/video-translations` make HeyGen PUT the finished files to
+  presigned S3, Google Cloud Storage or Azure URLs the caller supplies; the
+  spec says this is available to enabled workspaces, and others get 403
+  `output_upload_not_enabled`. A manifest cannot filter body fields, so
+  these stay reachable and the Scope notice discloses them. The webhook
+  endpoint routes (`/v3/webhooks/*`) themselves are not forwarded.
 - Forwarded headers: `Idempotency-Key` on requests, which the spec documents
   on `POST /v3/videos`, `/v3/models/videos`, `/v3/models/avatars`,
   `/v3/video-translations` and `/v3/assets` so a retried create returns the
@@ -83,8 +98,18 @@ Community submission (`owner: community`), not submitted by HeyGen.
   it too; Video Agent and TTS do not take it). `Retry-After`
   (on 429, per https://developers.heygen.com/docs/usage-limits) and
   `X-HeyGen-Request-Id` (on every response, per
-  https://developers.heygen.com/docs/error-codes) are passed back. The
-  `X-RateLimit-*` headers are not.
+  https://developers.heygen.com/docs/error-codes) are passed back, and so
+  is `X-Request-Id`, which the spec documents on `POST /v3/models/audio/tts`
+  responses as the id of the generated audio that `previous_request_ids`
+  and `next_request_ids` take. The `X-RateLimit-*` headers are not. Speech
+  capacity 429s carry no `Retry-After` (error-codes,
+  `rate_limit_exceeded`), so the 429 message says to back off when the
+  header is missing.
+- Uploads: HeyGen accepts up to 50 MB (32 MB for an image) on
+  `POST /v3/assets`, but the Sprites gateway caps request bodies at
+  8,000,000 bytes, so the usage note gives the gateway's cap and points to
+  public HTTPS URLs for larger files. The spec describes the `url` in the
+  upload response as the public URL of the asset; the usage note says so.
 - Timeouts: creates return an id at once and the job runs in the
   background, polled on the same host. `POST /v3/models/audio/tts` holds the
   request open until the audio is ready and has no timeout parameter, so a
@@ -100,8 +125,10 @@ Community submission (`owner: community`), not submitted by HeyGen.
   access errors, 404, 429 `rate_limit_exceeded` or `quota_exceeded`, 5xx. A
   wrong key is 401, so the probe needs no `errors` rule. A real key whose
   account still needs phone verification can answer 403
-  `phone_verification_required`; that is not a bad key, so it is left
-  unclassified.
+  `phone_verification_required` (the error-codes page says this "also
+  applies during API-key authentication, including requests that do not
+  consume credits"); that is not a bad key, so it is left unclassified, and
+  the 403 message mentions phone verification as well as scopes.
 - Rate limits (https://developers.heygen.com/docs/usage-limits): per user
   and per path; reads 300 a minute, writes 10 a second, status polling 500 a
   minute, `POST /v3/assets` 30 a minute and TTS 30 a minute on self-serve
@@ -111,8 +138,10 @@ Community submission (`owner: community`), not submitted by HeyGen.
   mostly per second of output; the rate table is on
   https://platform.heygen.com/pricing behind sign-in, so the Billing notice
   names which routes spend balance and links there instead of quoting rates.
-  `heygen-voice-1-turbo-free` is free until November 30, 2026
-  (https://developers.heygen.com/docs/models/heygen-voice).
+  HeyGen's docs offer `heygen-voice-1-turbo-free` free for a limited time
+  (https://developers.heygen.com/docs/models/heygen-voice gives the end
+  date), so the manifest calls it free only while HeyGen offers it, links
+  that page and carries no date.
   `GET /v3/users/me` reports one of three `billing_type`s
   (https://developers.heygen.com/user-profile): `wallet` (prepaid),
   `subscription` or `usage_based` (metered, with an optional spending cap),
@@ -136,7 +165,10 @@ Community submission (`owner: community`), not submitted by HeyGen.
     are left out to keep the first version small and reviewable.
   - Streaming speech (`/v3/models/audio/tts/stream`) and WebSocket input
     tokens, and Video Agent chat follow-ups and stop
-    (`POST /v3/video-agents/:session_id`, `/stop`).
+    (`POST /v3/video-agents/:session_id`, `/stop`). The spec says a
+    `generate` session can also pause at `waiting_for_input`, which only
+    that reply route can continue, so the Video Agent example says to stop
+    polling on `failed` or `waiting_for_input`.
   - The retired v1 and v2 routes
     (https://developers.heygen.com/endpoint-version-comparison).
 
@@ -151,6 +183,27 @@ control path, `GET /v3/nonexistent-route`, answered 404. **The probe has not
 been run with a real key**; the assertions follow the documented response
 schema. `node scripts/check-connectors.mjs heygen` and the ajv schema check
 pass.
+
+Open questions for a reviewer:
+
+- Run the probe with a real key, including one from a new account with no
+  balance, and confirm `data.username` is a string.
+- Probe route: `GET /v3/users/me` needs `account:read` and can answer 403
+  `phone_verification_required` on an account that has not verified a
+  phone number. https://developers.heygen.com/docs/api-key says
+  `GET /v3/api_keys/self` "works with any key regardless of its scopes" and
+  returns only the key's name, scope mode, scopes and expiry. It was left
+  out as key management; decide whether it is the better probe.
+- Confirm that `account:read` can be selected when creating a custom-scope
+  key at platform.heygen.com/api-keys, since the setup text tells users to
+  include it. This needs a HeyGen account.
+- The six read-only `GET` paths that `:param` also matches
+  (`/v3/videos/statuses`, `/v3/assets/statuses`, `/v3/assets/search`,
+  `/v3/video-translations/statuses`, `/v3/video-translations/proofreads`,
+  `/v3/avatars/look-templates`): declare them in `allowed_paths`, or refuse
+  them with a `path_param`. Either way, update the Scope notice to match.
+- Whether to forward `POST /v3/video-agents/:session_id` so a paused Video
+  Agent session can be answered from a Sprite.
 
 ## Icons
 
