@@ -1,0 +1,119 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "friendliai",
+  "display_name": "FriendliAI",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.friendli.ai",
+  "description": "OpenAI-compatible inference on FriendliAI Model APIs and Dedicated Endpoints",
+  "long_description": "Bring a FriendliAI Personal API key (`flp_...`); the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists at most one of your Dedicated Endpoints (GET /dedicated/beta/endpoint), which runs no inference and costs nothing. A Sprite can then run chat completions, Responses, Anthropic-style Messages, text completions and tokenization on serverless Model APIs (charged per token), the same calls plus embeddings, image generation and text classification on your own Dedicated Endpoints, list serverless models, and read the status of your Dedicated Endpoints. Requests use your default team. Creating, updating, sleeping, waking, restarting, terminating or deleting endpoints, datasets, files, team usage and cost, API keys and account settings are not forwarded.",
+  "website_url": "https://friendli.ai/suite/~/setting/keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/serverless/v1/models"},
+    {"methods": ["POST"], "pattern": "/serverless/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/serverless/v1/responses"},
+    {"methods": ["POST"], "pattern": "/serverless/v1/messages"},
+    {"methods": ["POST"], "pattern": "/serverless/v1/completions"},
+    {"methods": ["POST"], "pattern": "/serverless/v1/tokenize"},
+    {"methods": ["POST"], "pattern": "/serverless/v1/detokenize"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/responses"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/messages"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/completions"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/tokenize"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/detokenize"},
+    {"methods": ["POST"], "pattern": "/dedicated/v1/images/generations"},
+    {"methods": ["POST"], "pattern": "/dedicated/classify"},
+    {"methods": ["GET"], "pattern": "/dedicated/beta/endpoint"},
+    {"methods": ["GET"], "pattern": "/dedicated/beta/endpoint/:endpoint_id"},
+    {"methods": ["GET"], "pattern": "/dedicated/beta/endpoint/:endpoint_id/status"}
+  ],
+  "forward_response_headers": ["x-request-id"],
+  "probe": {
+    "method": "GET",
+    "path": "/dedicated/beta/endpoint?limit=1",
+    "label": "dedicated endpoints",
+    "expect": [
+      ["data", "map"],
+      ["detail", "absent"]
+    ]
+  },
+  "examples": [
+    {"title": "List serverless models and their prices", "path": "/serverless/v1/models"},
+    {
+      "title": "Serverless chat completion (charged per token)",
+      "method": "POST",
+      "path": "/serverless/v1/chat/completions",
+      "json": {
+        "model": "zai-org/GLM-5.3",
+        "messages": [{"role": "user", "content": "Explain serverless inference in two sentences."}],
+        "max_tokens": 256,
+        "stream": false
+      },
+      "notes": ["Check `GET /serverless/v1/models` for current model IDs. For long outputs set `stream: true` so tokens arrive before the gateway's 120-second response deadline."]
+    },
+    {
+      "title": "Serverless Responses API call (charged per token)",
+      "method": "POST",
+      "path": "/serverless/v1/responses",
+      "json": {"model": "zai-org/GLM-5.3", "input": "Name three uses of a persistent sandbox.", "max_output_tokens": 256}
+    },
+    {
+      "title": "Chat with your Dedicated Endpoint; replace ENDPOINT_ID (billed as GPU time while the endpoint runs)",
+      "method": "POST",
+      "path": "/dedicated/v1/chat/completions",
+      "json": {
+        "model": "ENDPOINT_ID",
+        "messages": [{"role": "user", "content": "Hello!"}],
+        "max_tokens": 256,
+        "stream": false
+      },
+      "notes": ["`model` is the endpoint ID from `GET /dedicated/beta/endpoint`, or `ENDPOINT_ID:ADAPTER_ROUTE` for an adapter. A sleeping endpoint wakes on the request and starts billing again."]
+    },
+    {
+      "title": "Embeddings from your Dedicated Endpoint; replace ENDPOINT_ID (billed as GPU time while the endpoint runs)",
+      "method": "POST",
+      "path": "/dedicated/v1/embeddings",
+      "json": {"model": "ENDPOINT_ID", "input": "Sprites run applications in isolated environments."}
+    },
+    {"title": "List your Dedicated Endpoints (free)", "path": "/dedicated/beta/endpoint"},
+    {"title": "Read a Dedicated Endpoint's status; replace ENDPOINT_ID (free)", "path": "/dedicated/beta/endpoint/ENDPOINT_ID/status"}
+  ],
+  "messages": {
+    "401": "FriendliAI rejected the key; it may be revoked or expired. Replace it in this connection",
+    "404": "FriendliAI could not find that model or endpoint; check GET /serverless/v1/models or GET /dedicated/beta/endpoint",
+    "422": "FriendliAI could not validate the request body; see detail for the field",
+    "429": "FriendliAI rate limit reached; your tier's requests-per-minute limit rises with lifetime spend",
+    "provider_unreachable": "Could not reach FriendliAI; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["friendliai", "friendli", "llm", "language models", "serverless", "dedicated endpoints", "embeddings", "openai-compatible", "anthropic messages"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-blue-500/20",
+  "presentation": {
+    "tagline": "FriendliAI serverless and dedicated inference from a Sprite without putting your key on it.",
+    "setup": "Sign in to Friendli Suite, open Settings → API Keys (friendli.ai/suite/~/setting/keys) and click Create API Key. Copy the key (it starts with `flp_`) when it is shown; you cannot see it again.",
+    "key_label": "Personal API key",
+    "key_placeholder": "flp_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key calls `GET /dedicated/beta/endpoint?limit=1`, which runs no inference and costs nothing. Serverless Model APIs calls are charged per input and output token at the model's price (`GET /serverless/v1/models` lists them); tokenize, detokenize and the endpoint reads are free. Dedicated Endpoints are billed per GPU-second for every running replica, whether or not it serves requests, and a request to a sleeping endpoint wakes it. The key check does not verify your credit balance."
+      },
+      {
+        "title": "Scope",
+        "body": "Forwarded: `GET /serverless/v1/models`; `POST` `/serverless/v1/` `chat/completions`, `responses`, `messages`, `completions`, `tokenize` and `detokenize`; `POST` `/dedicated/v1/` `chat/completions`, `responses`, `messages`, `completions`, `embeddings`, `tokenize`, `detokenize` and `images/generations`, plus `POST /dedicated/classify`; `GET /dedicated/beta/endpoint`, `GET /dedicated/beta/endpoint/:endpoint_id` and `GET /dedicated/beta/endpoint/:endpoint_id/status`. Not forwarded: endpoint create, update, delete, sleep, wake, restart and terminate, tool-assisted chat, audio transcription, image edits, chat render, knowledge retrieval, datasets, files, team usage and cost, and API keys. The `X-Friendli-Team` header is not forwarded, so requests use your default team."
+      }
+    ],
+    "usage_notes": [
+      "Sprites waits 120 seconds for response headers and FriendliAI has no request timeout parameter, so set `stream: true` (Server-Sent Events) or a modest `max_tokens` for long generations, especially with reasoning models.",
+      "Error bodies are `{\"detail\": \"...\"}`, sometimes with a `_status` field; a bad key answers 401."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
