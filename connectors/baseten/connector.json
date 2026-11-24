@@ -102,7 +102,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key lists models with `GET /v1/models` and bills nothing. Chat Completions, Responses, Messages and System One requests bill input and output tokens at each model's per-million-token price; cached input tokens are discounted, Fast model variants and System One's `priority` tier cost more, and server-side web search passes the search provider's cost through. If your workspace enforces a monthly budget, Baseten rejects Model API requests once it is reached."
+        "body": "Saving or testing the key lists models with `GET /v1/models` and bills nothing. Chat Completions, Responses, Messages and System One requests bill input and output tokens at each model's per-million-token price; cached input tokens are discounted, Fast model variants have their own prices, System One's `flex` tier costs about 90% of the default price and `priority` about 2x, and server-side web search passes the search provider's cost through. If your workspace enforces a monthly budget, Baseten rejects Model API requests once it is reached."
       },
       {
         "title": "Scope",
