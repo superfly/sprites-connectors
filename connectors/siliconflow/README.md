@@ -9,7 +9,9 @@ Community submission (`owner: community`), not submitted by SiliconFlow.
   reference page declares the server `https://api.siliconflow.com/v1` and
   `bearerAuth` ("Bearer <your api key>"), so the base URL is the origin and
   every route carries `/v1`. This connector is for the international platform
-  only; `siliconflow.cn` uses a different host and separate keys.
+  only; `siliconflow.cn` uses a different host (`api.siliconflow.cn`).
+  Whether that platform's keys are rejected here is untested (see
+  Verification), so the manifest only says the China platform is not covered.
 - Probe: `GET /v1/user/info`, "Retrieve user info",
   https://docs.siliconflow.com/en/api-reference/userinfo/get-user-info.
   Documented response: `{"code": 20000, "message": "OK", "status": true,
@@ -49,6 +51,8 @@ Community submission (`owner: community`), not submitted by SiliconFlow.
   `{"requestId": ...}` in the body) answers `InQueue`, `InProgress`,
   `Succeed` or `Failed`. The submit page says the result is kept for 10
   minutes, so poll promptly. Image and video URLs expire after an hour.
+  The image example sets `image_size`: the `Qwen-Image` schema does not list
+  it as required, but its description says "(Required)".
 - Timeouts: no endpoint documents a request timeout parameter. Sprites
   waits 120 seconds for response headers, so the chat example notes that
   long answers and reasoning models should use `stream: true` (supported on
@@ -69,15 +73,26 @@ Community submission (`owner: community`), not submitted by SiliconFlow.
   `deepseek-ai/DeepSeek-V3.2`. No rate-limit or retry response headers are
   documented, so none are forwarded.
 - Billing: pay-as-you-go against the account balance at the per-model prices
-  on https://cloud.siliconflow.com/models; some models are free. Speech is
-  billed by the UTF-8 byte count of the input text
-  (https://docs.siliconflow.com/en/userguide/capabilities/text-to-speech).
+  on https://www.siliconflow.com/pricing (https://cloud.siliconflow.com/models
+  needs a login). Speech is billed by the UTF-8 byte count of the input text
+  (https://docs.siliconflow.com/en/userguide/capabilities/text-to-speech);
+  the pricing page gives transcription per minute of audio. The rate-limit
+  docs mention free models, but the pricing page lists none, so the Billing
+  notice does not promise any.
+- Request size: the Sprites gateway caps direct uploads at 8,000,000 bytes
+  (8 MB) and returns HTTP 413 for larger request bodies. That limits
+  `POST /v1/audio/transcriptions` files and base64 images in chat and video
+  requests; a usage note and the `413` message say so.
 - Left out on purpose: `POST /v1/uploads/audio/voice` and
   `POST /v1/audio/voice/deletions` (they create and delete stored reference
   voices; a Sprite can still list existing voices and use system voices),
-  `POST /v1/systemone` (documented as Alpha), and everything the API
-  reference does not document: API key management, billing, bills and
-  account settings, which are only in the cloud.siliconflow.com console.
+  `POST /v1/systemone` (documented as Alpha), `/v1/files` and `/v1/batches`
+  (file upload and batch jobs; they are in the published OpenAPI file,
+  https://docs.siliconflow.com/cn/api-reference/openapi.yaml, and answer 401
+  to a made-up key, but have no page in the English API reference), and
+  everything the API reference does not document: API key management,
+  billing, bills and account settings, which are only in the
+  cloud.siliconflow.com console.
 
 ## Verification
 
@@ -90,6 +105,21 @@ the allowed paths exist. The probe has not been run with a real key; the
 assertions follow the documented user-info response.
 `node scripts/check-connectors.mjs siliconflow` and the ajv schema check
 pass.
+
+Still open for a reviewer with a real key:
+
+- Run the probe with a key from cloud.siliconflow.com, ideally also on an
+  account with no balance, and confirm the 200 body matches the assertions.
+- Try a key from the China platform (`siliconflow.cn`). The two hosts
+  resolve to different backends, but no SiliconFlow page says that a `.cn`
+  key is rejected at `api.siliconflow.com`, and it has not been tried.
+- Check what an overdue or zero-balance account gets on an inference route.
+  The international release notes (2026-03-26) say model services are
+  unavailable while a balance is negative but give no status code; the
+  China platform's error docs list 402 for this, the international error
+  docs do not. The manifest has no `402` message and its `403` message names
+  only real-name verification; adjust them to what the API returns.
+- Decide whether `/v1/files` and `/v1/batches` should be forwarded.
 
 ## Icons
 
