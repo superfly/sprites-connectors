@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.brightdata.com",
   "description": "Web Unlocker, SERP and Scraper API requests for agents",
-  "long_description": "Bring a Bright Data API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account status (GET /status), which is not a billed product request. A Sprite can then fetch pages through a Web Unlocker zone and run searches through a SERP API zone (POST /request, or the async /unblocker/req and /serp/req with their get_result polls), run pre-built scrapers synchronously or as async jobs, follow a job's progress, download or cancel its snapshot, and list its zones to find their names. Unlocker and SERP requests and scraper records are billed to your Bright Data account. Proxy and Scraping Browser access (username and password on brd.superproxy.io), zone configuration, billing, API keys and users are not forwarded.",
+  "long_description": "Bring a Bright Data API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account status (GET /status), which is not a billed product request. A Sprite can then fetch pages through a Web Unlocker zone and run searches through a SERP API zone (POST /request, or the async /unblocker/req and /serp/req with their get_result polls), run pre-built scrapers synchronously or as async jobs, follow a job's progress, download or cancel its snapshot, and list its zones to find their names. Unlocker and SERP requests and scraper records are billed to your Bright Data account. Async submits can name a webhook that Bright Data notifies, and a scraper job can name a webhook or storage destination that receives its results, so a Sprite can have Bright Data send data to a URL or bucket it chooses. Proxy and Scraping Browser access (username and password on brd.superproxy.io), zone configuration, billing, API keys and users are not forwarded.",
   "website_url": "https://brightdata.com/cp/setting/users",
   "auth": "bearer",
   "allowed_paths": [
@@ -108,7 +108,7 @@
     }
   ],
   "messages": {
-    "400": "Bright Data rejected the request (%{status}); check the zone name and the body",
+    "400": "Bright Data rejected the request (%{status}); check the zone name, the dataset id and the body",
     "404": "Bright Data could not find that dataset, snapshot or result",
     "429": "Bright Data rate limit reached; wait for Retry-After before retrying, because 25 rate-limited responses in 5 minutes block the IP for an hour",
     "provider_unreachable": "Could not reach Bright Data; retry later"
@@ -121,7 +121,7 @@
   "icon_bg_class": "bg-blue-500/20",
   "presentation": {
     "tagline": "Unlock pages, search Google and run scrapers from a Sprite without putting your Bright Data key on it.",
-    "setup": "As an account admin, open Account settings at brightdata.com/cp/setting/users, click Add API key, choose the User permission level and an expiry, and copy the key (it is shown once). Web Unlocker and SERP requests also need a zone of that type, created under Web Access.",
+    "setup": "As an account admin, open Account settings at brightdata.com/cp/setting/users, click Add API key, choose the User permission level and an expiry, and copy the key (it is shown once). Web Unlocker and SERP requests also need a zone of that type, created under Web Access. To use the async routes, turn on Asynchronous requests in that zone's Advanced settings.",
     "key_label": "API key",
     "notices": [
       {
@@ -130,13 +130,14 @@
       },
       {
         "title": "Scope",
-        "body": "Only `POST /request`, `POST /unblocker/req`, `GET /unblocker/get_result`, `POST /serp/req`, `GET /serp/get_result`, `POST /datasets/v3/scrape`, `POST /datasets/v3/trigger`, `GET /datasets/v3/progress/:snapshot_id`, `GET /datasets/v3/snapshot/:snapshot_id`, `POST /datasets/v3/snapshot/:snapshot_id/cancel`, `GET /datasets/v3/snapshots`, `GET /zone/get_active_zones` and `GET /status` are forwarded. Zone creation and configuration, IPs and passwords, billing, cost reports, API keys and users are not, nor are the proxy and Scraping Browser endpoints on brd.superproxy.io."
+        "body": "Only `POST /request`, `POST /unblocker/req`, `GET /unblocker/get_result`, `POST /serp/req`, `GET /serp/get_result`, `POST /datasets/v3/scrape`, `POST /datasets/v3/trigger`, `GET /datasets/v3/progress/:snapshot_id`, `GET /datasets/v3/snapshot/:snapshot_id`, `POST /datasets/v3/snapshot/:snapshot_id/cancel`, `GET /datasets/v3/snapshots`, `GET /zone/get_active_zones` and `GET /status` are forwarded. Zone creation and configuration, IPs and passwords, billing, cost reports, API keys and users are not, nor are the proxy and Scraping Browser endpoints on brd.superproxy.io. `POST /unblocker/req` and `POST /serp/req` accept a `webhook_url` that Bright Data calls when the job is done, and `POST /datasets/v3/trigger` accepts a webhook `endpoint` and a `deliver` storage destination that receive the results. A Sprite can therefore have Bright Data send data to a URL or bucket it chooses."
       }
     ],
     "usage_notes": [
-      "The gateway waits 120 seconds for response headers. Web Unlocker can take longer on pages that need rendering, so send those through `POST /unblocker/req` and poll `GET /unblocker/get_result`. `POST /datasets/v3/scrape` returns 202 with a `snapshot_id` after 1 minute on its own.",
+      "The gateway waits 120 seconds for response headers. Web Unlocker can take longer on pages that need rendering, so send those through `POST /unblocker/req` and poll `GET /unblocker/get_result`. Bright Data's docs say to turn on Asynchronous requests in the zone's Advanced settings before using the async routes; this connector cannot change zone settings. `POST /datasets/v3/scrape` returns 202 with a `snapshot_id` after 1 minute on its own.",
       "On `POST /request` the outer status is 200 once the unlocker accepts the request; read `x-brd-status-code`, `x-brd-error` and `x-brd-error-code` for the target's result. A wrong key is 401 and an unknown zone is 400.",
-      "Bright Data blocks an IP for an hour after 25 responses with status 429 in 5 minutes. Back off on the first 429."
+      "Bright Data blocks an IP for an hour after 25 responses with status 429 in 5 minutes. Back off on the first 429.",
+      "`POST /datasets/v3/scrape` and `POST /datasets/v3/trigger` need a `dataset_id`, and no forwarded route lists them. Bright Data publishes the id of every pre-built scraper at docs.brightdata.com/scrapers.json and in the scraper library in its control panel."
     ],
     "mark_svg": {"file": "mark.svg"}
   }

@@ -17,14 +17,15 @@ Community submission (`owner: community`), not submitted by Bright Data.
   https://docs.brightdata.com/api-reference/account-management-api/Get_account_status.
   It returns an object, `{"status", "customer", "can_make_requests",
   "auth_fail_reason", "ip"}`, takes no parameters and changes nothing. It is
-  the only parameter-free account read that returns a JSON object without
-  needing billing permission: `GET /zone/get_all_zones` (the candidate's
+  the only parameter-free account read documented to return a JSON object
+  that is not a billing read: `GET /zone/get_all_zones` (the candidate's
   suggestion) and `GET /zone/get_active_zones` return JSON arrays, which the
   probe format cannot assert on, and `GET /customer/balance` and
-  `GET /trials/free_tier` need the `billing.read` permission (Admin or
-  Finance keys) and expose billing data. No Bright Data page lists account
-  management reads as billed. The probe asserts `status` and `customer` are
-  non-empty strings and `error` (the field in Bright Data's JSON error
+  `GET /trials/free_tier` expose billing data. The docs say
+  `GET /trials/free_tier` needs the `billing.read` permission (Admin or
+  Finance keys); the balance page names no permission. No Bright Data page
+  lists account management reads as billed. The probe asserts `status` and
+  `customer` are non-empty strings and `error` (the field in Bright Data's JSON error
   bodies) is absent. A wrong key is 401 with the plain-text body
   `Invalid credentials`, so no `errors` rule is needed.
   **Open question for a reviewer with a key:** the docs do not say which
@@ -34,8 +35,11 @@ Community submission (`owner: community`), not submitted by Bright Data.
   looks like a proxy-auth check). Run the probe with a User-level key before
   merging; if it is refused, `GET /zone/get_active_zones` cannot replace it
   (array), so the fallback would be to drop User-level keys from the setup
-  text.
-- Routes, each answered 401 to a made-up key (see Verification):
+  text. The billing pages say a key without the needed permission gets HTTP
+  403 with a plain-text message; if `/status` does the same, the probe
+  reports it as a failed validation, not as a wrong key, and no `errors`
+  rule should map that 403 to `invalid_api_key`.
+- Routes (see Verification for what a made-up key does and does not show):
   - `POST /request`, Web Unlocker:
     https://docs.brightdata.com/api-reference/rest-api/unlocker/unlock-website,
     and SERP API (same path, a SERP zone):
@@ -48,10 +52,25 @@ Community submission (`owner: community`), not submitted by Bright Data.
   - `POST /serp/req` and `GET /serp/get_result`:
     https://docs.brightdata.com/api-reference/rest-api/serp/request and
     https://docs.brightdata.com/api-reference/rest-api/serp/get-results.
+  - Bright Data's docs say to turn on "Asynchronous requests" under the
+    zone's Advanced settings before using the four async routes
+    (https://docs.brightdata.com/products/serp-api/asynchronous-requests);
+    zone configuration is not forwarded, so the setup text and a usage note
+    tell the user to do it. What a zone without it answers was not tested.
+    Both submits accept `webhook_url`,
+    `webhook_method` and `webhook_data`, so a Sprite can have Bright Data
+    send the job status notification to a URL it chooses. The Scope notice
+    says so.
   - `POST /datasets/v3/scrape`:
     https://docs.brightdata.com/api-reference/scrapers/synchronous-requests.
   - `POST /datasets/v3/trigger`:
     https://docs.brightdata.com/api-reference/rest-api/scraper/asynchronous-requests.
+    It accepts a webhook `endpoint` (with `auth_header`) in the query and a
+    `deliver` storage destination in the body
+    (https://docs.brightdata.com/products/scrapers/scrapers-library/data-delivery),
+    so a Sprite can have Bright Data push a job's results to a URL or bucket
+    it chooses. A connector cannot filter bodies or query strings, so the
+    Scope notice discloses this instead.
   - `GET /datasets/v3/progress/:snapshot_id`:
     https://docs.brightdata.com/api-reference/scrapers/management-apis/monitor-progress.
   - `GET /datasets/v3/snapshot/:snapshot_id`:
@@ -111,7 +130,8 @@ Community submission (`owner: community`), not submitted by Bright Data.
 - Rate limits: Scraper API allows 5,000 running jobs per dataset and blocks
   an IP for an hour after 25 responses with status 429 in 5 minutes
   (scrapers error codes page). Sprites shares egress IPs, so the 429 message and a
-  usage note tell users to back off on the first 429. Unfunded accounts have
+  usage note tell users to back off on the first 429. That is advice, not a
+  limit; see the open questions under Verification. Unfunded accounts have
   a default 1,000 requests a minute on Unlocker zones
   (https://docs.brightdata.com/proxy-networks/errorCatalog).
 - Left out on purpose: zone creation, deletion and configuration
@@ -120,7 +140,14 @@ Community submission (`owner: community`), not submitted by Bright Data.
   billing and cost reads and writes (`/customer/balance`, `/customer/bw`,
   `/billing/*`, `/costs/export/*`, `/pricing_plans`, `/trials/free_tier`,
   `/zone/cost`, `/zone/bw`); `PUT /status`; snapshot deliver, pause, resume
-  and rerun, which push data to outside storage or start more billed work;
+  and rerun, which re-deliver finished snapshots or start more billed work
+  (leaving out deliver does not stop outside delivery, because
+  `POST /datasets/v3/trigger` takes `endpoint` and `deliver` itself);
+  `GET /datasets/v3/scrapers`
+  (https://docs.brightdata.com/api-reference/scrapers/management-apis/get-scrapers),
+  a read-only list of scraper `dataset_id`s and input fields that a reviewer
+  may want to add, since no forwarded route lists dataset ids and a usage
+  note points at https://docs.brightdata.com/scrapers.json instead;
   Scraper Studio (`/dca/*`), Dataset Marketplace (`/datasets/filter`,
   `/datasets/snapshots/*`), Web Archive and Business Search, which are
   separate products a reviewer can add later; the proxy and Scraping Browser
@@ -132,12 +159,33 @@ On 2026-11-24 `BOGUS=not-a-real-key node scripts/probe.mjs bright_data --key-env
 returned HTTP 401 with the text body `Invalid credentials` and was classified
 `invalid_api_key`. With the same made-up key, every allowed route answered
 401 (`POST /request` with `Invalid token`, the others with
-`Invalid credentials`), while an unknown path (`GET /nonexistent/path`)
-answered 404, so the API matches the route before checking the key and each
-allowed path exists. **The probe has not been run with a real key**; the
+`Invalid credentials`). Unknown paths outside `/datasets/` answer 404
+(`GET /nonexistent/path`, `GET /zone/nonexistent_zzz`,
+`GET /serp/nonexistent_zzz`), so for the Unlocker, SERP, zone and status
+routes the 401 shows the path exists. Under `/datasets/` the key is checked
+first: `GET /datasets/v3/nonexistent_zzz` also answers 401, so the six
+`/datasets/v3/*` routes are confirmed by Bright Data's docs only.
+**The probe has not been run with a real key**; the
 assertions follow the documented `AccountStatus` schema.
 `node scripts/check-connectors.mjs bright_data` and the ajv schema check
 pass.
+
+Open questions for a reviewer:
+
+- Run the probe with a real User-level key (see Probe above). The docs name
+  no permission level for `GET /status` or `GET /zone/get_active_zones`.
+- Check the setup text in a real account. The authentication page says a
+  default key is created with the account, that each user can generate only
+  one API key, and that the number of keys cannot exceed the number of
+  users. A single-user account may therefore have no "Add API key" to click
+  and may have to refresh its existing key instead.
+- Shared egress IPs. The scrapers error codes page says a blocked IP is
+  refused on every API request for an hour, and that workers sharing one
+  outbound IP count toward the same 25-in-5-minutes threshold. If the
+  gateway's egress IPs are shared between users, one Sprite could lock
+  every Sprites user out of Bright Data, key checks included. Not tested;
+  the connector only tells users to back off.
+- Whether to add `GET /datasets/v3/scrapers` (see "Left out on purpose").
 
 ## Icons
 
