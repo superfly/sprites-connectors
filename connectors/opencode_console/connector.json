@@ -1,0 +1,109 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "opencode_console",
+  "display_name": "OpenCode Console",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://opencode.ai",
+  "description": "Pay-as-you-go model inference through OpenCode Console's OpenAI, Anthropic and Gemini-compatible APIs",
+  "long_description": "Bring an OpenCode Console API key (oc_sk_...); the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists the models its workspace can use (GET /console/api/v1/models), which costs nothing. A Sprite can then call paid Console models through OpenAI Chat Completions, OpenAI Responses, Anthropic Messages and Gemini generateContent, create embeddings, and list models. Every inference request is charged to the workspace balance at the model's price. OpenCode Go routes, the /images generation and edit routes, System One decision models, connected-provider routes and every key, member, budget, billing and workspace endpoint are not forwarded.",
+  "website_url": "https://opencode.ai/console",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/console/api/v1/models"},
+    {"methods": ["GET"], "pattern": "/inference/v1/models"},
+    {"methods": ["POST"], "pattern": "/inference/openai/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/inference/openai/v1/responses"},
+    {"methods": ["POST"], "pattern": "/inference/openai/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/inference/anthropic/v1/messages"},
+    {"methods": ["POST"], "pattern": "/inference/google/v1beta/models/:model_method"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._-]+:(?:generateContent|streamGenerateContent)\\z",
+  "forward_response_headers": ["x-opencode-log-id", "retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/console/api/v1/models",
+    "label": "workspace models",
+    "expect": [
+      ["opencode", "map"],
+      ["opencode.models", "map"],
+      ["error", "absent"],
+      ["_tag", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List the models this key's workspace can use",
+      "path": "/console/api/v1/models"
+    },
+    {
+      "title": "Chat completion with GLM 5.3 Flash (spends workspace credits)",
+      "method": "POST",
+      "path": "/inference/openai/v1/chat/completions",
+      "json": {"model": "glm-5.3-flash", "messages": [{"role": "user", "content": "Say hi"}], "max_tokens": 256},
+      "notes": ["`usage.cost` in the response is what the request cost in US dollars. Free-tier models answer 403 outside OpenCode; use a paid model."]
+    },
+    {
+      "title": "Responses API with GPT 6 Luna (spends workspace credits)",
+      "method": "POST",
+      "path": "/inference/openai/v1/responses",
+      "json": {"model": "gpt-6-luna", "input": "Say hi"}
+    },
+    {
+      "title": "Anthropic Messages with Claude Haiku 5.5 (spends workspace credits)",
+      "method": "POST",
+      "path": "/inference/anthropic/v1/messages",
+      "json": {"model": "claude-haiku-5-5", "max_tokens": 256, "messages": [{"role": "user", "content": "Say hi"}]}
+    },
+    {
+      "title": "Gemini generateContent with Gemini 3.5 Flash Lite (spends workspace credits)",
+      "method": "POST",
+      "path": "/inference/google/v1beta/models/gemini-3.5-flash-lite:generateContent",
+      "json": {"contents": [{"parts": [{"text": "Say hi"}]}]},
+      "notes": ["Use `:streamGenerateContent?alt=sse` instead of `:generateContent` to stream."]
+    },
+    {
+      "title": "Create embeddings (spends workspace credits)",
+      "method": "POST",
+      "path": "/inference/openai/v1/embeddings",
+      "json": {"model": "text-embedding-3-small", "input": ["hello world", "goodbye"]}
+    }
+  ],
+  "messages": {
+    "400": "OpenCode Console rejected the request (%{status}); check the model ID and body",
+    "402": "OpenCode Console balance is empty, or the invoiced credit limit is reached or an invoice is overdue; add credits in the Console",
+    "403": "This OpenCode Console key lacks permission for this request; Read only keys and restricted keys without Models › Request cannot call models, and free-tier models only work inside OpenCode",
+    "429": "OpenCode Console budget reached (Policy budget exceeded); an owner or admin can raise it, or it resets on the 1st of the month",
+    "unexpected_response": "Unexpected OpenCode Console response; the key could not be verified. The key may lack Models › Read, or an owner or admin may have disabled OpenCode models for this workspace",
+    "provider_unreachable": "Could not reach OpenCode Console; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["opencode", "opencode console", "llm", "language models", "inference gateway", "chat completions", "responses", "anthropic messages", "gemini", "embeddings", "glm", "deepseek", "kimi"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Call OpenCode Console models from a Sprite without putting your oc_sk_ key on it.",
+    "setup": "In the OpenCode Console (opencode.ai/console), add credits, then open Account › Personal API keys and click Add API key, or create a key for a service account under Settings › Service accounts. A key with Restricted permissions and Models set to Request is enough; service account keys default to All, so choose Restricted when you create one. A Read only key, or a restricted key with Models set to Read, can list models but not call them, so it passes the key check and inference then answers 403. If the workspace enforces SSO, a personal key works only while you have an active SSO session unless you are an owner, so use a service account key there. The key starts with `oc_sk_` and is shown once.",
+    "key_label": "API key",
+    "key_placeholder": "oc_sk_...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /console/api/v1/models` and costs nothing; listing models is free too. Every chat completion, response, message, Gemini and embeddings request is charged to the workspace balance at the model's per-token price (for example GLM 5.3 Flash at $0.15 input and $0.50 output per 1M tokens), and counts toward the member's or service account's budget. The Gemini route also serves the Nano Banana 2.1 image model, which charges $30 per 1M image output tokens (about $0.034 per 1K image). Requests fail with 402 when the balance is empty and 429 when a budget is reached. Each response reports its cost in `usage.cost` (`usageMetadata` for Gemini)."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /console/api/v1/models`, `GET /inference/v1/models`, `POST /inference/openai/v1/chat/completions`, `POST /inference/openai/v1/responses`, `POST /inference/openai/v1/embeddings`, `POST /inference/anthropic/v1/messages` and `POST /inference/google/v1beta/models/MODEL:generateContent` (or `:streamGenerateContent`) are forwarded. OpenCode Go (`/inference/go`), the `/images` generation and edit routes, System One decision models, connected-provider routes (`/inference/custom`) and key, member, budget, billing and workspace management are not."
+      }
+    ],
+    "usage_notes": [
+      "The gateway waits 120 seconds for response headers and OpenCode documents no timeout parameter. For long generations or reasoning models, stream (`stream: true`, or `:streamGenerateContent?alt=sse` for Gemini) so headers arrive at once, and cap `max_tokens`.",
+      "Each model is served natively by one API family, but every paid text model also works through the other APIs, which Console translates. See opencode.ai/docs/console/models#endpoints.",
+      "Error bodies follow each API's shape: `{\"error\": {\"type\", \"message\"}}` for OpenAI, `{\"type\": \"error\", \"error\": {...}}` for Anthropic, `{\"error\": {\"code\", \"status\", \"message\"}}` for Gemini, and `{\"_tag\": \"Unauthorized\"}` for the Console model list."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
