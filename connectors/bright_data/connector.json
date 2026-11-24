@@ -1,0 +1,143 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "bright_data",
+  "display_name": "Bright Data",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.brightdata.com",
+  "description": "Web Unlocker, SERP and Scraper API requests for agents",
+  "long_description": "Bring a Bright Data API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account status (GET /status), which is not a billed product request. A Sprite can then fetch pages through a Web Unlocker zone and run searches through a SERP API zone (POST /request, or the async /unblocker/req and /serp/req with their get_result polls), run pre-built scrapers synchronously or as async jobs, follow a job's progress, download or cancel its snapshot, and list its zones to find their names. Unlocker and SERP requests and scraper records are billed to your Bright Data account. Proxy and Scraping Browser access (username and password on brd.superproxy.io), zone configuration, billing, API keys and users are not forwarded.",
+  "website_url": "https://brightdata.com/cp/setting/users",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/request"},
+    {"methods": ["POST"], "pattern": "/unblocker/req"},
+    {"methods": ["GET"], "pattern": "/unblocker/get_result"},
+    {"methods": ["POST"], "pattern": "/serp/req"},
+    {"methods": ["GET"], "pattern": "/serp/get_result"},
+    {"methods": ["POST"], "pattern": "/datasets/v3/scrape"},
+    {"methods": ["POST"], "pattern": "/datasets/v3/trigger"},
+    {"methods": ["GET"], "pattern": "/datasets/v3/progress/:snapshot_id"},
+    {"methods": ["GET"], "pattern": "/datasets/v3/snapshot/:snapshot_id"},
+    {"methods": ["POST"], "pattern": "/datasets/v3/snapshot/:snapshot_id/cancel"},
+    {"methods": ["GET"], "pattern": "/datasets/v3/snapshots"},
+    {"methods": ["GET"], "pattern": "/zone/get_active_zones"},
+    {"methods": ["GET"], "pattern": "/status"}
+  ],
+  "forward_response_headers": ["retry-after", "x-response-id", "x-brd-status-code", "x-brd-error", "x-brd-error-code", "x-brd-err-code", "x-brd-err-msg", "x-brd-debug"],
+  "probe": {
+    "method": "GET",
+    "path": "/status",
+    "label": "account status",
+    "expect": [
+      ["status", "text"],
+      ["customer", "text"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List active zones to find your Web Unlocker and SERP zone names",
+      "path": "/zone/get_active_zones"
+    },
+    {
+      "title": "Fetch a page as Markdown through Web Unlocker (billed per successful request); replace ZONE_NAME",
+      "method": "POST",
+      "path": "/request",
+      "json": {"zone": "ZONE_NAME", "url": "https://geo.brdtest.com/welcome.txt", "format": "raw", "data_format": "markdown"},
+      "notes": ["The outer status is 200 once the request reaches the unlocker; the target's status is in the `x-brd-status-code` header and failures in `x-brd-error` and `x-brd-error-code`."]
+    },
+    {
+      "title": "Search Google as JSON through a SERP API zone (billed per successful request); replace ZONE_NAME",
+      "method": "POST",
+      "path": "/request",
+      "json": {"zone": "ZONE_NAME", "url": "https://www.google.com/search?q=fly.io+sprites&hl=en&gl=us", "format": "raw", "data_format": "parsed_light"},
+      "notes": ["`parsed_light` returns the top organic results as JSON; leave it out to get the page's HTML."]
+    },
+    {
+      "title": "Submit a page asynchronously (the submit is billed, collecting is free); replace ZONE_NAME",
+      "method": "POST",
+      "path": "/unblocker/req?zone=ZONE_NAME",
+      "json": {"url": "https://geo.brdtest.com/welcome.txt"},
+      "notes": ["The job id is in the `x-response-id` header and the `response_id` field. Collect it with `GET /unblocker/get_result?response_id=RESPONSE_ID`; 202 means it is still running."]
+    },
+    {
+      "title": "Collect an async Web Unlocker result; replace RESPONSE_ID and ZONE_NAME",
+      "path": "/unblocker/get_result?response_id=RESPONSE_ID&zone=ZONE_NAME"
+    },
+    {
+      "title": "Submit a Google search asynchronously (the submit is billed, collecting is free); replace ZONE_NAME",
+      "method": "POST",
+      "path": "/serp/req?zone=ZONE_NAME",
+      "json": {"country": "us", "query": {"q": "fly.io sprites"}}
+    },
+    {
+      "title": "Collect an async SERP result; replace RESPONSE_ID and ZONE_NAME",
+      "path": "/serp/get_result?response_id=RESPONSE_ID&zone=ZONE_NAME"
+    },
+    {
+      "title": "Scrape one Amazon product synchronously (billed per delivered record)",
+      "method": "POST",
+      "path": "/datasets/v3/scrape?dataset_id=gd_l7q7dkf244hwjntr0&format=json",
+      "json": {"input": [{"url": "https://www.amazon.com/dp/B0FQFB8FMG"}]},
+      "notes": ["Bright Data answers 202 with a `snapshot_id` after 1 minute, well inside the gateway's 120-second deadline; poll `GET /datasets/v3/progress/SNAPSHOT_ID` and download the snapshot when it is `ready`."]
+    },
+    {
+      "title": "Start an async scraper job (billed per delivered record)",
+      "method": "POST",
+      "path": "/datasets/v3/trigger?dataset_id=gd_l1vikfch901nx3by4&include_errors=true&type=discover_new&discover_by=user_name",
+      "json": {"input": [{"user_name": "zoobarcelona"}], "limit_per_input": 10}
+    },
+    {
+      "title": "Check a scraper job's progress; replace SNAPSHOT_ID",
+      "path": "/datasets/v3/progress/SNAPSHOT_ID"
+    },
+    {
+      "title": "Download a ready snapshot as JSON; replace SNAPSHOT_ID",
+      "path": "/datasets/v3/snapshot/SNAPSHOT_ID?format=json"
+    },
+    {
+      "title": "Cancel a running scraper job; replace SNAPSHOT_ID",
+      "method": "POST",
+      "path": "/datasets/v3/snapshot/SNAPSHOT_ID/cancel"
+    },
+    {
+      "title": "List a scraper's recent snapshots; replace DATASET_ID",
+      "path": "/datasets/v3/snapshots?dataset_id=DATASET_ID&limit=20"
+    }
+  ],
+  "messages": {
+    "400": "Bright Data rejected the request (%{status}); check the zone name and the body",
+    "404": "Bright Data could not find that dataset, snapshot or result",
+    "429": "Bright Data rate limit reached; wait for Retry-After before retrying, because 25 rate-limited responses in 5 minutes block the IP for an hour",
+    "provider_unreachable": "Could not reach Bright Data; retry later"
+  },
+  "discovery": {
+    "categories": ["web-scraping", "search"],
+    "keywords": ["bright data", "brightdata", "web unlocker", "serp", "google search", "scraper", "web scraping", "datasets", "captcha", "markdown"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-blue-500/20",
+  "presentation": {
+    "tagline": "Unlock pages, search Google and run scrapers from a Sprite without putting your Bright Data key on it.",
+    "setup": "As an account admin, open Account settings at brightdata.com/cp/setting/users, click Add API key, choose the User permission level and an expiry, and copy the key (it is shown once). Web Unlocker and SERP requests also need a zone of that type, created under Web Access.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /status`, which is not a billed product request. Web Unlocker and SERP API requests are billed per 1,000 successful requests at your zone's rate; failed requests are not, unless the SERP zone uses custom headers or cookies. For async requests the submit is billed and collecting the result is free. Scraper API jobs are billed per delivered record ($1.50 per 1,000 on pay-as-you-go), including records that fail because the input was wrong. New accounts get 5,000 free credits a month (one per scraper record). Progress, snapshot downloads, cancel, snapshot lists and zone lists are reads, not product requests."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /request`, `POST /unblocker/req`, `GET /unblocker/get_result`, `POST /serp/req`, `GET /serp/get_result`, `POST /datasets/v3/scrape`, `POST /datasets/v3/trigger`, `GET /datasets/v3/progress/:snapshot_id`, `GET /datasets/v3/snapshot/:snapshot_id`, `POST /datasets/v3/snapshot/:snapshot_id/cancel`, `GET /datasets/v3/snapshots`, `GET /zone/get_active_zones` and `GET /status` are forwarded. Zone creation and configuration, IPs and passwords, billing, cost reports, API keys and users are not, nor are the proxy and Scraping Browser endpoints on brd.superproxy.io."
+      }
+    ],
+    "usage_notes": [
+      "The gateway waits 120 seconds for response headers. Web Unlocker can take longer on pages that need rendering, so send those through `POST /unblocker/req` and poll `GET /unblocker/get_result`. `POST /datasets/v3/scrape` returns 202 with a `snapshot_id` after 1 minute on its own.",
+      "On `POST /request` the outer status is 200 once the unlocker accepts the request; read `x-brd-status-code`, `x-brd-error` and `x-brd-error-code` for the target's result. A wrong key is 401 and an unknown zone is 400.",
+      "Bright Data blocks an IP for an hour after 25 responses with status 429 in 5 minutes. Back off on the first 429."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
