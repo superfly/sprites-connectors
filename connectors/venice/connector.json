@@ -1,0 +1,155 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "venice",
+  "display_name": "Venice",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.venice.ai/api/v1",
+  "description": "OpenAI-compatible chat, embeddings, images, speech and web search with Venice",
+  "long_description": "Bring a Venice API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's own tier, balances and rate limits (GET /api_keys/rate_limits), which costs nothing. A Sprite can then list models, run chat completions and the Responses API, create embeddings, generate, edit, upscale and remove the background of images, synthesize and transcribe speech, and search the web, scrape a page or parse a document. Inference and tools spend your Venice balance: DIEM first, then earned credits, bundled credits and USD. API key management, billing and usage history, video, music, voice cloning and changing, characters, decisions, crypto RPC and x402 wallet routes are not forwarded.",
+  "website_url": "https://venice.ai/settings/api",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/api_keys/rate_limits"},
+    {"methods": ["GET"], "pattern": "/models"},
+    {"methods": ["GET"], "pattern": "/models/traits"},
+    {"methods": ["GET"], "pattern": "/models/compatibility_mapping"},
+    {"methods": ["POST"], "pattern": "/chat/completions"},
+    {"methods": ["POST"], "pattern": "/responses"},
+    {"methods": ["POST"], "pattern": "/embeddings"},
+    {"methods": ["POST"], "pattern": "/image/generate"},
+    {"methods": ["POST"], "pattern": "/images/generations"},
+    {"methods": ["POST"], "pattern": "/image/edit"},
+    {"methods": ["POST"], "pattern": "/image/multi-edit"},
+    {"methods": ["POST"], "pattern": "/image/upscale"},
+    {"methods": ["POST"], "pattern": "/image/background-remove"},
+    {"methods": ["GET"], "pattern": "/image/styles"},
+    {"methods": ["POST"], "pattern": "/audio/speech"},
+    {"methods": ["POST"], "pattern": "/audio/transcriptions"},
+    {"methods": ["POST"], "pattern": "/augment/search"},
+    {"methods": ["POST"], "pattern": "/augment/scrape"},
+    {"methods": ["POST"], "pattern": "/augment/text-parser"}
+  ],
+  "forward_response_headers": [
+    "x-ratelimit-limit-requests",
+    "x-ratelimit-remaining-requests",
+    "x-ratelimit-reset-requests",
+    "x-ratelimit-limit-tokens",
+    "x-ratelimit-remaining-tokens",
+    "x-ratelimit-reset-tokens",
+    "x-ratelimit-remaining",
+    "x-ratelimit-resets",
+    "x-venice-is-blurred",
+    "x-venice-is-content-violation",
+    "x-venice-model-deprecation-warning",
+    "x-venice-model-deprecation-date"
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/api_keys/rate_limits",
+    "label": "key rate limits",
+    "expect": [
+      ["data", "map"],
+      ["data.accessPermitted", "boolean"],
+      ["data.apiTier.id", "text"],
+      ["data.balances", "map"],
+      ["data.rateLimits", "list"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Read the key's tier, balances and per-model rate limits (free)",
+      "path": "/api_keys/rate_limits",
+      "notes": ["`data.accessPermitted` says whether the key may call the inference routes; `data.balances` shows DIEM, USD and bundled credits."]
+    },
+    {
+      "title": "List text models with their prices (free)",
+      "path": "/models?type=text",
+      "notes": ["Models change often; read ids here or from `GET /models/traits?type=text` rather than hardcoding them."]
+    },
+    {
+      "title": "Chat completion (spends Venice balance per token)",
+      "method": "POST",
+      "path": "/chat/completions",
+      "json": {
+        "model": "venice-uncensored-1-2",
+        "messages": [{"role": "user", "content": "Explain what a Sprite is in two sentences."}],
+        "max_completion_tokens": 256
+      },
+      "notes": ["Set `stream: true` for long or reasoning answers so the response starts before the gateway's 120-second deadline. `venice_parameters.enable_web_search: \"on\"` adds a per-request search fee."]
+    },
+    {
+      "title": "Create embeddings (spends Venice balance per input token)",
+      "method": "POST",
+      "path": "/embeddings",
+      "json": {"model": "text-embedding-bge-m3", "input": "Sprites run agents in persistent sandboxes."}
+    },
+    {
+      "title": "Generate an image (spends Venice balance per image)",
+      "method": "POST",
+      "path": "/image/generate",
+      "json": {"model": "z-image-turbo", "prompt": "A gondola on a quiet canal at dawn, watercolor", "width": 1024, "height": 1024, "format": "webp"},
+      "notes": ["The image comes back base64-encoded in `images`; set `return_binary: true` for the raw file instead."]
+    },
+    {
+      "title": "Text to speech (spends Venice balance per character)",
+      "method": "POST",
+      "path": "/audio/speech",
+      "json": {"model": "tts-kokoro", "voice": "af_bella", "input": "Hello from a Sprite.", "response_format": "mp3"}
+    },
+    {
+      "title": "Search the web ($0.01 per request)",
+      "method": "POST",
+      "path": "/augment/search",
+      "json": {"query": "Fly.io Sprites", "limit": 5}
+    },
+    {
+      "title": "Scrape a page as Markdown ($0.01 per request)",
+      "method": "POST",
+      "path": "/augment/scrape",
+      "json": {"url": "https://fly.io/sprites"}
+    }
+  ],
+  "messages": {
+    "400": "Venice rejected the request (%{status}); see the body's error and details",
+    "401": "Venice rejected the key: it is wrong, revoked or expired, or the account's subscription is inactive. A model limited to Pro users also answers 401",
+    "402": "Venice balance or this key's spend limit is exhausted; top up or raise the key's limit at venice.ai/settings/api",
+    "403": "Venice refused the request; if the key is restricted to IP addresses, the gateway's address is not on its list",
+    "429": "Venice rate limit reached or model overloaded; wait until x-ratelimit-reset-requests and retry",
+    "503": "Venice model is at capacity; retry later or pick another model",
+    "504": "Venice timed out the request; set stream to true for long generations",
+    "provider_unreachable": "Could not reach Venice; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["venice", "llm", "chat completions", "openai-compatible", "private ai", "uncensored", "embeddings", "image generation", "text to speech", "transcription", "web search"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-sky-500/20",
+  "presentation": {
+    "tagline": "OpenAI-compatible inference on Venice's private and anonymized models from a Sprite without putting your Venice key on it.",
+    "setup": "Sign in at venice.ai, open Settings → API (venice.ai/settings/api), choose Generate New API Key and pick the Inference Only key type. Copy the key when it is shown; Venice shows it once.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /api_keys/rate_limits` and spends nothing; the model, style and trait lists are free too. Chat, Responses and embeddings are billed per token, image generation, edits and upscaling per image, speech per character and transcription per second of audio, at each model's price in `GET /models`. Background removal is also charged, but takes no model and has no published price. `/augment/search`, `/augment/scrape` and `/augment/text-parser` cost $0.01 per request, and web search, X search or scraping turned on inside a chat adds a fee per request, search result or URL. Venice charges DIEM first, then earned credits, bundled credits and USD, within any per-key spend limit you set."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /api_keys/rate_limits`, `GET /models`, `GET /models/traits`, `GET /models/compatibility_mapping`, `POST /chat/completions`, `POST /responses`, `POST /embeddings`, `POST /image/generate`, `POST /images/generations`, `POST /image/edit`, `POST /image/multi-edit`, `POST /image/upscale`, `POST /image/background-remove`, `GET /image/styles`, `POST /audio/speech`, `POST /audio/transcriptions`, `POST /augment/search`, `POST /augment/scrape` and `POST /augment/text-parser` are forwarded. API key management, billing and usage history, video, music, voice cloning and the voice changer, characters, decisions, crypto RPC and x402 wallet routes are not."
+      }
+    ],
+    "usage_notes": [
+      "Use an Inference Only key. An Admin key also works here, but it can manage your other keys elsewhere and this connector never needs that.",
+      "Sprites waits 120 seconds for response headers and Venice has no request timeout parameter, so stream long chat and Responses calls with `stream: true` (Server-Sent Events).",
+      "Errors are `{\"error\": \"...\"}`; validation errors add `details`, and some OpenAI-compatible errors use `{\"error\": {\"message\", \"type\", \"code\"}}`. A wrong, revoked or expired key is 401, and so are an inactive subscription and a model limited to Pro users; a key limited to IP addresses answers 403 from the gateway's address.",
+      "Inference responses carry `x-ratelimit-*` headers with the remaining requests and tokens and the reset time in Unix milliseconds; they are forwarded. Venice also answers 429 after 50 failed requests in 30 seconds per model and key; `x-ratelimit-remaining` and `x-ratelimit-resets` show that budget and are forwarded too.",
+      "Venice labels each model private (hosted by Venice with zero data retention) or anonymized (a third-party model, called with identifying metadata stripped). Read `model_spec.privacy` in `GET /models` before choosing a model.",
+      "With `return_binary: true` an image response has no JSON body; the forwarded `x-venice-is-blurred` and `x-venice-is-content-violation` headers report a blurred image or a content policy violation. `x-venice-model-deprecation-warning` and `x-venice-model-deprecation-date` appear when the model is deprecated."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
