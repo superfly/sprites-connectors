@@ -100,7 +100,7 @@
   ],
   "messages": {
     "400": "Featherless rejected the request (%{status}); check the error message for an unsupported parameter, a context or max_tokens limit, or a cold model",
-    "403": "Featherless denied access to this model; check its licence, Hugging Face gate or your plan",
+    "403": "Featherless denied the request; check the model's licence, Hugging Face gate or your plan, or the error message for a security block",
     "422": "Featherless could not validate the request body; see error.details",
     "429": "Featherless concurrent-unit or model-switch limit reached; reduce parallel requests and retry later",
     "503": "Featherless has no capacity for this model right now; retry with backoff or choose another model",
