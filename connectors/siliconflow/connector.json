@@ -1,0 +1,126 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "siliconflow",
+  "display_name": "SiliconFlow",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.siliconflow.com",
+  "description": "OpenAI-compatible inference for open models: chat, embeddings, rerank, images, speech and video",
+  "long_description": "Bring a SiliconFlow API key from cloud.siliconflow.com (the international platform; siliconflow.cn is a separate platform with its own API host and is not covered). The gateway keeps the key off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account's user info (GET /v1/user/info), which runs no model and costs nothing. A Sprite can then list models and call chat completions (OpenAI- and Anthropic-style), text completions, embeddings, rerank, image generation, text-to-speech, transcription and video generation, all billed to your SiliconFlow balance per model. API key management, billing, reference-voice upload and deletion, and the alpha SystemOne endpoint are not forwarded.",
+  "website_url": "https://cloud.siliconflow.com/account/ak",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/user/info"},
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/messages"},
+    {"methods": ["POST"], "pattern": "/v1/completions"},
+    {"methods": ["POST"], "pattern": "/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/v1/rerank"},
+    {"methods": ["POST"], "pattern": "/v1/images/generations"},
+    {"methods": ["POST"], "pattern": "/v1/audio/speech"},
+    {"methods": ["POST"], "pattern": "/v1/audio/transcriptions"},
+    {"methods": ["GET"], "pattern": "/v1/audio/voice/list"},
+    {"methods": ["POST"], "pattern": "/v1/video/submit"},
+    {"methods": ["POST"], "pattern": "/v1/video/status"}
+  ],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/user/info",
+    "label": "user info",
+    "expect": [
+      ["code", "eq", 20000],
+      ["status", "eq", true],
+      ["data", "map"],
+      ["data.id", "text"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {"title": "List chat models", "path": "/v1/models?sub_type=chat"},
+    {
+      "title": "Chat completion (charged to your SiliconFlow balance)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "model": "deepseek-ai/DeepSeek-V3.2",
+        "messages": [{"role": "user", "content": "Explain serverless inference in two sentences."}],
+        "max_tokens": 256,
+        "stream": false
+      },
+      "notes": ["SiliconFlow has no request timeout parameter and Sprites waits 120 seconds for response headers, so set `stream: true` for long answers and reasoning models; streaming sends headers at once. Model ids come from `GET /v1/models`."]
+    },
+    {
+      "title": "Create embeddings (charged to your SiliconFlow balance)",
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "json": {"model": "Qwen/Qwen3-Embedding-8B", "input": "Sprites run applications in isolated environments."}
+    },
+    {
+      "title": "Rerank documents (charged to your SiliconFlow balance)",
+      "method": "POST",
+      "path": "/v1/rerank",
+      "json": {"model": "Qwen/Qwen3-Reranker-8B", "query": "Apple", "documents": ["apple", "banana", "fruit", "vegetable"], "top_n": 2}
+    },
+    {
+      "title": "Generate an image (charged per image)",
+      "method": "POST",
+      "path": "/v1/images/generations",
+      "json": {"model": "Qwen/Qwen-Image", "prompt": "A serene landscape with mountains and a lake at sunset", "image_size": "1328x1328"},
+      "notes": ["The returned image URL is valid for one hour; download it promptly."]
+    },
+    {
+      "title": "Start a video generation (charged per video)",
+      "method": "POST",
+      "path": "/v1/video/submit",
+      "json": {"model": "Wan-AI/Wan2.2-T2V-A14B", "prompt": "A paper boat drifting down a rainy street", "image_size": "1280x720"},
+      "notes": ["Returns a `requestId`; poll `POST /v1/video/status` until `status` is `Succeed` or `Failed`. SiliconFlow keeps the result for only 10 minutes, so poll promptly."]
+    },
+    {
+      "title": "Poll a video generation; replace REQUEST_ID",
+      "method": "POST",
+      "path": "/v1/video/status",
+      "json": {"requestId": "REQUEST_ID"},
+      "notes": ["The video URL in `results.videos` is valid for one hour; download it promptly."]
+    },
+    {"title": "Read the account's user info and balance", "path": "/v1/user/info"}
+  ],
+  "messages": {
+    "400": "SiliconFlow rejected the request (%{status}); check the body's message and code",
+    "403": "SiliconFlow refused the request; the model may need real-name verification, see the body's message",
+    "413": "Request body too large; the Sprites gateway caps direct uploads at 8,000,000 bytes (8 MB)",
+    "429": "SiliconFlow rate limit reached for this model; try again later",
+    "503": "SiliconFlow model service is overloaded; try again later, or stream chat and speech with `stream: true`",
+    "504": "SiliconFlow timed out; try again later, or stream chat and speech with `stream: true`",
+    "provider_unreachable": "Could not reach SiliconFlow; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["siliconflow", "llm", "language models", "open models", "openai-compatible", "embeddings", "rerank", "image generation", "text to speech", "video generation"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-violet-500/20",
+  "presentation": {
+    "tagline": "Run open models on SiliconFlow from a Sprite without putting your SiliconFlow key on it.",
+    "setup": "Sign in at cloud.siliconflow.com, open API Keys (cloud.siliconflow.com/account/ak), click Create API Key and paste it here. This connector calls the international API at api.siliconflow.com; the China platform (siliconflow.cn) has its own API host and is not covered, so use a key created on cloud.siliconflow.com.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /v1/user/info` and runs no model, so it costs nothing. Chat, messages, completions, embeddings and rerank are billed per token; images per image; video per video; speech per UTF-8 byte of input text; transcription per minute of audio; all are charged pay-as-you-go to your SiliconFlow balance at the prices on siliconflow.com/pricing. Listing models, reading user info, listing voices and polling video status run no model."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/user/info`, `GET /v1/models`, `POST /v1/chat/completions`, `POST /v1/messages`, `POST /v1/completions`, `POST /v1/embeddings`, `POST /v1/rerank`, `POST /v1/images/generations`, `POST /v1/audio/speech`, `POST /v1/audio/transcriptions`, `GET /v1/audio/voice/list`, `POST /v1/video/submit` and `POST /v1/video/status` are forwarded. `GET /v1/user/info` lets a Sprite read your account id, status and balances. Reference-voice upload and deletion, the alpha SystemOne endpoint, API key management and billing are not forwarded."
+      }
+    ],
+    "usage_notes": [
+      "SiliconFlow is OpenAI-compatible: point an OpenAI client's base URL at the gateway URL plus `/v1`. `POST /v1/messages` takes Anthropic-style requests.",
+      "Rate limits apply per account and per model (RPM and TPM for language models, IPM and IPD for images) and rise with your usage tier.",
+      "The Sprites gateway caps direct uploads at 8,000,000 bytes (8 MB); larger request bodies return HTTP 413. This limits audio files sent to `POST /v1/audio/transcriptions` and base64 images in chat and video requests.",
+      "Error bodies are `{\"code\": ..., \"message\": \"...\", \"data\": null}`; a wrong key answers 401 with code 30014."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
