@@ -1,0 +1,122 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "fish_audio",
+  "display_name": "Fish Audio",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.fish.audio",
+  "description": "Text-to-speech, speech-to-text, voice design and voice cloning with Fish Audio",
+  "long_description": "Bring a Fish Audio API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account's API credit balance (GET /wallet/self/api-credit), which costs nothing. A Sprite can then generate speech, transcribe recordings, design candidate voices, edit a span of a recording with drama-3, browse and read voice models, and create a private or unlisted voice model (a voice clone) from uploaded audio. Generation, transcription, voice design and infill are billed to your Fish Audio API credit, except text-to-speech with the free s2.1-pro-free model. Voice models a Sprite creates can only be changed or deleted at fish.audio. Updating or deleting voice models, API key revocation, wallet packages, pronunciation dictionaries, the voice-agent platform and the WebSocket streaming endpoints are not forwarded.",
+  "website_url": "https://fish.audio/app/api-keys/",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/v1/tts"},
+    {"methods": ["POST"], "pattern": "/v1/asr"},
+    {"methods": ["POST"], "pattern": "/v1/voice-design"},
+    {"methods": ["POST"], "pattern": "/v1/audio/infill"},
+    {"methods": ["GET", "POST"], "pattern": "/model"},
+    {"methods": ["GET"], "pattern": "/model/:id"},
+    {"methods": ["GET"], "pattern": "/wallet/self/api-credit"}
+  ],
+  "forward_request_headers": ["model"],
+  "forward_response_headers": ["x-request-id"],
+  "probe": {
+    "method": "GET",
+    "path": "/wallet/self/api-credit",
+    "label": "API credit",
+    "expect": [
+      ["_id", "text"],
+      ["user_id", "text"],
+      ["credit", "text"],
+      ["has_phone_sha256", "boolean"],
+      ["message", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Generate speech with the free s2.1-pro-free model (no credit spent)",
+      "method": "POST",
+      "path": "/v1/tts",
+      "headers": [{"name": "model", "value": "s2.1-pro-free"}],
+      "json": {"text": "Hello from a Sprite!", "format": "mp3"},
+      "notes": [
+        "The response body is the audio file; save it with `--output hello.mp3`.",
+        "Add `\"reference_id\": \"MODEL_ID\"` to speak with a voice model. Every other model (such as `s2.1-pro`, `s2-pro` or `drama-3`) spends API credit; without a `model` header the request is served and billed as `s2.1-pro`."
+      ]
+    },
+    {
+      "title": "Design two candidate voices from a prompt (spends $0.01 of API credit)",
+      "method": "POST",
+      "path": "/v1/voice-design",
+      "headers": [{"name": "model", "value": "voice-design-1"}],
+      "json": {"instruction": "Warm, confident studio narrator with a natural tone", "reference_text": "Welcome to Fish Audio.", "language": "en", "n": 2},
+      "notes": ["Each candidate carries its audio as `audio_base64`. Extra request fields are rejected."]
+    },
+    {
+      "title": "Search public voice models",
+      "path": "/model?title=narrator&page_size=5"
+    },
+    {
+      "title": "List your own voice models",
+      "path": "/model?self=true&page_size=10"
+    },
+    {
+      "title": "Read one voice model; replace MODEL_ID",
+      "path": "/model/MODEL_ID"
+    },
+    {
+      "title": "Read the API credit balance",
+      "path": "/wallet/self/api-credit"
+    }
+  ],
+  "messages": {
+    "400": "Fish Audio rejected the request (%{status}); read the body's message",
+    "402": "No Fish Audio API credit for this model; use s2.1-pro-free or add credit at fish.audio/app/developers/billing",
+    "403": "Fish Audio does not allow this key to use that resource",
+    "404": "Fish Audio did not find that model or voice; for /v1/audio/infill, send the header model: drama-3",
+    "413": "Request too large for Fish Audio; send compressed audio such as MP3 or Opus",
+    "429": "Fish Audio concurrency limit reached; retry with backoff",
+    "provider_unreachable": "Could not reach Fish Audio; retry later"
+  },
+  "discovery": {
+    "categories": ["media"],
+    "keywords": ["fish audio", "text to speech", "tts", "speech to text", "stt", "transcription", "voice cloning", "voice design", "speech synthesis"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Generate speech, transcribe audio and clone voices with Fish Audio from a Sprite without putting your API key on it.",
+    "setup": "Sign in at fish.audio, open Developers → Get Started (fish.audio/app/developers/get-started) and click Get your API key. The key is shown only once. New accounts have no API credit; text-to-speech with the `s2.1-pro-free` model is free under Fish Audio's fair-use limits.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /wallet/self/api-credit` and costs nothing. Text-to-speech is billed per million UTF-8 bytes of input text: `s2.1-pro` and `s2-pro` $15, `drama-3` $50, `s2.1-pro-free` $0 under Fish Audio's fair-use limits. Speech-to-text (`POST /v1/asr`) is $0.36 per audio hour, rounded up to the second, including silence. Voice design is $0.01 per successful request. Audio infill runs on `drama-3` and needs API credit; Fish Audio does not list its price. Creating a voice model and reading models and the balance are not listed as billed. Speech-to-text and voice-design requests that return an error are not billed."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /v1/tts`, `POST /v1/asr`, `POST /v1/voice-design`, `POST /v1/audio/infill`, `GET`/`POST /model`, `GET /model/:id` and `GET /wallet/self/api-credit` are forwarded, with the `model` request header (it selects the TTS, transcription, voice-design or infill model). `POST /model` creates a private or unlisted voice model from uploaded audio; an unlisted voice can be used by anyone who has its link, and voice models can only be changed or deleted at fish.audio. Updating and deleting voice models, API key revocation, wallet packages, pronunciation dictionaries, the voice-agent platform (`/v1/agent/...`) and the WebSocket endpoints are not."
+      },
+      {
+        "title": "Timeouts and limits",
+        "body": "Sprites waits 120 seconds for a response to start, and Fish Audio has no timeout parameter. Transcription answers only when the whole file is done, so long `transcribe-1-pro` recordings can take longer than that; keep recordings to a few minutes through the gateway. Requests share your account's concurrency limit (5 at once below $100 paid); at the limit Fish Audio answers 429 without `Retry-After`."
+      }
+    ],
+    "usage_notes": [
+      {
+        "title": "Transcribe a recording",
+        "body": "Set `FISH_GATEWAY_URL` to the connection's gateway URL, replace `clip.mp3` with your file path, and run `curl -H 'model: transcribe-1-pro' -F audio=@clip.mp3 -F ignore_timestamps=false \"${FISH_GATEWAY_URL%/}/v1/asr\"`. Send the header `model: transcribe-1-pro` exactly as written; when it is missing or misspelled Fish Audio returns no error and serves the request with its default transcription model. The Sprites gateway accepts request bodies of at most 8,000,000 bytes, so send compressed audio."
+      },
+      {
+        "title": "Create a private voice clone",
+        "body": "Run `curl -F type=tts -F train_mode=fast -F title='My voice' -F visibility=private -F voices=@sample.wav -F texts='Transcript of the sample.' \"${FISH_GATEWAY_URL%/}/model\"`, then pass the returned `_id` as `reference_id` to `POST /v1/tts`. `visibility=unlist` creates an unlisted voice that anyone who has its link can use; `visibility=public` is downgraded to private. Voice models can only be changed or deleted at fish.audio."
+      },
+      {
+        "title": "Edit a span of a recording",
+        "body": "`POST /v1/audio/infill` needs the header `model: drama-3` (without it Fish Audio answers 404) and a multipart body: `curl -H 'model: drama-3' -F audio=@take.mp3 --form-string 'transcript=Full revised text.' -F prefix_seconds=2.1 -F suffix_seconds=3.4 \"${FISH_GATEWAY_URL%/}/v1/audio/infill\" --output edited.mp3`."
+      }
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
