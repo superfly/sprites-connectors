@@ -65,7 +65,10 @@ Community submission (`owner: community`), not submitted by FriendliAI.
   https://friendli.ai/docs/guides/model-apis/pricing. Dedicated Endpoints are
   billed per GPU-second for every running replica, even when idle, and a
   request to a sleeping endpoint wakes it,
-  https://friendli.ai/docs/guides/dedicated-endpoints/pricing.
+  https://friendli.ai/docs/guides/dedicated-endpoints/pricing. Neither page
+  nor the OpenAPI file says whether tokenize and detokenize are charged
+  (text models are "charged by processed tokens"), so the Billing notice
+  does not call them free.
 - Rate limits: https://friendli.ai/docs/guides/model-apis/rate-limits.
   Requests per minute by usage tier (tiers rise with lifetime spend); over the
   limit is 429. No rate-limit or `Retry-After` response headers are

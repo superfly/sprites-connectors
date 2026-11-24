@@ -103,7 +103,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key calls `GET /dedicated/beta/endpoint?limit=1`, which runs no inference and costs nothing. Serverless Model APIs calls are charged per input and output token at the model's price (`GET /serverless/v1/models` lists them); tokenize, detokenize and the endpoint reads are free. Dedicated Endpoints are billed per GPU-second for every running replica, whether or not it serves requests, and a request to a sleeping endpoint wakes it. The key check does not verify your credit balance."
+        "body": "Saving or testing the key calls `GET /dedicated/beta/endpoint?limit=1`, which runs no inference and costs nothing. Serverless Model APIs calls are charged per input and output token at the model's price (`GET /serverless/v1/models` lists them); FriendliAI does not say whether tokenize and detokenize are charged. The endpoint reads run no inference. Dedicated Endpoints are billed per GPU-second for every running replica, whether or not it serves requests, and a request to a sleeping endpoint wakes it. The key check does not verify your credit balance."
       },
       {
         "title": "Scope",
