@@ -1,0 +1,136 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "perplexity",
+  "display_name": "Perplexity",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.perplexity.ai",
+  "description": "Web search, page content, web-grounded agent answers and saved monitor results from Perplexity",
+  "long_description": "Bring a Perplexity API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists the Orchestrator API's models (GET /orchestrator/v1/models), which is free. A Sprite can then search the web, fetch the content of known URLs, run Agent API requests with web search, URL fetching, a code sandbox with internet access, remote MCP servers and the connectors saved in your Perplexity project (in the background, polling and cancelling them and downloading the files they produce), and read the monitors and monitor runs in your API organization. Search, Context and Agent requests use your Perplexity API credits. Creating, changing, running or deleting monitors, Orchestrator chat, responses and messages, embeddings, decisions, batches, files, skills, the legacy Sonar endpoints, analytics, audit events and API key management are not forwarded.",
+  "website_url": "https://console.perplexity.ai/project/keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/search"},
+    {"methods": ["POST"], "pattern": "/v1/context"},
+    {"methods": ["POST"], "pattern": "/v1/agent"},
+    {"methods": ["GET"], "pattern": "/v1/agent/:id"},
+    {"methods": ["POST"], "pattern": "/v1/agent/:id/cancel"},
+    {"methods": ["GET"], "pattern": "/v1/agent/:id/files"},
+    {"methods": ["GET"], "pattern": "/v1/agent/:id/files/:file_id/content"},
+    {"methods": ["GET"], "pattern": "/v1/monitors"},
+    {"methods": ["GET"], "pattern": "/v1/monitors/:monitor_id"},
+    {"methods": ["GET"], "pattern": "/v1/monitors/:monitor_id/runs"},
+    {"methods": ["GET"], "pattern": "/v1/monitors/:monitor_id/runs/:run_id"},
+    {"methods": ["GET"], "pattern": "/orchestrator/v1/models"}
+  ],
+  "forward_response_headers": ["retry-after", "x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-used", "x-ratelimit-reset"],
+  "probe": {
+    "method": "GET",
+    "path": "/orchestrator/v1/models",
+    "label": "model list",
+    "expect": [
+      ["object", "eq", "list"],
+      ["data", "nonempty_list"],
+      ["data[].id", "text"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Search the web ($0.005 per request; $0.001 with search_type fast)",
+      "method": "POST",
+      "path": "/search",
+      "json": {"query": "Fly.io Sprites", "max_results": 5},
+      "notes": ["`query` can be an array of up to five queries, billed as one request. Add `\"search_type\": \"fast\"` for lower latency at a lower price, or `search_recency_filter` (`hour`, `day`, `week`, `month`, `year`) and `search_domain_filter` to narrow results."]
+    },
+    {
+      "title": "Fetch pages you already have as Markdown ($0.001 per URL returned)",
+      "method": "POST",
+      "path": "/v1/context",
+      "json": {"urls": ["https://fly.io/docs/sprites/"], "formats": ["markdown"], "timeout_ms": 60000},
+      "notes": ["Check each result's `status.type`: only `ok` and `not_modified` are billed. `timeout_ms` is Perplexity's fetch budget (30 seconds by default, up to 110); keep it well under the gateway's 120-second response deadline."]
+    },
+    {
+      "title": "Ask the agent a question with web search (model tokens plus tool fees)",
+      "method": "POST",
+      "path": "/v1/agent",
+      "json": {"effort": "low", "input": "What are Fly.io Sprites and how do they differ from Fly Machines? Cite sources."},
+      "notes": ["An `effort` level picks the model, tools and loop for you; set `model`, `tools` and `max_steps` instead for full control. Read the answer from the `output_text` content of `message` items in `output`."]
+    },
+    {
+      "title": "Start a long research run in the background (model tokens plus tool fees)",
+      "method": "POST",
+      "path": "/v1/agent",
+      "json": {"effort": "medium", "input": "Write a sourced brief on persistent sandboxes for AI coding agents.", "background": true},
+      "notes": ["Returns at once with an `id` and `status`; poll `GET /v1/agent/RESPONSE_ID` until `status` is `completed`, `failed`, `cancelled` or `incomplete`. Use background mode for any run that may take more than a minute or two, because the gateway waits at most 120 seconds for a synchronous response."]
+    },
+    {
+      "title": "Poll an agent response; replace RESPONSE_ID",
+      "path": "/v1/agent/RESPONSE_ID"
+    },
+    {
+      "title": "Cancel a background agent run; replace RESPONSE_ID",
+      "method": "POST",
+      "path": "/v1/agent/RESPONSE_ID/cancel",
+      "notes": ["Returns `status: cancelling`; poll the response for its final status. Tokens and tool calls used before cancelling are still billed."]
+    },
+    {
+      "title": "List the files an agent run shared; replace RESPONSE_ID",
+      "path": "/v1/agent/RESPONSE_ID/files"
+    },
+    {
+      "title": "Download one shared file; replace RESPONSE_ID and FILE_ID",
+      "path": "/v1/agent/RESPONSE_ID/files/FILE_ID/content",
+      "notes": ["Returns the file's raw bytes, not JSON."]
+    },
+    {
+      "title": "List your monitors",
+      "path": "/v1/monitors?limit=20"
+    },
+    {
+      "title": "Read the latest run of a monitor and its findings; replace MONITOR_ID",
+      "path": "/v1/monitors/MONITOR_ID/runs?limit=1",
+      "notes": ["Findings are in `changes`. Use `has_more` and `after=LAST_ID` to page through up to 90 days of runs."]
+    },
+    {
+      "title": "Read one monitor run; replace MONITOR_ID and RUN_ID",
+      "path": "/v1/monitors/MONITOR_ID/runs/RUN_ID"
+    }
+  ],
+  "messages": {
+    "400": "Perplexity rejected the request (%{status}); see error.message",
+    "402": "Perplexity API credits exhausted or usage tier too low; add credits at console.perplexity.ai/project/billing",
+    "403": "Your Perplexity organization's API access settings do not allow this request",
+    "429": "Perplexity rate limit reached; wait for the Retry-After header and retry",
+    "provider_unreachable": "Could not reach Perplexity; retry later"
+  },
+  "discovery": {
+    "categories": ["search", "web-scraping", "ai-inference"],
+    "keywords": ["perplexity", "web search", "search", "page contents", "research", "agent", "citations", "monitor", "news", "retrieval"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-cyan-500/20",
+  "presentation": {
+    "tagline": "Search the web, read pages and get cited answers from a Sprite without putting your Perplexity key on it.",
+    "setup": "Sign in at console.perplexity.ai, create or pick a project, open API Keys and click Generate API Key (it starts with `pplx-`; the console shows it only once). The project needs API credits from its Billing page.",
+    "key_label": "API key",
+    "key_placeholder": "pplx-...",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key lists models with `GET /orchestrator/v1/models` and costs nothing. Search costs $5 per 1,000 successful requests, or $1 with Fast Search. Context costs $1 per 1,000 URLs returned with status `ok` or `not_modified`, plus Decisions input tokens when `criteria` is set. Agent requests bill model tokens at the model's rate plus tool fees, such as $0.0025 per web search, $0.0005 per URL fetch and $0.03 per started 20-minute sandbox block. Reading monitors and runs is free, but monitors you set up in the API Console keep billing $0.001 per succeeded run or counted page until you pause them there. Invalid, rate-limited and failed Search requests are not billed, nor are Context URLs that fail to fetch."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /search`, `POST /v1/context`, `POST /v1/agent`, `GET /v1/agent/:id`, `POST /v1/agent/:id/cancel`, `GET /v1/agent/:id/files`, `GET /v1/agent/:id/files/:file_id/content`, `GET /v1/monitors`, `GET /v1/monitors/:monitor_id`, `GET /v1/monitors/:monitor_id/runs`, `GET /v1/monitors/:monitor_id/runs/:run_id` and `GET /orchestrator/v1/models` are forwarded. `POST /v1/agent` accepts tools that reach beyond these routes: any connector saved in your Perplexity project (GitHub or Slack, for example, including write actions, with no approval step unless the request sets `require_approval`), a remote MCP server at any HTTPS URL the request names, and a `sandbox` container with internet access. Use a project with no saved connectors if a Sprite should not reach them. Monitors are read-only: create, change, pause and run them in the API Console. Orchestrator inference, embeddings, decisions, batches, files, skills, the legacy Sonar endpoints, analytics, audit events and API key management are not forwarded."
+      }
+    ],
+    "usage_notes": [
+      "The gateway waits 120 seconds for response headers. Run long Agent API requests with `\"background\": true` and poll `GET /v1/agent/:id`, and keep the Context API's `timeout_ms` below that deadline.",
+      "Errors are `{\"error\": {\"message\": \"...\", \"type\": \"...\", \"code\": 401}}`. Check `error.type` on a 401: `invalid_api_key` is a bad key, and Perplexity also documents `token_expired` and `insufficient_quota` (no credit left) for the Context and Monitor routes. 402 means the project is out of credits or below a model's usage tier; 429 carries `Retry-After`, which the gateway forwards with the `x-ratelimit-*` headers.",
+      "Call `POST /v1/agent` and `GET /v1/agent/:id` directly. The OpenAI SDK sends Agent API requests to the `/v1/responses` alias, which is not forwarded, and neither is the Agent API model list (`GET /v1/models`); take model ids from Perplexity's Agent API models page."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
