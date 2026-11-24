@@ -1,0 +1,137 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "featherless",
+  "display_name": "Featherless",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.featherless.ai",
+  "description": "OpenAI-compatible inference on thousands of open models with Featherless",
+  "long_description": "Bring a Featherless API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the key's plan (GET /v1/plan), which runs no inference. A Sprite can then list and inspect models, run chat and text completions (including SSE streaming), create embeddings, tokenize text, score questions with the classifier, list speech voices and synthesize speech. On the Developer plan inference uses your Featherless credits; on Chat plans it counts against your concurrent-unit allowance. Credit balance, usage activity, the concurrency stream, API keys, billing and account management are not forwarded.",
+  "website_url": "https://featherless.ai/account/api-keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/plan"},
+    {"methods": ["GET"], "pattern": "/v1/models"},
+    {"methods": ["GET"], "pattern": "/v1/models/:owner/:model"},
+    {"methods": ["POST"], "pattern": "/v1/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/completions"},
+    {"methods": ["POST"], "pattern": "/v1/embeddings"},
+    {"methods": ["POST"], "pattern": "/v1/tokenize"},
+    {"methods": ["POST"], "pattern": "/v1/classifier"},
+    {"methods": ["GET"], "pattern": "/v1/audio/voices"},
+    {"methods": ["POST"], "pattern": "/v1/audio/speech"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._-]+\\z",
+  "forward_response_headers": ["request-id", "x-request-id"],
+  "probe": {
+    "method": "GET",
+    "path": "/v1/plan",
+    "label": "plan",
+    "expect": [
+      ["id", "text"],
+      ["name", "text"],
+      ["api_access", "boolean"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {"title": "Read the key's plan and limits", "path": "/v1/plan"},
+    {
+      "title": "Find chat models with tool use and at least 32k context",
+      "path": "/v1/models?capabilities=chat,tool-use&context_length_min=32768&per_page=20"
+    },
+    {
+      "title": "Read one model's pricing and warm/cold status; replace OWNER/MODEL",
+      "path": "/v1/models/OWNER/MODEL",
+      "notes": ["Model ids are `owner/model`, such as `Qwen/Qwen3.8-27B`. Cold models must load before they answer."]
+    },
+    {
+      "title": "Chat completion (uses your Featherless credits on the Developer plan)",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "json": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [{"role": "user", "content": "Explain serverless inference in two sentences."}],
+        "max_tokens": 256,
+        "stream": false
+      },
+      "notes": ["Set `stream: true` for SSE. Long or reasoning-heavy answers can take more than the gateway's 120-second wait for response headers without streaming; stream them or lower `max_tokens`."]
+    },
+    {
+      "title": "Create embeddings (uses your Featherless credits on the Developer plan)",
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "json": {"model": "Qwen/Qwen3-Embedding-8B", "input": ["Sprites run applications in isolated environments."]}
+    },
+    {
+      "title": "Count tokens for a model",
+      "method": "POST",
+      "path": "/v1/tokenize",
+      "json": {"model": "Qwen/Qwen3.8-27B", "text": "Where was the 2020 world series played?"}
+    },
+    {
+      "title": "Classify text against typed questions (uses your Featherless credits on the Developer plan)",
+      "method": "POST",
+      "path": "/v1/classifier",
+      "json": {
+        "model": "featherless-ai/Qwen3.6-35B-A3B-classifier",
+        "messages": [{"role": "user", "content": "Review: The red bicycle arrived early and my dog Pip loves it."}],
+        "questions": {
+          "sentiment": {
+            "type": "choice",
+            "instructions": "Overall sentiment of the review.",
+            "criteria": {"positive": "Clearly favorable", "negative": "Clearly unfavorable"}
+          }
+        }
+      }
+    },
+    {
+      "title": "List a speech model's voices and formats",
+      "path": "/v1/audio/voices?model=hexgrad/Kokoro-82M"
+    },
+    {
+      "title": "Synthesize speech as base64 JSON (billed per input character on the Developer plan)",
+      "method": "POST",
+      "path": "/v1/audio/speech",
+      "json": {"model": "hexgrad/Kokoro-82M", "input": "Hello from a Sprite.", "voice": "af_bella", "response_format": "mp3", "delivery": "json"},
+      "notes": ["Omit `delivery` to get raw audio bytes, or use `\"stream\"` for SSE. Only clone a voice with the speaker's permission."]
+    }
+  ],
+  "messages": {
+    "400": "Featherless rejected the request (%{status}); check the error message for an unsupported parameter, a context or max_tokens limit, or a cold model",
+    "403": "Featherless denied access to this model; check its licence, Hugging Face gate or your plan",
+    "422": "Featherless could not validate the request body; see error.details",
+    "429": "Featherless concurrent-unit or model-switch limit reached; reduce parallel requests and retry later",
+    "503": "Featherless has no capacity for this model right now; retry with backoff or choose another model",
+    "provider_unreachable": "Could not reach Featherless; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["featherless", "llm", "language models", "open models", "hugging face", "embeddings", "text to speech", "openai-compatible"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-yellow-300/30",
+  "presentation": {
+    "tagline": "Run thousands of open models from a Sprite without putting your Featherless key on it.",
+    "setup": "Sign in at featherless.ai, open Account → API Keys and create a key, then paste it here.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /v1/plan`, which runs no inference and costs nothing. On the Developer and Pay-As-You-Go plans, successful chat and text completions, embeddings and classifier calls are charged per input and output token, and speech per input character, against your credit balance; responses report the charge as `usage.cost`. On Chat plans requests are unlimited within your concurrent-unit allowance. Listing models and voices, reading the plan and tokenizing are not documented as billed."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/plan`, `GET /v1/models`, `GET /v1/models/:owner/:model`, `POST /v1/chat/completions`, `POST /v1/completions`, `POST /v1/embeddings`, `POST /v1/tokenize`, `POST /v1/classifier`, `GET /v1/audio/voices` and `POST /v1/audio/speech` are forwarded. Credit balance, usage activity, the account concurrency stream, API keys, billing and account management are not."
+      }
+    ],
+    "usage_notes": [
+      "Model ids are `owner/model` and go into the path as two segments: `GET /v1/models/Qwen/Qwen3.8-27B`. The URL-encoded single-segment form (`%2F`) is refused by the gateway.",
+      "The gateway waits 120 seconds for response headers. Featherless documents no server-side timeout parameter, so stream long completions (`stream: true`) or keep `max_tokens` small.",
+      "Errors are `{\"error\": {\"message\", \"type\", \"param\", \"code\"}}`. A 400 can mean a bad parameter, a context limit or a cold model; a 429 is a concurrent-unit or model-switch limit, not a request-rate limit.",
+      "`POST /v1/completions` still works, but Featherless no longer supports it officially; prefer `POST /v1/chat/completions`."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
