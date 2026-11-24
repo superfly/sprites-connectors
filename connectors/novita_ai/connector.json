@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.novita.ai",
   "description": "OpenAI-compatible LLM chat, completions, embeddings and rerank on Novita AI",
-  "long_description": "Bring a Novita AI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account balance (GET /openapi/v1/billing/balance/detail), which runs no model and costs nothing. A Sprite can then list and read models, run chat and text completions (including SSE streaming), create embeddings and rerank documents through the OpenAI-compatible API under /openai/v1, and read the balance. Every completion, embedding and rerank request is billed to your Novita AI balance per token. Batches and files, image, audio and video generation, GPU instances, serverless GPU endpoints, API key policies and bill listings are not forwarded.",
+  "long_description": "Bring a Novita AI API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account balance (GET /openapi/v1/billing/balance/detail), which runs no model and costs nothing. A Sprite can then list and read models, run chat and text completions (including SSE streaming), create embeddings and rerank documents through the OpenAI-compatible API under /openai/v1, and read the balance. Every completion, embedding and rerank request is billed to your Novita AI balance per token. Batches and files, image, audio and video generation, web search, GPU instances, serverless GPU endpoints, API key policies, team budgets, transactions and bill listings are not forwarded.",
   "website_url": "https://novita.ai/settings/key-management",
   "auth": "bearer",
   "allowed_paths": [
@@ -99,7 +99,7 @@
       },
       {
         "title": "Scope",
-        "body": "Only `GET /openai/v1/models`, `GET /openai/v1/models/:owner/:model`, `POST /openai/v1/chat/completions`, `POST /openai/v1/completions`, `POST /openai/v1/embeddings`, `POST /openai/v1/rerank` and `GET /openapi/v1/billing/balance/detail` are forwarded, so a Sprite can read the account balance. Batches and files, image, audio and video generation, GPU instances and serverless endpoints, API key policies and bill listings are not."
+        "body": "Only `GET /openai/v1/models`, `GET /openai/v1/models/:owner/:model`, `POST /openai/v1/chat/completions`, `POST /openai/v1/completions`, `POST /openai/v1/embeddings`, `POST /openai/v1/rerank` and `GET /openapi/v1/billing/balance/detail` are forwarded. The balance route is also the key check, so a Sprite can read the account balance. Batches and files, image, audio and video generation, web search, GPU instances and serverless endpoints, API key policies, team budgets, transactions and bill listings are not."
       }
     ],
     "usage_notes": [

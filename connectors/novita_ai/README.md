@@ -72,6 +72,14 @@ Community submission (`owner: community`), not submitted by Novita AI.
   - API key listing and model and IP access policies (`/openapi/v2/user/key/...`),
     and bill listings (`/openapi/v1/billing/bill/...`, monthly bills): key
     and billing management.
+  - Team and key budgets and their checks (`/openapi/v1/user/team/...`,
+    including `PUT .../key-budget` and `PUT .../member-budget`), quotas
+    (`/openapi/v1/user/quota/list`), transactions
+    (`/openapi/v1/bill/transaction`) and per-key bills
+    (`/openapi/v1/billing/apikey/bill/list`): member, budget and billing
+    management.
+  - The Exa and Tavily web search proxies (`/v3/exa/...`, `/v3/tavily/...`):
+    a different product from LLM inference, with their own connectors.
   - The `responses` and `anthropic` endpoints that some models advertise in
     the model list: not in the API reference.
 
