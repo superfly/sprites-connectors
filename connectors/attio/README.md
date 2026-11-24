@@ -10,7 +10,7 @@ Community submission (`owner: community`), not submitted by Attio.
   A single-workspace access token (what Attio's help calls an API key) is
   created by a workspace admin under Workspace settings → Developers →
   + New access token, with scopes chosen there:
-  https://attio.com/help/apps/other-apps/generating-an-api-key. Tokens do not
+  https://attio.com/help/reference/apps/generating-an-api-key. Tokens do not
   expire and are always workspace-level. Attio's OAuth flow and user-level
   tokens are not used. Each endpoint page lists its required scopes.
 - Probe: `GET /v2/objects`, "List objects",
@@ -31,8 +31,10 @@ Community submission (`owner: community`), not submitted by Attio.
 - A wrong key is a 401
   `{"status_code": 401, "type": "auth_error", "code": "unauthorized", "message": "..."}`,
   so no `errors` rule is needed. A valid token without
-  `object_configuration:read` would get a 403 and be reported as an
-  unexpected response; the setup text names the scope.
+  `object_configuration:read` fails the key check, and with no `errors`
+  rule that is not reported as a wrong key; the setup text names the scope.
+  The status Attio answers for a missing scope has not been checked with a
+  real key (see Verification).
 - Rate limits: https://docs.attio.com/rest-api/guides/rate-limiting. 100
   read and 25 write requests per second; List records and List entries also
   have score-based limits over a 10-second window. A 429 carries
@@ -40,7 +42,8 @@ Community submission (`owner: community`), not submitted by Attio.
   limited to 2 per second and needs a plan with SQL access (the endpoint
   page says Enterprise; the pricing page lists "SQL access through the API
   and MCP" on Ultra only). Pagination is `limit`/`offset` in the body or
-  query string, or `cursor` for meetings, call recordings and emails
+  query string, or `cursor` for meetings, call recordings, emails and the
+  comments in `GET /v2/threads/:thread_id`
   (https://docs.attio.com/rest-api/guides/pagination); there is no
   pagination header.
 - Billing: https://attio.com/pricing. Attio charges per workspace plan and
@@ -80,9 +83,9 @@ and has a page under https://docs.attio.com/rest-api/endpoint-reference/.
 | `GET /v2/tasks`, `POST /v2/tasks` | [List tasks](https://docs.attio.com/rest-api/endpoint-reference/tasks/list-tasks), [Create a task](https://docs.attio.com/rest-api/endpoint-reference/tasks/create-a-task) |
 | `GET /v2/tasks/:task_id`, `PATCH /v2/tasks/:task_id` | [Get a task](https://docs.attio.com/rest-api/endpoint-reference/tasks/get-a-task), [Update a task](https://docs.attio.com/rest-api/endpoint-reference/tasks/update-a-task) |
 | `GET /v2/threads`, `GET /v2/threads/:thread_id` | [List threads](https://docs.attio.com/rest-api/endpoint-reference/threads/list-threads), [Get a thread](https://docs.attio.com/rest-api/endpoint-reference/threads/get-a-thread-and-its-comments) |
-| `POST /v2/comments`, `GET /v2/comments/:comment_id` | [Create a comment](https://docs.attio.com/rest-api/endpoint-reference/comments/create-a-comment), [Get a comment](https://docs.attio.com/rest-api/endpoint-reference/comments/get-a-comment) |
+| `POST /v2/comments`, `GET /v2/comments/:comment_id` | [Create a comment](https://docs.attio.com/rest-api/endpoint-reference/comments/create-a-comment) (the body's required `author` names the workspace member the comment is posted as), [Get a comment](https://docs.attio.com/rest-api/endpoint-reference/comments/get-a-comment) |
 | `GET /v2/meetings`, `GET /v2/meetings/:meeting_id` | [List meetings](https://docs.attio.com/rest-api/endpoint-reference/meetings/list-meetings), [Get a meeting](https://docs.attio.com/rest-api/endpoint-reference/meetings/get-a-meeting) |
-| `GET /v2/meetings/:meeting_id/call_recordings`, `GET .../call_recordings/:call_recording_id` | [List call recordings](https://docs.attio.com/rest-api/endpoint-reference/call-recordings/list-call-recordings), [Get call recording](https://docs.attio.com/rest-api/endpoint-reference/call-recordings/get-call-recording) |
+| `GET /v2/meetings/:meeting_id/call_recordings`, `GET .../call_recordings/:call_recording_id` | [List call recordings](https://docs.attio.com/rest-api/endpoint-reference/call-recordings/list-call-recordings), [Get call recording](https://docs.attio.com/rest-api/endpoint-reference/call-recordings/get-call-recording) (returns the transcript and, for recordings made by Attio's call recorder, a `video_url` that downloads the video and expires after an hour) |
 | `GET /v2/emails` | [List emails](https://docs.attio.com/rest-api/endpoint-reference/emails/list-emails) (metadata only; content is never returned; alpha, enabled per workspace by Attio support) |
 | `GET /v2/workspace_members`, `GET /v2/workspace_members/:workspace_member_id` | [List workspace members](https://docs.attio.com/rest-api/endpoint-reference/workspace-members/list-workspace-members), [Get a workspace member](https://docs.attio.com/rest-api/endpoint-reference/workspace-members/get-a-workspace-member) |
 | `POST /v2/sql` | [Query SQL](https://docs.attio.com/rest-api/endpoint-reference/sql/query-sql) |
@@ -90,7 +93,7 @@ and has a page under https://docs.attio.com/rest-api/endpoint-reference/.
 `POST .../records/query`, `POST .../entries/query`, `POST /v2/objects/records/search`
 and `POST /v2/sql` are read-only despite the method. Workspace members are
 read-only (the REST API's member routes only read; provisioning is SCIM),
-and task assignees need member ids. Slugs (`people`, `sales_pipeline`) and UUIDs fit
+and task assignees and comment authors need member ids. Slugs (`people`, `sales_pipeline`) and UUIDs fit
 the default `:param` rule. `/v2/objects/records/search` does not collide
 with `/v2/objects/:object/records`, because `:object` never matches a
 segment another route uses literally (`records`).
@@ -110,8 +113,9 @@ Left out on purpose:
   `PUT /v2/lists/:list/entries` ("Upsert a list entry by parent"). When
   they match an existing record or entry, they overwrite its multiselect
   values in the same way, so they are left out for the same reason. Create
-  with `POST`, and on a 409 conflict, find the record and update it with
-  `PATCH`.
+  with `POST`, and on a 409 `uniqueness_conflict`, find the record and
+  update it with `PATCH`. A 409 can also be `concurrent_write_conflict`
+  (retry) or `multiple_match_results`.
 - Schema changes: creating or updating objects, lists, attributes, select
   options, statuses and views. List creation also sets workspace access
   permissions.
@@ -121,7 +125,10 @@ Left out on purpose:
 - Files (upload is multipart and download redirects to a signed URL on
   another host), activities and activity records (custom activities are a
   paid feature), views, meeting and call-recording creation, and the
-  deprecated transcript route. These could be added on request.
+  deprecated transcript route (Get call recording, which is forwarded,
+  returns the transcript). These could be added on request. Without the
+  view routes a Sprite cannot look up ids for the query routes'
+  `filter_view_id`.
 - `PATCH /v2/notes/:note_id` (replaces a note's whole content) and
   `PATCH /v2/meetings/:meeting_id`.
 
@@ -145,6 +152,24 @@ On 2026-11-23:
 - **The probe has not been run with a real key.** No Attio workspace was
   available; the assertions follow the documented List objects response.
 - `node scripts/check-connectors.mjs attio` and the ajv schema check pass.
+
+Still open for a reviewer:
+
+- Run the probe with a real token that has only `object_configuration:read`.
+- Check what Attio answers to a valid token that lacks a scope. The 403
+  message in the manifest assumes a 403; the OpenAPI spec documents 403
+  only as `unauthorized` or `billing_error` on write routes. If the key
+  check should say "missing scope" rather than fail as an unexpected
+  response, that needs a reason the manifest format does not have today.
+  Also unchecked: what `POST /v2/sql` answers on a plan without SQL access
+  and what `GET /v2/emails` answers before Attio support enables it.
+- Decide whether to keep the writes: record and list-entry create and
+  `PATCH`, notes, tasks, and `POST /v2/comments`, where the request chooses
+  the workspace member the comment is posted as.
+- Decide whether to keep the sensitive reads: `GET /v2/emails`, workspace
+  members (names and email addresses) and call recordings with their
+  transcripts and video URLs. Each needs a scope the admin must add to the
+  token.
 
 ## Icons
 
