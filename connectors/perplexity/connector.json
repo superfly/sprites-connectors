@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.perplexity.ai",
   "description": "Web search, page content, web-grounded agent answers and saved monitor results from Perplexity",
-  "long_description": "Bring a Perplexity API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists the Orchestrator API's models (GET /orchestrator/v1/models), which is free. A Sprite can then search the web, fetch the content of known URLs, run Agent API requests with web search and other tools (in the background, polling and cancelling them and downloading the files they produce), and read the monitors and monitor runs in your API organization. Search, Context and Agent requests use your Perplexity API credits. Creating, changing, running or deleting monitors, Orchestrator chat, responses and messages, embeddings, decisions, batches, files, skills, the legacy Sonar endpoints, analytics, audit events and API key management are not forwarded.",
+  "long_description": "Bring a Perplexity API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key lists the Orchestrator API's models (GET /orchestrator/v1/models), which is free. A Sprite can then search the web, fetch the content of known URLs, run Agent API requests with web search, URL fetching, a code sandbox with internet access, remote MCP servers and the connectors saved in your Perplexity project (in the background, polling and cancelling them and downloading the files they produce), and read the monitors and monitor runs in your API organization. Search, Context and Agent requests use your Perplexity API credits. Creating, changing, running or deleting monitors, Orchestrator chat, responses and messages, embeddings, decisions, batches, files, skills, the legacy Sonar endpoints, analytics, audit events and API key management are not forwarded.",
   "website_url": "https://console.perplexity.ai/project/keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -52,7 +52,7 @@
       "notes": ["Check each result's `status.type`: only `ok` and `not_modified` are billed. `timeout_ms` is Perplexity's fetch budget (30 seconds by default, up to 110); keep it well under the gateway's 120-second response deadline."]
     },
     {
-      "title": "Ask the agent a question with web search (model tokens plus $0.0025 per search)",
+      "title": "Ask the agent a question with web search (model tokens plus tool fees)",
       "method": "POST",
       "path": "/v1/agent",
       "json": {"effort": "low", "input": "What are Fly.io Sprites and how do they differ from Fly Machines? Cite sources."},
@@ -123,12 +123,13 @@
       },
       {
         "title": "Scope",
-        "body": "Only `POST /search`, `POST /v1/context`, `POST /v1/agent`, `GET /v1/agent/:id`, `POST /v1/agent/:id/cancel`, `GET /v1/agent/:id/files`, `GET /v1/agent/:id/files/:file_id/content`, `GET /v1/monitors`, `GET /v1/monitors/:monitor_id`, `GET /v1/monitors/:monitor_id/runs`, `GET /v1/monitors/:monitor_id/runs/:run_id` and `GET /orchestrator/v1/models` are forwarded. Monitors are read-only: create, change, pause and run them in the API Console. Orchestrator inference, embeddings, decisions, batches, files, skills, the legacy Sonar endpoints, analytics, audit events and API key management are not forwarded."
+        "body": "Only `POST /search`, `POST /v1/context`, `POST /v1/agent`, `GET /v1/agent/:id`, `POST /v1/agent/:id/cancel`, `GET /v1/agent/:id/files`, `GET /v1/agent/:id/files/:file_id/content`, `GET /v1/monitors`, `GET /v1/monitors/:monitor_id`, `GET /v1/monitors/:monitor_id/runs`, `GET /v1/monitors/:monitor_id/runs/:run_id` and `GET /orchestrator/v1/models` are forwarded. `POST /v1/agent` accepts tools that reach beyond these routes: any connector saved in your Perplexity project (GitHub or Slack, for example, including write actions, with no approval step unless the request sets `require_approval`), a remote MCP server at any HTTPS URL the request names, and a `sandbox` container with internet access. Use a project with no saved connectors if a Sprite should not reach them. Monitors are read-only: create, change, pause and run them in the API Console. Orchestrator inference, embeddings, decisions, batches, files, skills, the legacy Sonar endpoints, analytics, audit events and API key management are not forwarded."
       }
     ],
     "usage_notes": [
       "The gateway waits 120 seconds for response headers. Run long Agent API requests with `\"background\": true` and poll `GET /v1/agent/:id`, and keep the Context API's `timeout_ms` below that deadline.",
-      "Errors are `{\"error\": {\"message\": \"...\", \"type\": \"...\", \"code\": 401}}`. A bad key is 401 `invalid_api_key`; 402 means the project is out of credits or below a model's usage tier; 429 carries `Retry-After`, which the gateway forwards with the `x-ratelimit-*` headers."
+      "Errors are `{\"error\": {\"message\": \"...\", \"type\": \"...\", \"code\": 401}}`. Check `error.type` on a 401: `invalid_api_key` is a bad key, and Perplexity also documents `token_expired` and `insufficient_quota` (no credit left) for the Context and Monitor routes. 402 means the project is out of credits or below a model's usage tier; 429 carries `Retry-After`, which the gateway forwards with the `x-ratelimit-*` headers.",
+      "Call `POST /v1/agent` and `GET /v1/agent/:id` directly. The OpenAI SDK sends Agent API requests to the `/v1/responses` alias, which is not forwarded, and neither is the Agent API model list (`GET /v1/models`); take model ids from Perplexity's Agent API models page."
     ],
     "mark_svg": {"file": "mark.svg"}
   }

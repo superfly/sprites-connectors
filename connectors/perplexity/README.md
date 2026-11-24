@@ -46,7 +46,23 @@ Community submission (`owner: community`), not submitted by Perplexity.
     (https://docs.perplexity.ai/docs/agent-api/background-mode.md). The Agent
     API has no request timeout parameter; background mode is the documented
     way to avoid client timeouts. `effort` values are from
-    https://docs.perplexity.ai/docs/agent-api/effort.md.
+    https://docs.perplexity.ai/docs/agent-api/effort.md. The `low` and
+    `medium` levels currently use Fast Search and `fetch_url`, and Perplexity
+    changes what a level runs, so the example titles say "tool fees" without a
+    figure.
+    The request's `tools` reach beyond the listed routes, and the gateway
+    cannot filter a request body, so the Scope notice discloses them:
+    `connector` uses a connector saved in the Perplexity project (GitHub,
+    Slack, Google Drive, Datadog, Linear, Notion or a custom MCP server). Any
+    key in the project can use it, calls run without approval unless the
+    request sets `require_approval`, and the tools include writes such as
+    `slack_send_message`
+    (https://docs.perplexity.ai/docs/agent-api/tools/connectors.md). `mcp`
+    connects to a remote MCP server at any HTTPS `server_url` the request
+    names (https://docs.perplexity.ai/docs/agent-api/tools/mcp.md). `sandbox`
+    runs code in a container with internet access
+    (https://docs.perplexity.ai/docs/agent-api/tools/sandbox.md). None of
+    these was exercised; they are read from the docs and the OpenAPI spec.
   - `GET /v1/agent/:id`: https://docs.perplexity.ai/api-reference/agent-get.md.
   - `POST /v1/agent/:id/cancel`: https://docs.perplexity.ai/api-reference/agent-cancel-post.md.
     Kept so a Sprite can stop a background run it started from spending more.
@@ -65,9 +81,9 @@ Community submission (`owner: community`), not submitted by Perplexity.
   - `GET /orchestrator/v1/models`: the probe, above.
 
   Ids fit the default `:param` rule: responses are `resp_<uuid>`, monitors
-  `mon_<ulid>`, runs `run_<ulid>`. The docs do not show a file id example; the
-  spec only calls it a string from the file list, so a file id with other
-  characters would be refused.
+  `mon_<ulid>`, runs `run_<ulid>`. File ids are UUIDs: the Sandbox guide's
+  download example uses `9198548a-490b-4119-858f-fd3676b60319`
+  (https://docs.perplexity.ai/docs/agent-api/tools/sandbox.md).
 - Pricing: https://docs.perplexity.ai/docs/getting-started/pricing.md. Search
   $5 per 1,000 successful requests ($1 with `search_type: "fast"`), a
   five-query array is one request; Context $0.001 per URL returned `ok` or
@@ -84,7 +100,11 @@ Community submission (`owner: community`), not submitted by Perplexity.
   responses carry `x-ratelimit-limit`, `-remaining`, `-used` and `-reset`; all
   five are forwarded.
 - Errors are `{"error": {"message", "type", "code"}}` (Context adds `param`
-  and `request_id`). 400 for invalid requests, 401 `invalid_api_key`, 402 when
+  and `request_id`). 400 for invalid requests, 401 `invalid_api_key` (the
+  Context and Monitor references also list 401 `token_expired` and 401
+  `insufficient_quota` for an account with no credit left,
+  https://docs.perplexity.ai/api-reference/context-post.md and
+  https://docs.perplexity.ai/api-reference/monitors-list-get.md), 402 when
   the project is out of credits
   (https://docs.perplexity.ai/docs/resources/faq.md) or below a model's usage
   tier (https://docs.perplexity.ai/docs/orchestrator/faq.md), 403 when
@@ -102,6 +122,12 @@ Community submission (`owner: community`), not submitted by Perplexity.
     `/messages`) and `GET /orchestrator/v1/models/{model}`: a general LLM
     gateway rather than web research, and model ids contain `/`, which a
     `:param` cannot match. Reviewers may decide to add the inference routes.
+  - The Agent API's OpenAI SDK alias (`POST /v1/responses`,
+    `GET /v1/responses/{id}`,
+    https://docs.perplexity.ai/docs/agent-api/openai-compatibility.md) and its
+    model list (`GET /v1/models`). An OpenAI SDK pointed at the gateway is
+    refused, and a usage note says to call `/v1/agent` directly. Reviewers may
+    decide to add these three routes.
   - Embeddings, contextualized embeddings and Decisions: not web research.
   - Batches, `/v1/files` (upload, delete) and `/v1/skills` (create, revise,
     delete): project configuration and bulk jobs a Sprite does not need.
@@ -123,10 +149,35 @@ provided. Ensure your API key is correct and active.", "type":
 "invalid_api_key", "code": 401}}` and was classified `invalid_api_key`. The
 same made-up key sent with curl to every allowed route (with sample ids for
 the `:param` segments) also answered 401 with that body, while a made-up path,
-`GET /v1/nonexistent-route`, answered 404, so the 401s show the routes exist.
+`GET /v1/nonexistent-route`, answered 404, which suggests the `/search` and
+`/v1/` routes exist. It shows nothing for the probe route: on 2026-11-24 a
+made-up path under it, `GET /orchestrator/v1/nonexistent`, also answered 401,
+so `GET /orchestrator/v1/models` rests on the OpenAPI spec and the docs.
 The probe has not been run with a real key; the assertions follow the
 documented `ModelList` response. `node scripts/check-connectors.mjs perplexity`
 and the ajv schema check pass.
+
+Open items for a reviewer with a real key:
+
+- Run the probe with a key from a project that has only sign-up credit, and
+  one with no balance. The docs say sign-up credit alone does not unlock the
+  Orchestrator API
+  (https://docs.perplexity.ai/docs/getting-started/projects.md) and that the
+  model list holds the models the usage tier can call
+  (https://docs.perplexity.ai/docs/orchestrator/models.md), and the Context
+  and Monitor references list 401 `insufficient_quota` for an account with no
+  credit. They do not say what the model list answers in those cases. A 402
+  would refuse the key, and the manifest has a 402 message for it. A 401
+  `insufficient_quota` would be classified `invalid_api_key`, and a 200 with
+  an empty `data` would fail `nonempty_list`. Any of the three would refuse a
+  key that may still work for Search and Context.
+- If either happens, an alternative probe is `GET /v1/monitors` with
+  `[["object", "eq", "list"], ["data", "list"], ["has_more", "boolean"],
+  ["error", "absent"]]`: free, read-only, and its documented 200 body
+  requires all three fields, so an empty list still passes. It has not been
+  run with a real key either.
+- Decide whether to add `POST /v1/responses`, `GET /v1/responses/:id` and
+  `GET /v1/models` (see "Left out on purpose").
 
 ## Icons
 
