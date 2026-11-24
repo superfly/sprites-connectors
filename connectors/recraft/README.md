@@ -60,8 +60,10 @@ Community submission (`owner: community`), not submitted by Recraft.
     literal beside `:style_id` and wins by the matcher's rules.
   - `GET /v1/users/me`: the probe, above.
 - Prices: https://www.recraft.ai/docs/api-reference/pricing ($1 = 1,000 API
-  units; every response's `credits` field is what the request cost). The
-  Billing notice and example titles use those numbers. Image to image is
+  units; the `credits` field of a generation, edit or tool response is what
+  the request cost, while `GET /v1/users/me` returns the remaining balance in
+  `credits`). The Billing notice and example titles use those numbers. Image
+  to image is
   priced like generation with the chosen model (default `recraftv4_1`,
   https://www.recraft.ai/docs/api-reference/tools/image-to-image); only
   inpainting, outpainting and the background tools are fixed at 40 or 80
@@ -78,8 +80,13 @@ Community submission (`owner: community`), not submitted by Recraft.
   `text/plain` `404 page not found` for an unknown path; other failures are
   plain text or JSON. Rate limits:
   https://www.recraft.ai/docs/api-reference/appendix#rate-limits, 5 requests a
-  second and 100 images a minute per user across all tokens. No rate-limit or
-  request-id response headers are documented, so none are forwarded.
+  second and 100 images a minute per user across all tokens. Recraft
+  documents no rate-limit or request-id response headers, but the API sends
+  `x-recraft-requestid` on every response checked (401, 404 and 405 with a
+  made-up token on 2026-11-24), and the API portal's request log
+  (https://www.recraft.ai/docs/api-reference/api-portal) shows a request ID
+  per call, so `forward_response_headers` passes that header through. No
+  rate-limit header was seen.
 - Timeouts: generation and the image tools are synchronous and Recraft
   documents no timeout parameter, so the examples cannot set one below the
   gateway's 120-second header deadline. They use `n: 1`, and a usage note
@@ -104,6 +111,30 @@ answered 404, so the 401s show the paths exist. The probe has not been run
 with a real token; the assertions follow the documented response and the
 OpenAPI `User` schema. `node scripts/check-connectors.mjs recraft` and the
 ajv schema check pass.
+
+Still to check with a real token, or to decide in review:
+
+- Run the probe with a token from a personal account and with one from a
+  workspace. The API portal docs say tokens belong to the personal account or
+  workspace selected in the portal, and do not say what `GET /v1/users/me`
+  returns for a workspace token.
+- Run the probe on an account whose balance is 0. Recraft's docs require a
+  positive balance to create a token and do not say whether
+  `GET /v1/users/me` still answers 200 once the balance is spent.
+- Confirm `x-recraft-requestid` also comes back on a 200. It has only been
+  seen on 401, 404 and 405 responses.
+- Run the raster example once (7 API units). Its model,
+  `recraftv4_1_flash_v2`, is on Recraft's models page and in the docs OpenAPI
+  `TransformModel` enum, but on 2026-11-24 it was not in the enum of the spec
+  the API itself serves
+  (https://external.api.recraft.ai/doc/spec/external-api.yaml).
+- Note the status Recraft returns for an exhausted balance and for a rate
+  limit. Neither is documented; the `400` and `429` entries in `messages`
+  assume a parameter error and a rate limit.
+- Decide whether to forward `DELETE /v1/styles/{style_id}`. `POST /v1/styles`
+  and generation with `style_reference_urls` both create styles that stay in
+  the account, and Recraft's docs describe deleting a style only through the
+  API, so a user has to call Recraft directly to remove styles a Sprite made.
 
 ## Icons
 
