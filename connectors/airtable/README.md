@@ -86,7 +86,11 @@ Community submission (`owner: community`), not submitted by Airtable.
   workspace are 1,000 on Free and 100,000 on Team, and none on Business and
   Enterprise Scale
   (https://support.airtable.com/articles/7735693959-managing-api-call-limits-in-airtable);
-  those count every Web API call to a base in the workspace. The docs do not
+  those count every Web API call to a base in the workspace. Over the limit,
+  the same article says a Free workspace gets a one-time 30-day grace period
+  and is then answered 429 on every call until the first day of the next
+  month, and a Team workspace is slowed to 2 requests a second; the 429
+  message and the Billing notice say so. The docs do not
   say whether `whoami`, which touches no workspace, counts. There is no
   per-request charge. No forwarded call runs long enough to need a timeout
   parameter.
@@ -110,6 +114,26 @@ On 2026-11-23:
 - The probe has not been run with a real token; the assertions follow the
   documented response. No fixture is recorded.
 - `node scripts/check-connectors.mjs airtable` and the ajv schema check pass.
+
+Open for a reviewer:
+
+- Run the probe once with a real personal access token, ideally one with
+  only `data.records:read` and one base, to confirm `whoami` needs no scope.
+- `GET /v0/meta/bases/:base_id/views` on the Free and Team plans. Airtable's
+  pages disagree: [List views](https://airtable.com/developers/web/api/list-views)
+  says "Billing plans: All plans", while
+  [Billing plans](https://airtable.com/developers/web/api/billing-plans) says
+  Free has all "Base Data" endpoints except "Views" and Teams has the same
+  access as Free. This needs a token on a Free workspace. If the route is
+  refused there, the setup text and the views example need a plan caveat.
+- Whether record writes stay. `POST` and `PATCH` on `/v0/:base_id/:table_id`
+  create and update up to 10 records a call, and `PATCH` with `performUpsert`
+  creates a record for each entry that matches none. `POST .../comments`
+  accepts user and user group mentions (`@[userId]`, `@[userEmail]`,
+  `@[userGroupId]`, per the
+  [user mentioned model](https://airtable.com/developers/web/api/model/user-mentioned)).
+  The Scope notice says both. Dropping `POST` and `PATCH` from the record and
+  comment routes would make the connector read-only.
 
 ## Icons
 

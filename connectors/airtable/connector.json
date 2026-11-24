@@ -6,7 +6,7 @@
   "tier": "community",
   "owner": "community",
   "base_url": "https://api.airtable.com",
-  "description": "Read and update Airtable bases, tables, records and record comments",
+  "description": "Read Airtable bases and tables, read and update records, and read and add record comments",
   "long_description": "Bring an Airtable personal access token; the gateway keeps it off your Sprite and sends it as a bearer token. Saving or testing it reads the token's user ID (GET /v0/meta/whoami), which needs no scope and reads no base. A Sprite can then list the bases the token can access, read their table and view schemas, list, read, create and update records (including upserts), and read and add record comments. Airtable enforces the token's scopes and the bases added to it on every request. Deleting records, destructive PUT updates, schema changes, base creation, webhooks, attachment uploads and enterprise admin endpoints are not forwarded. API calls count toward each workspace's monthly limit on the Free and Team plans.",
   "website_url": "https://airtable.com/create/tokens",
   "auth": "bearer",
@@ -81,7 +81,7 @@
     "403": "Airtable refused the request: the token lacks the scope or the base, or the record or table does not exist",
     "404": "Airtable route or record not found; check the base, table and record IDs",
     "422": "Airtable could not process the request; see error.type and error.message",
-    "429": "Airtable rate limit or the workspace's monthly API call limit reached; wait 30 seconds and retry",
+    "429": "Airtable rate limit reached; wait 30 seconds and retry. If every call answers 429, the workspace's monthly API call limit is used up until the first day of next month",
     "503": "Airtable is temporarily unavailable; retry with backoff",
     "provider_unreachable": "Could not reach Airtable; retry later"
   },
@@ -99,11 +99,11 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Airtable does not charge per request. Saving or testing the token reads `GET /v0/meta/whoami`, which reads no base. Every forwarded call counts toward the monthly API call limit of the workspace that owns the base: 1,000 calls on the Free plan and 100,000 on Team; Business and Enterprise Scale have no monthly cap. Airtable allows 5 requests a second per base and 50 a second per user, and answers 429 when either is exceeded."
+        "body": "Airtable does not charge per request. Saving or testing the token reads `GET /v0/meta/whoami`, which reads no base. Every forwarded call counts toward the monthly API call limit of the workspace that owns the base: 1,000 calls on the Free plan and 100,000 on Team; Business and Enterprise Scale have no monthly cap. Over the limit, a Free workspace gets a one-time 30-day grace period and is then answered 429 until the first day of the next month; a Team workspace is slowed to 2 requests a second. Airtable allows 5 requests a second per base and 50 a second per user, and answers 429 when either is exceeded."
       },
       {
         "title": "Scope",
-        "body": "Only `GET /v0/meta/whoami`, `GET /v0/meta/bases`, `GET /v0/meta/bases/:base_id/tables`, `GET /v0/meta/bases/:base_id/views`, `GET`, `POST` and `PATCH` on `/v0/:base_id/:table_id`, `POST /v0/:base_id/:table_id/listRecords`, `GET` and `PATCH` on `/v0/:base_id/:table_id/:record_id`, and `GET` and `POST` on `/v0/:base_id/:table_id/:record_id/comments` are forwarded. Deleting records, destructive `PUT` updates, schema and base changes, webhooks, attachment uploads and enterprise endpoints are not. Airtable enforces the token's scopes and bases on each call."
+        "body": "Only `GET /v0/meta/whoami`, `GET /v0/meta/bases`, `GET /v0/meta/bases/:base_id/tables`, `GET /v0/meta/bases/:base_id/views`, `GET`, `POST` and `PATCH` on `/v0/:base_id/:table_id`, `POST /v0/:base_id/:table_id/listRecords`, `GET` and `PATCH` on `/v0/:base_id/:table_id/:record_id`, and `GET` and `POST` on `/v0/:base_id/:table_id/:record_id/comments` are forwarded. Deleting records, destructive `PUT` updates, schema and base changes, webhooks, attachment uploads and enterprise endpoints are not. `PATCH` on `/v0/:base_id/:table_id` updates up to 10 records in one call and, with `performUpsert`, creates a record for each entry that matches none. Comment text can mention a user or user group with `@[...]`. Airtable enforces the token's scopes and bases on each call."
       }
     ],
     "usage_notes": [
