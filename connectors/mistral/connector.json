@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.mistral.ai",
   "description": "Chat, code completion, embeddings, OCR, moderation, audio and batch jobs on Mistral AI models",
-  "long_description": "Bring a Mistral AI API key from Mistral Studio; the gateway keeps it off your Sprite and sends it as a bearer token to the global endpoint api.mistral.ai. Saving, replacing or testing the key lists the models it can use (GET /v1/models), which uses no tokens. A Sprite can then run chat and fill-in-the-middle completions, create embeddings, run moderation and classifiers, run OCR on documents, transcribe and generate speech, upload and read files, and create, read and cancel batch jobs. Inference requests are billed to your Mistral account per token, page, minute or character. File and batch deletion, fine-tuning, model changes, agents, conversations, libraries and every admin endpoint (API keys, billing, users, workspaces) are not forwarded.",
+  "long_description": "Bring a Mistral AI API key from Mistral Studio; the gateway keeps it off your Sprite and sends it as a bearer token to the global endpoint api.mistral.ai. Saving, replacing or testing the key lists the models it can use (GET /v1/models), which uses no tokens. A Sprite can then run chat and fill-in-the-middle completions, create embeddings, run moderation and classifiers, run OCR on documents, transcribe and generate speech, upload and read files, and create, read and cancel batch jobs. Inference requests are billed to your Mistral account per token, page, minute or character. File and batch deletion, fine-tuning, model changes, the routes of the Agents, Conversations and Libraries APIs and every admin endpoint (API keys, billing, users, workspaces) are not forwarded. Mistral's API reference lets a chat completion name workspace Connectors and document libraries as tools, and lets a batch job run Conversations requests.",
   "website_url": "https://console.mistral.ai/api-keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -74,10 +74,10 @@
       "json": {"model": "mistral-embed", "input": ["Sprites are persistent Linux sandboxes.", "Connectors keep API keys off the machine."]}
     },
     {
-      "title": "Moderate text (free on Mistral Moderation)",
+      "title": "Moderate text (free with mistral-moderation-2603)",
       "method": "POST",
       "path": "/v1/moderations",
-      "json": {"model": "mistral-moderation-latest", "input": ["Text to check"]}
+      "json": {"model": "mistral-moderation-2603", "input": ["Text to check"]}
     },
     {
       "title": "OCR a PDF by URL (billed per 1,000 pages)",
@@ -91,7 +91,7 @@
       "method": "POST",
       "path": "/v1/audio/speech",
       "json": {"model": "voxtral-mini-tts-3-0", "input": "Hello from a Sprite.", "voice_id": "gb_jane_neutral", "response_format": "mp3"},
-      "notes": ["A `voice_id` (or `ref_audio`) is required. The response carries the audio base64-encoded in `audio_data`."]
+      "notes": ["A `voice_id` (or `ref_audio`) is required. The response carries the audio base64-encoded in `audio_data`.", "The voices routes are not forwarded, so a Sprite cannot list voices through this connector. Preset voice ids are listed at docs.mistral.ai/studio/audio/text-to-speech/voices."]
     },
     {
       "title": "List uploaded files",
@@ -102,7 +102,7 @@
       "method": "POST",
       "path": "/v1/batch/jobs",
       "json": {"endpoint": "/v1/chat/completions", "model": "mistral-small-latest", "requests": [{"custom_id": "0", "body": {"max_tokens": 100, "messages": [{"role": "user", "content": "Name a French cheese."}]}}]},
-      "notes": ["Poll `GET /v1/batch/jobs/JOB_ID` until `status` is no longer `QUEUED` or `RUNNING`; it ends as `SUCCESS`, `FAILED`, `TIMEOUT_EXCEEDED` or `CANCELLED`. Then download `output_file` and `error_file` with `GET /v1/files/FILE_ID/content`."]
+      "notes": ["Poll `GET /v1/batch/jobs/JOB_ID` until `status` is `SUCCESS`, `FAILED`, `TIMEOUT_EXCEEDED` or `CANCELLED`. Then download `output_file` and `error_file` with `GET /v1/files/FILE_ID/content`."]
     },
     {
       "title": "Read a batch job; replace JOB_ID",
@@ -120,7 +120,7 @@
     "403": "This Mistral key or workspace cannot use that model or resource",
     "404": "Not found in Mistral; check the model, file or job id",
     "422": "Mistral could not validate the request; see detail for the field",
-    "429": "Mistral rate limit or model capacity reached; wait for Retry-After and retry",
+    "429": "Mistral rate limit or model capacity reached; wait for Retry-After and retry. If the x-ratelimit-limit-req-minute header is 0, Mistral's docs say the organization is on Free mode and needs pay-as-you-go",
     "provider_unreachable": "Could not reach Mistral AI; retry later"
   },
   "discovery": {
@@ -131,16 +131,16 @@
   "icon_bg_class": "bg-orange-500/20",
   "presentation": {
     "tagline": "Call Mistral AI models for chat, code, embeddings, OCR and audio from a Sprite without putting your key on it.",
-    "setup": "In Mistral Studio open API Keys (console.mistral.ai/api-keys), select New key, set an expiration date and copy the key; it is shown only once. API access needs billing activated on your organization.",
+    "setup": "In Mistral Studio open API Keys (console.mistral.ai/api-keys), select New key, set an expiration date, leave Connector access scope on Shared connectors only unless the Sprite should use your private Connectors, and copy the key; it is shown only once. API access needs billing activated on your organization.",
     "key_label": "API key",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /v1/models`, which uses no tokens. Chat, fill-in-the-middle and embeddings are billed per input and output token at the model's price, OCR per 1,000 pages, transcription per audio minute and speech generation per character. Mistral Moderation is free on the moderation and classification routes; a classification with another model is billed at that model's price. Batch jobs are billed at half the standard price. Requests draw on your organization's included usage, then prepaid credits with pay-as-you-go; Mistral answers 402 when credits run out or a spending limit is reached."
+        "body": "Saving or testing the key reads `GET /v1/models`, which uses no tokens. Chat, fill-in-the-middle and embeddings are billed per input and output token at the model's price, OCR per 1,000 pages, transcription per audio minute and speech generation per character. Mistral Moderation 2 (`mistral-moderation-2603`) is free on the moderation and classification routes; any other model on those routes is billed at that model's price. Batch jobs are billed at half the standard price. Requests draw on your organization's included usage, then prepaid credits with pay-as-you-go; Mistral answers 402 when credits run out or a spending limit is reached."
       },
       {
         "title": "Scope",
-        "body": "Only `GET /v1/models`, `GET /v1/models/:model_id`, `POST /v1/chat/completions`, `POST /v1/fim/completions`, `POST /v1/embeddings`, `POST /v1/moderations`, `POST /v1/chat/moderations`, `POST /v1/classifications`, `POST /v1/chat/classifications`, `POST /v1/ocr`, `POST /v1/audio/transcriptions`, `POST /v1/audio/speech`, `GET` and `POST /v1/files`, `GET /v1/files/:file_id` with its `/content` and `/url`, `GET` and `POST /v1/batch/jobs`, `GET /v1/batch/jobs/:job_id` and `POST /v1/batch/jobs/:job_id/cancel` are forwarded. File and batch deletion, fine-tuning, model updates and deletion, agents, conversations, libraries and the admin API (keys, billing, users, workspaces, audit logs) are not."
+        "body": "Only `GET /v1/models`, `GET /v1/models/:model_id`, `POST /v1/chat/completions`, `POST /v1/fim/completions`, `POST /v1/embeddings`, `POST /v1/moderations`, `POST /v1/chat/moderations`, `POST /v1/classifications`, `POST /v1/chat/classifications`, `POST /v1/ocr`, `POST /v1/audio/transcriptions`, `POST /v1/audio/speech`, `GET` and `POST /v1/files`, `GET /v1/files/:file_id` with its `/content` and `/url`, `GET` and `POST /v1/batch/jobs`, `GET /v1/batch/jobs/:job_id` and `POST /v1/batch/jobs/:job_id/cancel` are forwarded. File and batch deletion, fine-tuning, model updates and deletion, the routes of the Agents, Conversations and Libraries APIs and the admin API (keys, billing, users, workspaces, audit logs) are not. Mistral's API reference lets a chat completion name workspace Connectors and document libraries in `tools`, and lets a batch job target `/v1/conversations`, so through the forwarded routes a Sprite can reach the Connectors and libraries that the key's workspace and Connector access scope allow."
       },
       {
         "title": "Global endpoint only",
