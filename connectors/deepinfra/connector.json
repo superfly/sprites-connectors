@@ -1,0 +1,146 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "deepinfra",
+  "display_name": "DeepInfra",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.deepinfra.com",
+  "description": "Pay-per-use model inference: chat, responses, embeddings, images, reranking and speech",
+  "long_description": "Bring a DeepInfra API key; the gateway keeps it off your Sprite and sends it as a bearer token. Saving, replacing or testing the key reads the account's per-model rate limits (GET /v1/me/rate_limit), which runs no model and costs nothing. A Sprite can then list models and call DeepInfra's OpenAI-compatible chat completions, text completions, Responses, embeddings and image generation endpoints under /v1/openai, including SSE streaming, and run any model by name (or your own private deployment) through the native inference endpoint, which covers reranking, text to speech, speech recognition and video models. The native endpoint also accepts a webhook field that makes DeepInfra send the result to a URL named in the request. Every inference request is charged to your DeepInfra account. API key and scoped-JWT management, billing, usage, logs, account and team settings, deployment management, LoRA adapters, custom voices, files and batches, GPU rentals, sandboxes and hosted agents are not forwarded.",
+  "website_url": "https://deepinfra.com/dash/keys",
+  "auth": "bearer",
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/v1/openai/models"},
+    {"methods": ["POST"], "pattern": "/v1/openai/chat/completions"},
+    {"methods": ["POST"], "pattern": "/v1/openai/completions"},
+    {"methods": ["POST"], "pattern": "/v1/openai/responses"},
+    {"methods": ["POST"], "pattern": "/v1/openai/embeddings"},
+    {"methods": ["POST"], "pattern": "/v1/openai/images/generations"},
+    {"methods": ["POST"], "pattern": "/v1/inference/:owner/:model"},
+    {"methods": ["GET"], "pattern": "/v1/me/rate_limit"}
+  ],
+  "path_param": "\\A[A-Za-z0-9._-]+\\z",
+  "probe": {
+    "method": "GET",
+    "path": "/v1/me/rate_limit",
+    "label": "rate limits",
+    "expect": [
+      ["rate_limit", "integer"],
+      ["tpm_rate_limit", "integer"],
+      ["detail", "absent"],
+      ["error", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "List models with their pricing and context length",
+      "path": "/v1/openai/models",
+      "notes": ["Each entry's `metadata.pricing` gives the model's price: per million tokens for language and embedding models, per image unit, per second of audio input, per second of video output or per million characters for others. Use an `id` from here as `model` below. Reranking model ids are listed at deepinfra.com/models/reranker."]
+    },
+    {
+      "title": "Chat completion (charged per token to your DeepInfra account)",
+      "method": "POST",
+      "path": "/v1/openai/chat/completions",
+      "json": {
+        "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+        "messages": [{"role": "user", "content": "Explain persistent sandboxes in two sentences."}],
+        "max_tokens": 256,
+        "fail_fast": true
+      },
+      "notes": [
+        "Point an OpenAI SDK at this connection's gateway URL followed by `/v1/openai`; the gateway adds the key.",
+        "Set `stream: true` for SSE. For long answers stream, or keep `max_tokens` low, so the first response bytes arrive within the gateway's 120-second deadline.",
+        "`fail_fast: true` answers 429 at once instead of queueing when the model is at capacity; leave `service_tier` unset, because `flex` requests can wait up to 10 minutes and `priority` costs 50% more."
+      ]
+    },
+    {
+      "title": "Responses API request (charged per token)",
+      "method": "POST",
+      "path": "/v1/openai/responses",
+      "json": {"model": "deepseek-ai/DeepSeek-V4-Flash-0731", "input": "Name three uses for a persistent dev sandbox.", "max_output_tokens": 256},
+      "notes": ["DeepInfra serves Responses statelessly: send the conversation so far with each request; `previous_response_id`, `conversation` and `background` are not supported."]
+    },
+    {
+      "title": "Text completion; replace MODEL_ID (charged per token)",
+      "method": "POST",
+      "path": "/v1/openai/completions",
+      "json": {"model": "MODEL_ID", "prompt": "A persistent sandbox is", "max_tokens": 64}
+    },
+    {
+      "title": "Create embeddings (charged per input token)",
+      "method": "POST",
+      "path": "/v1/openai/embeddings",
+      "json": {"model": "Qwen/Qwen3-Embedding-8B", "input": ["Sprites run code in isolated, persistent environments."], "encoding_format": "float"}
+    },
+    {
+      "title": "Generate an image (charged at the model's image price)",
+      "method": "POST",
+      "path": "/v1/openai/images/generations",
+      "json": {"model": "black-forest-labs/FLUX-1-schnell", "prompt": "A small hot-air balloon over a city at dawn", "size": "1024x1024", "n": 1},
+      "notes": ["The image is returned as `b64_json` by default, base64-encoded in `data[].b64_json`."]
+    },
+    {
+      "title": "Rerank documents for a query (charged per token)",
+      "method": "POST",
+      "path": "/v1/inference/Qwen/Qwen3-Reranker-8B",
+      "json": {
+        "queries": ["What is the capital of France?"],
+        "documents": ["Paris is the capital of France.", "Berlin is the capital of Germany."]
+      },
+      "notes": ["`scores` come back in the order of `documents`; a single query is applied to every document."]
+    },
+    {
+      "title": "Text to speech (charged per input character)",
+      "method": "POST",
+      "path": "/v1/inference/hexgrad/Kokoro-82M",
+      "json": {"text": "Hello from a Sprite."},
+      "notes": ["Other model pages at deepinfra.com/models/text-to-speech list voice and format parameters."]
+    },
+    {
+      "title": "Transcribe audio with Whisper (charged per second of audio)",
+      "method": "POST",
+      "path": "/v1/inference/openai/whisper-large-v3",
+      "notes": ["Send the file as multipart form data: `curl -F audio=@audio.mp3 ...`. DeepInfra accepts mp3 and wav."]
+    },
+    {
+      "title": "Read the account's per-model rate limits",
+      "path": "/v1/me/rate_limit"
+    }
+  ],
+  "messages": {
+    "402": "DeepInfra could not charge the account; add funds or a payment method in the DeepInfra dashboard",
+    "403": "This DeepInfra key lacks a scope the request needs (the key check needs `account:read`, inference needs `inference`, and DeepInfra's OpenAPI marks the model list as needing `models:read`); change the key's scopes at deepinfra.com/dash/keys",
+    "404": "DeepInfra model not found; check the model id with GET /v1/openai/models",
+    "429": "DeepInfra rate limit reached or the model is busy; retry after a short wait",
+    "provider_unreachable": "Could not reach DeepInfra; retry later"
+  },
+  "discovery": {
+    "categories": ["ai-inference"],
+    "keywords": ["deepinfra", "llm", "language models", "open models", "openai-compatible", "embeddings", "reranking", "image generation", "text to speech", "speech recognition", "whisper"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-indigo-500/20",
+  "presentation": {
+    "tagline": "Run models on DeepInfra from a Sprite without putting your API key on it.",
+    "setup": "Sign in at deepinfra.com, open Dashboard → API Keys (deepinfra.com/dash/keys) and create a key. A new key's default scopes (`inference`, `models:read`, `account:read`, `lora:read`, `voice:read`) are enough; a scoped key needs at least `inference` and `account:read`, and DeepInfra's OpenAPI marks listing models as needing `models:read`.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /v1/me/rate_limit`, which runs no model and costs nothing; listing models is free too. Every other forwarded request runs a model and is charged to your DeepInfra account at that model's price on deepinfra.com/pricing: language, embedding and reranking models mostly per token, speech recognition by the length of the audio, text to speech per input character, image models per image, video models per second of output, and other models by inference time, as each model's page says. Requests to your own private deployments are billed per GPU-hour instead, and a deployment that autoscales can add instances under load. DeepInfra needs a card or prepaid balance before it serves requests. `service_tier: \"priority\"` adds 50% and `\"flex\"` takes 20% off. Requests a model rejects with `fail_fast` are not billed."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /v1/openai/models`, `POST /v1/openai/chat/completions`, `POST /v1/openai/completions`, `POST /v1/openai/responses`, `POST /v1/openai/embeddings`, `POST /v1/openai/images/generations`, `POST /v1/inference/:owner/:model` and `GET /v1/me/rate_limit` are forwarded. The native inference route runs any `owner/model` the key may use, video models included, and `/v1/inference/deploy/DEPLOY_ID` for your own private deployments; the chat and completions routes also reach those deployments by `model` name. The native route accepts a `webhook` field: with it DeepInfra queues the request and sends the result to whatever URL the request names. API keys, scoped JWTs, billing, usage, logs, account and team settings, managing private deployments, LoRA adapters, custom voices, files, batches, GPU rentals, sandboxes and hosted agents are not."
+      }
+    ],
+    "usage_notes": [
+      "OpenAI-compatible routes live under `/v1/openai`, so an OpenAI SDK pointed at this connection's gateway URL plus `/v1/openai` works unchanged for models, chat, completions, Responses, embeddings and images.",
+      "The gateway waits 120 seconds for response headers and DeepInfra has no per-request timeout parameter, so stream long generations (`stream: true`), keep `max_tokens` bounded and avoid `service_tier: \"flex\"`, which can queue for up to 10 minutes.",
+      "Video models on the native inference route can run for several minutes, longer than the gateway's 120-second deadline, so a synchronous video request can time out at the gateway.",
+      "Errors on the OpenAI-compatible text routes are `{\"error\": {\"message\", \"type\", \"code\"}}`; the model list, images, account and native inference routes answer a bad key or missing scope with `{\"detail\": ...}`, and native inference also answers `{\"error\": \"...\"}` for an unknown or unavailable model. A request outside the key's scopes is a 403 naming the missing scope. Public models allow 200 concurrent requests per model by default and answer 429 above that or when a model is busy."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
