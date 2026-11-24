@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.moonshot.ai",
   "description": "Kimi models through Moonshot AI's OpenAI- and Anthropic-compatible API, plus web search, URL fetch, files and batches",
-  "long_description": "Bring an API key from the international Kimi API Platform (platform.kimi.ai); the gateway keeps it off your Sprite and sends it as a bearer token to api.moonshot.ai. Saving, replacing or testing the key lists models (GET /v1/models), which runs no inference and costs nothing. A Sprite can then call Kimi models through Chat Completions, Responses or the Anthropic-compatible Messages endpoint, estimate token counts, run Kimi web search and URL fetch, upload and read files, and create and check batch jobs. Inference, web search and URL fetch use your Kimi balance. Balance, request signature verification, file deletion, batch cancellation and the Admin API (members, projects, API keys, billing, audit logs) are not forwarded. Keys from the China platform (platform.moonshot.cn) and Kimi Code subscriptions do not work here.",
+  "long_description": "Bring an API key from the international Kimi API Platform (platform.kimi.ai); the gateway keeps it off your Sprite and sends it as a bearer token to api.moonshot.ai. Saving, replacing or testing the key lists models (GET /v1/models), which runs no inference and costs nothing. A Sprite can then call Kimi models through Chat Completions, Responses or the Anthropic-compatible Messages endpoint, estimate token counts, run Kimi web search and URL fetch, upload and read files, and create and check batch jobs. Inference, web search and URL fetch use your Kimi balance. Balance, request signature verification, file deletion, batch cancellation and the Admin API (members, projects, API keys, billing, audit logs) are not forwarded. Keys from the China platform (platform.kimi.com, API host api.moonshot.cn) and Kimi Code subscriptions do not work here.",
   "website_url": "https://platform.kimi.ai/console/api-keys",
   "auth": "bearer",
   "allowed_paths": [
@@ -110,7 +110,7 @@
   "icon_bg_class": "bg-neutral-500/20",
   "presentation": {
     "tagline": "Call Kimi models, web search and URL fetch from a Sprite without putting your Moonshot AI key on it.",
-    "setup": "Sign in at platform.kimi.ai, open API Keys in the console and create a key. The platform is pay-as-you-go and needs a $1 minimum top-up before the API works. Keys from platform.moonshot.cn and Kimi Code subscriptions are separate and will not work.",
+    "setup": "Sign in at platform.kimi.ai, open API Keys in the console and create a key. The platform is pay-as-you-go and needs a $1 minimum top-up before the API works. Keys from the China platform (platform.kimi.com, API host api.moonshot.cn) and Kimi Code subscriptions are separate and will not work.",
     "key_label": "API key",
     "notices": [
       {
@@ -123,13 +123,18 @@
       },
       {
         "title": "International platform only",
-        "body": "This connector calls api.moonshot.ai with keys from platform.kimi.ai. Keys from the China platform (api.moonshot.cn) or a Kimi Code plan answer 401 here."
+        "body": "This connector calls api.moonshot.ai with keys from platform.kimi.ai. Keys from the China platform (platform.kimi.com, API host api.moonshot.cn) or a Kimi Code plan are rejected here."
+      },
+      {
+        "title": "IP whitelist",
+        "body": "Requests reach Kimi from the Sprites gateway, not from your own network. Kimi's docs say a key under an IP whitelist access policy answers 403 `permission_denied_error` to callers the policy does not list. With such a key the key check and every forwarded request fail with 403, so use a key whose organization default policy and custom policy are both empty."
       }
     ],
     "usage_notes": [
       "Sprites waits 120 seconds for response headers. Use `stream: true` for chat, Responses and Messages calls that may think or write at length, and set `timeout_seconds` (1 to 60) on web search.",
       "Errors are `{\"error\": {\"type\": \"...\", \"message\": \"...\"}}`; on 429 `error.type` says whether it is a rate limit, an overloaded engine or an empty balance. The web search and fetch tools use their own error types, and answer 401 and an inactive account's 403 with an empty body.",
-      "Upload files as multipart form data with a `purpose` (`file-extract`, `batch`, `image` or `video`). Batch input files hold JSONL requests to `/v1/chat/completions`; download results with `GET /v1/files/:file_id/content`."
+      "Upload files as multipart form data with a `purpose` (`file-extract`, `batch`, `image` or `video`). Batch input files hold JSONL requests to `/v1/chat/completions`; download results with `GET /v1/files/:file_id/content`.",
+      "Kimi sets rate limits by cumulative top-up. Its limits page (platform.kimi.ai/docs/pricing/limits) lists Tier0, the $1 tier, at 1 concurrent request and 3 requests per minute; past that Kimi answers 429 `rate_limit_reached_error`."
     ],
     "mark_svg": {"file": "mark.svg"}
   }

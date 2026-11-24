@@ -17,7 +17,9 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   regional Kimi platforms are not interchangeable and answer 401
   (https://platform.kimi.ai/docs/api/errors.md, "Platform key isolation";
   the List Models page says the same). The China platform
-  (`api.moonshot.cn`) needs its own keys and would be a separate connector.
+  (`platform.kimi.com`, API host `api.moonshot.cn`; the old console host
+  `platform.moonshot.cn` redirects to `platform.kimi.com`) needs its own
+  keys and would be a separate connector.
   Kimi Code and Kimi membership are different products with different
   billing (https://platform.kimi.ai/docs/guide/product-plans.md).
 - Probe: `GET /v1/models`, https://platform.kimi.ai/docs/api/list-models.md.
@@ -60,9 +62,11 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   (https://platform.kimi.ai/docs/api/responses.md). Cache writes are billed
   by TTL and batch inference at 60% of the standard price. The upload page
   says file parsing is "currently free". The API needs a $1 minimum top-up
-  (https://platform.kimi.ai/docs/pricing/limits.md). A key on an empty
-  account still passes the probe; inference then answers 429
-  `exceeded_current_quota_error`, which the Billing notice says.
+  (https://platform.kimi.ai/docs/pricing/limits.md). The probe does not
+  check the balance; with an empty balance inference answers 429
+  `exceeded_current_quota_error`, which the Billing notice says. What the
+  probe returns for an account that has never topped up is not known (see
+  Verification).
 - Timeouts: Sprites waits 120 seconds for response headers. K3 models
   always think (`reasoning_effort` defaults to `max`) and Kimi's own 504
   page says long non-streaming requests should use `stream: true`, so the
@@ -72,7 +76,9 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   60, and applies none when omitted).
 - Rate limits: https://platform.kimi.ai/docs/pricing/limits.md (concurrency,
   RPM, TPM and TPD by recharge tier, plus a separate per-second limit for
-  the search tools). Forwarded response headers: `retry-after` (the errors
+  the search tools). The rendered page lists Tier0, the $1 tier, at
+  concurrency 1 and 3 RPM, which a usage note says. Forwarded response
+  headers: `retry-after` (the errors
   page tells clients to wait as `Retry-After` indicates on
   `engine_overloaded_error`), `x-ratelimit-limit`, `x-ratelimit-remaining`
   and `x-ratelimit-reset` (documented on the search and fetch 429s),
@@ -89,6 +95,13 @@ Community submission (`owner: community`), not submitted by Moonshot AI.
   organization allowlist (not a bad key, so not classified
   `invalid_api_key`), 404 unknown model, 429 rate limit, overload or empty
   balance (told apart by `error.type`), 500, 503, and 504 after 900 seconds.
+  New keys are v2 (`sk-ms-` prefix) and can carry an IP whitelist access
+  policy; a caller the policy does not list gets 403
+  `permission_denied_error`
+  (https://platform.kimi.ai/docs/guide/org-best-practice.md). Requests
+  come from the gateway, not the user's network, so the "IP whitelist"
+  notice tells users to use a key with an empty policy. The probe has no
+  403 rule, so that case is reported as a failed check, not as a bad key.
   The search and fetch tools have their own error types
   (https://platform.kimi.ai/docs/api/tools-search.md,
   https://platform.kimi.ai/docs/api/tools-fetch.md): 401 and 403 (account
@@ -128,6 +141,18 @@ response. Checked offline with `scripts/lib/expect.mjs`: a documented-shape
 body passes, an `{"error": ...}` body fails every assertion, a model without
 `id` fails, and an empty `data` list passes.
 
+Still open, each needing a real key:
+
+- Run the probe with a key from a topped-up account and confirm 200.
+- Run it with a key from an account that has never topped up. Kimi's limits
+  page says a $1 minimum recharge is "required to start using the API" but
+  not what such an account receives on `GET /v1/models`. If it is not 200,
+  the key check fails with that status until the user tops up.
+- Send `POST /anthropic/v1/messages` with no `anthropic-version` header.
+  The gateway forwards no request headers, and Kimi's Messages page and
+  OpenAPI spec do not list the header as required, but that has not been
+  tried.
+
 `node scripts/check-connectors.mjs moonshot_ai` and the ajv schema check
 pass.
 
@@ -144,6 +169,8 @@ on dark and on colour backgrounds).
 The logo is Moonshot AI's trademark, used here to identify the service; no
 licence is claimed. Kimi's Logo Usage Terms
 (https://www.kimi.ai/policies/logo-usage-terms) license the assets for
-"editorial, media, and non-commercial promotional uses" and say not to
-recolour them. A maintainer should decide whether a connector tile and the
-`currentColor` mark fit those terms, or ask hi@moonshot.ai.
+"editorial, media, and non-commercial promotional uses" and say "You may
+not modify, distort, recolor, stretch, or alter the logo in any way".
+`mark.svg` recolours both paths, the blue dot included, so as written the
+terms do not allow it. Open for a maintainer: decide whether a connector
+tile and the `currentColor` mark fit those terms, or ask hi@moonshot.ai.
