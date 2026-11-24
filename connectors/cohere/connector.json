@@ -43,16 +43,16 @@
       "path": "/v1/models/MODEL_NAME"
     },
     {
-      "title": "Chat with Command A+ (billed per input and output token)",
+      "title": "Chat with Command A+ (listed as free on an API key on Cohere's pricing page; rate-limited)",
       "method": "POST",
       "path": "/v2/chat",
       "json": {
         "model": "command-a-plus-05-2026",
         "messages": [{"role": "user", "content": "Explain retrieval augmented generation in two sentences."}],
-        "max_tokens": 256,
+        "max_tokens": 4096,
         "stream": false
       },
-      "notes": ["Set `stream: true` for Server-Sent Events. The gateway waits 120 seconds for response headers and Cohere has no timeout parameter, so stream long or reasoning generations and cap `max_tokens`."]
+      "notes": ["Set `stream: true` for Server-Sent Events. The gateway waits 120 seconds for response headers and Cohere has no timeout parameter, so stream long or reasoning generations and cap `max_tokens`.", "Cohere's chat reference says reasoning is enabled by default on models that support it, so `max_tokens` here leaves room for thinking and the answer; send `thinking: {\"type\": \"disabled\"}` to turn thinking off.", "Cohere's pricing page lists Command A+ as free on an API key. Its rate-limit page gives Command A+ 20 requests a minute, with higher production limits only through Cohere sales, and caps newer chat models at 1,000 calls a month even on production keys. Cohere prices its other Command models per input and output token; see cohere.com/pricing."]
     },
     {
       "title": "Embed documents for search (billed per embedded token)",
@@ -67,7 +67,7 @@
       "notes": ["Up to 96 texts per call. Embed queries with `input_type: \"search_query\"`."]
     },
     {
-      "title": "Rerank documents against a query (billed per search)",
+      "title": "Rerank documents against a query (Rerank 5 is billed per token)",
       "method": "POST",
       "path": "/v2/rerank",
       "json": {
@@ -103,6 +103,7 @@
   ],
   "messages": {
     "400": "Cohere rejected the request (%{status}); see the body's message",
+    "402": "Cohere billing limit reached or payment method needed; check dashboard.cohere.com/billing",
     "403": "Cohere key lacks permission for this request (%{status}); check the key and model access",
     "404": "Cohere model or route not found; check GET /v1/models",
     "422": "Cohere could not process the request parameters; see the body's message",
@@ -118,12 +119,12 @@
   "icon_bg_class": "bg-emerald-900/20",
   "presentation": {
     "tagline": "Chat, embed and rerank with Cohere from a Sprite without putting your API key on it.",
-    "setup": "Sign in at dashboard.cohere.com, open API Keys and create a trial or production key. Trial keys are free but rate-limited and capped at 1,000 calls a month.",
+    "setup": "Sign in at dashboard.cohere.com and open API Keys. Every account starts with a trial key; for a production key, Cohere's pricing FAQ says an organization owner completes the Go to Production workflow on the Billing and Usage page. Trial keys are free but rate-limited and capped at 1,000 calls a month.",
     "key_label": "API key",
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key calls `GET /v1/models?page_size=1`, which runs no model and is not priced; on a trial key it may count toward the 1,000 calls a month. With a production key, chat is billed per input and output token, embed per embedded token, rerank per search and parse per page parsed. Cohere's Transcribe page says transcription on the API is free but rate-limited, with production use through Model Vault. Model listing, tokenize and detokenize run no model. Chat responses report what was billed in `usage.billed_units`; embed, rerank and parse responses in `meta.billed_units`."
+        "body": "Saving or testing the key calls `GET /v1/models?page_size=1`, which runs no model and is not priced; on a trial key it may count toward the 1,000 calls a month. With a production key, Command chat models are billed per input and output token, except that Cohere's pricing page lists Command A+ as free on an API key; embed is billed per embedded token, rerank per token on Rerank 5 (per search on earlier Rerank models) and parse per page parsed. Cohere's Transcribe page says transcription on the API is free but rate-limited, with production use through Model Vault. Model listing, tokenize and detokenize run no model. Chat responses report what was billed in `usage.billed_units`; embed, rerank and parse responses in `meta.billed_units`."
       },
       {
         "title": "Scope",

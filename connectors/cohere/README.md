@@ -6,9 +6,13 @@ Community submission (`owner: community`), not submitted by Cohere.
 
 - Authentication: https://docs.cohere.com/reference/about ("Request
   Specification"). Base URL `https://api.cohere.com`,
-  `Authorization: Bearer <key>`. Keys are created at
+  `Authorization: Bearer <key>`. Keys are listed at
   https://dashboard.cohere.com/api-keys, as trial (free, rate-limited) or
-  production keys. The optional `X-Client-Name` request header is not
+  production keys. The FAQ on https://cohere.com/pricing says every account
+  starts with a trial key, and that a production key needs an organization
+  owner to complete the "Go to Production" workflow on the Billing and
+  Usage page; https://docs.cohere.com/docs/rate-limits says only that both
+  kinds are created on the API keys page. The optional `X-Client-Name` request header is not
   forwarded, and no response headers are forwarded: Cohere's reference
   pages document none.
 - Probe: `GET /v1/models?page_size=1`,
@@ -50,12 +54,25 @@ Community submission (`owner: community`), not submitted by Cohere.
 - Timeouts: Sprites waits 120 seconds for response headers. Chat has no
   server-side timeout parameter, so the chat example caps `max_tokens`, and
   its note and a usage note recommend `stream: true` for long or reasoning
-  generations. The other routes return quickly.
+  generations. The cap is 4,096 rather than a few hundred tokens because
+  https://docs.cohere.com/reference/chat says reasoning is enabled by
+  default on models that support it, and
+  https://docs.cohere.com/v2/docs/reasoning advises leaving at least 1,000
+  tokens for the response when thinking is budgeted. The other routes
+  return quickly.
 - Pricing: https://docs.cohere.com/v2/docs/how-does-cohere-pricing-work and
   https://cohere.com/pricing. Chat is billed per input and output token
-  (`usage.billed_units`), embed per embedded token and rerank per search
-  (`meta.billed_units`). Parse responses report billed pages in
-  `meta.billed_units.pages`; the pricing page lists no parse price.
+  (`usage.billed_units`) and embed per embedded token
+  (`meta.billed_units`). Rerank 5 is billed per token:
+  https://cohere.com/blog/rerank-5 gives API pricing of $0.05 per 1M tokens
+  for Pro and $0.02 for Fast, and the pricing page lists both per 1M
+  tokens. Earlier Rerank models are priced per search, as the pricing docs
+  and the pricing page's FAQ describe. The pricing page lists Command A+ as
+  free on an API key, while the pricing docs call it per-token; the
+  manifest reports what the pricing page lists and does not claim either
+  as tested. Parse responses report billed pages in
+  `meta.billed_units.pages`; the pricing page lists Parse 5 at $1.50 per
+  1,000 pages.
   Transcription on the API is free but rate-limited, per
   https://docs.cohere.com/v2/docs/transcribe ("Availability"); production
   use goes through Model Vault. Trial usage is free but limited.
@@ -67,7 +84,10 @@ Community submission (`owner: community`), not submitted by Cohere.
   limits until Cohere sales raises them.
 - Errors are `{"id": "...", "message": "..."}` with 400, 401, 403, 404,
   422, 429, 498 (deny-listed token), 499 (client closed), 500, 501, 503 and
-  504, the same on every reference page. The 401 message echoes the last
+  504, the same on every reference page. The errors page
+  (https://docs.cohere.com/reference/errors) also documents 402 (Payment
+  Required), sent when the account has reached its billing limit or needs
+  a payment method, so `messages` carries a `402` entry. The 401 message echoes the last
   four characters of the key after asterisks (`**********-key`). That is
   Cohere's own masking, and the full key never appears.
 - Left out on purpose:
@@ -112,6 +132,19 @@ Cohere reference page instead.
 available. The assertions follow the documented `ListModelsResponse`
 (`models` required, each with a `name`).
 `node scripts/check-connectors.mjs cohere` and the ajv schema check pass.
+
+Still to do with a real key, or for a reviewer to decide:
+
+- Run the probe with a trial key and with a production key.
+- Check what `GET /v1/models` returns for a trial key past its 1,000
+  calls a month and for an account at its billing limit. A 429 or 402
+  there would stop a valid key from being saved or tested.
+- Run the chat example as written and confirm it returns text, not only
+  thinking content with `finish_reason: MAX_TOKENS`.
+- Confirm on a production key whether Command A+ calls are unbilled, as
+  the pricing page lists.
+- Decide whether to keep the multipart `POST /v2/audio/transcriptions`
+  route, given the gateway's 8,000,000-byte body limit.
 
 ## Icons
 
