@@ -84,9 +84,10 @@
   ],
   "messages": {
     "401": "FriendliAI rejected the key; it may be revoked or expired. Replace it in this connection",
+    "403": "FriendliAI refused the request; your team may have no remaining credits, or the key cannot reach that endpoint. Requests use your default team",
     "404": "FriendliAI could not find that model or endpoint; check GET /serverless/v1/models or GET /dedicated/beta/endpoint",
-    "422": "FriendliAI could not validate the request body; see detail for the field",
-    "429": "FriendliAI rate limit reached; your tier's requests-per-minute limit rises with lifetime spend",
+    "422": "FriendliAI could not validate the request body; see the response body for the field",
+    "429": "FriendliAI answered 429; the Model APIs requests-per-minute limit for your usage tier was reached, or your Dedicated Endpoint's request queue timed out. Retry later",
     "provider_unreachable": "Could not reach FriendliAI; retry later"
   },
   "discovery": {
@@ -103,7 +104,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key calls `GET /dedicated/beta/endpoint?limit=1`, which runs no inference and costs nothing. Serverless Model APIs calls are charged per input and output token at the model's price (`GET /serverless/v1/models` lists them); FriendliAI does not say whether tokenize and detokenize are charged. The endpoint reads run no inference. Dedicated Endpoints are billed per GPU-second for every running replica, whether or not it serves requests, and a request to a sleeping endpoint wakes it. The key check does not verify your credit balance."
+        "body": "Saving or testing the key calls `GET /dedicated/beta/endpoint?limit=1`, which runs no inference and costs nothing. Serverless Model APIs calls are charged per input and output token at the model's price (`GET /serverless/v1/models` lists them); FriendliAI does not say whether tokenize and detokenize are charged. The endpoint reads run no inference. Dedicated Endpoints are billed per GPU-second for every running replica, whether or not it serves requests, and a request to a sleeping endpoint wakes it."
       },
       {
         "title": "Scope",
@@ -112,7 +113,7 @@
     ],
     "usage_notes": [
       "Sprites waits 120 seconds for response headers and FriendliAI has no request timeout parameter, so set `stream: true` (Server-Sent Events) or a modest `max_tokens` for long generations, especially with reasoning models.",
-      "Error bodies are `{\"detail\": \"...\"}`, sometimes with a `_status` field; a bad key answers 401."
+      "Error bodies vary by route: the endpoint routes answer `{\"detail\": \"...\"}`, inference routes can also answer `{\"message\": \"...\"}`, and FriendliAI's docs give the `messages` routes Anthropic-style errors, `{\"type\": \"error\", \"error\": {...}}`. A bad key answers 401."
     ],
     "mark_svg": {"file": "mark.svg"}
   }

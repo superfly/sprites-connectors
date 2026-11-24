@@ -32,9 +32,14 @@ Community submission (`owner: community`), not submitted by FriendliAI.
     timestamps would start failing within a year; the manifest cannot compute
     dates. It also documents 403 (Forbidden), which suggests a team-role check.
   - Any inference call spends credits.
-  Open question for a reviewer with a real key: whether the endpoint list
+  FriendliAI labels this route Beta ("you may encounter unexpected behavior
+  or limitations"). If it moves out of `/dedicated/beta/`, every key check
+  fails and the probe path has to follow it.
+  Open questions for a reviewer with a real key: whether the endpoint list
   answers 200 with `"data": {}` for an account that has never used Dedicated
-  Endpoints. The docs list only 400 and 422 as its error statuses.
+  Endpoints, and whether it answers 200 for a team with no credits (see
+  Errors and Verification). The docs list only 400 and 422 as its error
+  statuses.
 - Routes forwarded, each documented in the OpenAPI file above:
 
   | Route | Docs |
@@ -71,12 +76,25 @@ Community submission (`owner: community`), not submitted by FriendliAI.
   does not call them free.
 - Rate limits: https://friendli.ai/docs/guides/model-apis/rate-limits.
   Requests per minute by usage tier (tiers rise with lifetime spend); over the
-  limit is 429. No rate-limit or `Retry-After` response headers are
+  limit is 429. That page covers Model APIs only; a Dedicated Endpoint
+  answers 429 when a queued request waits past the endpoint's queue timeout,
+  https://friendli.ai/docs/guides/dedicated-endpoints/request-queueing. No
+  rate-limit or `Retry-After` response headers are
   documented, so only `x-request-id` (seen on every response) is forwarded.
-- Errors: `{"detail": "..."}`, sometimes with `"_status"`. A wrong key is 401
+- Errors: the body shape depends on the route. `{"detail": "..."}`,
+  sometimes with `"_status"`, on the management API and for a wrong key. The
+  inference gateway also answers `{"message": "..."}`: on 2026-11-24 a `GET`
+  with no body to each `/serverless/v1/...` and `/dedicated/v1/...` path
+  tried, real or made up, answered 400 `{"message":"Error occurred while deserializing json body!"}`.
+  The OpenAPI file documents Anthropic-style
+  `{"type": "error", "error": {...}}` on the `messages` routes. A wrong key is 401
   (`{"detail":"Unauthorized"}` on the management API, `{"detail":"Unauthorized.
   Please provide a valid credential."}` on inference), so no `errors` rule is
-  needed. 422 carries validation details.
+  needed. 422 carries validation details. The Dedicated Endpoints FAQ
+  (https://friendli.ai/docs/guides/dedicated-endpoints/faq) documents 403 for
+  a valid key when "the key lacks access to the endpoint, or if your team has
+  no remaining credits", so `messages` has a 403 entry. There is no 403 probe
+  rule, because the key is valid in that case.
 - Timeouts: no request timeout parameter is documented, so the usage notes
   and the chat example point to `stream: true` or a modest `max_tokens` to
   stay inside Sprites' 120-second wait for response headers.
@@ -126,6 +144,23 @@ The same made-up key was sent to each allowed route with curl:
 The probe has not been run with a real key; the assertions follow the
 documented response. `node scripts/check-connectors.mjs friendliai` and the
 ajv schema check pass.
+
+Still open for a reviewer:
+
+- Run the probe with a valid key on a team with no credits, such as a new
+  account that has never bought any. Billing is prepaid and the docs say
+  "if your team has no remaining credits, API requests stop"
+  (https://friendli.ai/docs/guides/suite/billing-payments). If the endpoint
+  list answers 403 there, the probe rejects a valid key and needs another
+  route or an `errors` rule.
+- Run the probe with a valid key on an account with no Dedicated Endpoints
+  and confirm 200 with `"data": {}`.
+- `X-Friendli-Team` is not forwarded. A user whose endpoints or credits are
+  in a team other than the default one cannot reach them through the
+  connector; the FAQ's fix for 403 and 404 is to check that header. Decide
+  whether that is acceptable or the header should be forwarded.
+- The Dedicated inference routes need a real key and a running endpoint to
+  confirm.
 
 ## Icons
 
