@@ -77,8 +77,9 @@ Community submission (`owner: community`), not submitted by Octen.
 - Pricing: https://docs.octen.ai/overview/pricing. Every forwarded `POST` is
   billed (amounts in the Billing notice); task polls and monitor reads are
   not. Rate limits: https://docs.octen.ai/resources/rate-limits (Web, Broad
-  and Pulse Search share 10 QPS on Free, 20 after adding credits; the other
-  searches and Answer share a separate 10/20 QPS; Web Search Premier 2 QPS;
+  and Pulse Search share 10 QPS on Free, 20 after adding credits; News,
+  Business, Place, Design and Video Search and Answer share a separate 10/20
+  QPS; Image Search has no documented QPS limit; Web Search Premier 2 QPS;
   monitor reads 5 per second; Search Agent 10 concurrent). `x-request-id`
   (returned on every error) and `Retry-After` (on 429 code 42901) are
   forwarded.
