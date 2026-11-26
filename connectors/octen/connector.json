@@ -1,0 +1,143 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "octen",
+  "display_name": "Octen",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.octen.ai",
+  "description": "Real-time web, news, image and place search, page extraction, embeddings and cited answers for agents",
+  "long_description": "Bring an Octen API key; the gateway keeps it off your Sprite and sends it in the `x-api-key` header. Saving, replacing or testing the key lists one of your monitors (GET /monitors), which is not billed. A Sprite can then run Octen's search APIs (Pulse, Web, Broad, Web Premier, News, Business, Place, Design and Image Search), extract pages, create text and multimodal embeddings, get cited answers, run Search Agent and Deep Research tasks, start grounded image or video generations and poll them, and read existing monitors with their runs and events. Every request except the monitor reads and the task polls is billed pay as you go from your Octen balance. Monitor creation, updates, deletion and manual triggers, Video Search (invite-only beta) and the Auto Search model routes (chat completions, messages, image and video generation) are not forwarded.",
+  "website_url": "https://octen.ai/platform",
+  "auth": {"header": "x-api-key"},
+  "allowed_paths": [
+    {"methods": ["POST"], "pattern": "/pulse-search"},
+    {"methods": ["POST"], "pattern": "/search"},
+    {"methods": ["POST"], "pattern": "/broad-search"},
+    {"methods": ["POST"], "pattern": "/search-premier"},
+    {"methods": ["POST"], "pattern": "/news-search"},
+    {"methods": ["POST"], "pattern": "/business-search"},
+    {"methods": ["POST"], "pattern": "/place-search"},
+    {"methods": ["POST"], "pattern": "/design-search"},
+    {"methods": ["POST"], "pattern": "/image-search"},
+    {"methods": ["POST"], "pattern": "/extract"},
+    {"methods": ["POST"], "pattern": "/embedding"},
+    {"methods": ["POST"], "pattern": "/vl-embedding"},
+    {"methods": ["POST"], "pattern": "/answer"},
+    {"methods": ["POST"], "pattern": "/v1/agent"},
+    {"methods": ["GET"], "pattern": "/v1/agent/:task_id"},
+    {"methods": ["POST"], "pattern": "/v1/research"},
+    {"methods": ["POST"], "pattern": "/v1/grounded-generation"},
+    {"methods": ["GET"], "pattern": "/v1/grounded-generation/:generation_id"},
+    {"methods": ["GET"], "pattern": "/monitors"},
+    {"methods": ["GET"], "pattern": "/monitors/:id"},
+    {"methods": ["GET"], "pattern": "/monitors/:id/runs"},
+    {"methods": ["GET"], "pattern": "/monitors/:id/runs/:run_id"},
+    {"methods": ["GET"], "pattern": "/monitors/:id/events"}
+  ],
+  "forward_response_headers": ["x-request-id", "retry-after"],
+  "probe": {
+    "method": "GET",
+    "path": "/monitors?limit=1",
+    "label": "monitor list",
+    "expect": [
+      ["request_id", "text"],
+      ["data", "map"],
+      ["data.monitors", "list"],
+      ["code", "eq", 0]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Search the web (billed: $1 per 1,000 searches)",
+      "method": "POST",
+      "path": "/search",
+      "json": {"query": "Fly.io Sprites", "count": 5},
+      "notes": ["Full content for the first 10 results of each search is free; more is $0.50 per 1,000 results."]
+    },
+    {
+      "title": "Search recent news (billed: $3 per 1,000 searches)",
+      "method": "POST",
+      "path": "/news-search",
+      "json": {"query": "AI agent sandboxes", "count": 5, "time_range": "week"}
+    },
+    {
+      "title": "Extract pages as Markdown (billed: $1 per 1,000 successful URLs)",
+      "method": "POST",
+      "path": "/extract",
+      "json": {"urls": ["https://fly.io/docs/"], "format": "markdown", "timeout": 30},
+      "notes": ["A 200 can mix successes and failures; check each result's `status`. Failed URLs are not billed. Keep `timeout` well under the gateway's 120-second response deadline."]
+    },
+    {
+      "title": "Embed text (billed per token: $0.04 per million with octen-embedding-4b)",
+      "method": "POST",
+      "path": "/embedding",
+      "json": {"input": ["What is a Sprite?"], "model": "octen-embedding-4b"}
+    },
+    {
+      "title": "Start a Search Agent task (billed: $0.05 per low-tier task)",
+      "method": "POST",
+      "path": "/v1/agent",
+      "json": {"messages": [{"role": "user", "content": "What are Fly.io Sprites?"}], "tier": "low"},
+      "notes": ["Returns a `task_id` with `status: queued`; poll `GET /v1/agent/TASK_ID` until it finishes."]
+    },
+    {
+      "title": "Poll a Search Agent task; replace TASK_ID",
+      "path": "/v1/agent/TASK_ID"
+    },
+    {
+      "title": "Start a grounded image generation (billed: $0.25 per image)",
+      "method": "POST",
+      "path": "/v1/grounded-generation",
+      "json": {"modality": "image", "prompt": "The Fly.io balloon over a city at dusk"},
+      "notes": ["Returns a `generation_id` with `status: queued`; poll `GET /v1/grounded-generation/GENERATION_ID`."]
+    },
+    {
+      "title": "Poll a grounded generation; replace GENERATION_ID",
+      "path": "/v1/grounded-generation/GENERATION_ID",
+      "notes": ["`output_url` is a signed link on apt-multimodal-output.octen.ai that needs no key and expires 7 days after the task was created; download it directly."]
+    },
+    {
+      "title": "List your monitors",
+      "path": "/monitors?limit=20"
+    },
+    {
+      "title": "List a monitor's events; replace MONITOR_ID",
+      "path": "/monitors/MONITOR_ID/events?limit=20"
+    }
+  ],
+  "messages": {
+    "400": "Octen rejected the request parameters; see msg for the field",
+    "403": "Octen balance is insufficient or this plan does not cover the request; add credits at octen.ai/platform",
+    "404": "Octen could not find that task, monitor or run, or the task has expired",
+    "429": "Octen rate limit reached; back off and retry (honour Retry-After when present)",
+    "provider_unreachable": "Could not reach Octen; retry later"
+  },
+  "discovery": {
+    "categories": ["search", "web-scraping"],
+    "keywords": ["octen", "web search", "news search", "image search", "place search", "extract", "embeddings", "answer", "deep research", "search agent", "monitor"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-emerald-500/20",
+  "presentation": {
+    "tagline": "Search the live web, extract pages and get cited answers from a Sprite without putting your Octen key on it.",
+    "setup": "Sign in to the Octen API Platform at octen.ai/platform and create an API key. Octen requires a payment method; new accounts get $5 of free balance.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key lists one monitor (`GET /monitors?limit=1`), which is not billed; monitors are billed only per run. Everything else except monitor reads and task polls is charged pay as you go to your Octen balance: Pulse Search $0.10 to $0.20, Web and Broad Search $1, Image Search $2, News Search $3, Web Search Premier $4 and Business, Place and Design Search $5 per 1,000 calls, where one Broad Search call can count as several searches; full content beyond the free results $0.50 per 1,000; Extract $1 (standard) or $2.50 (advanced) per 1,000 successful URLs; embeddings per token; Answer by searches plus model tokens; Search Agent $0.05, $0.20 or $0.50 per task for the `low`, `medium` and `high` tiers, and by actual usage for the default `auto` tier; Deep Research $0.20 to $3 per request; grounded generation $0.25 per image and $1 per video. A Search Plan changes some of these; see docs.octen.ai/overview/pricing."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `POST /pulse-search`, `/search`, `/broad-search`, `/search-premier`, `/news-search`, `/business-search`, `/place-search`, `/design-search`, `/image-search`, `/extract`, `/embedding`, `/vl-embedding`, `/answer`, `/v1/agent`, `/v1/research` and `/v1/grounded-generation`, and `GET /v1/agent/:task_id`, `/v1/grounded-generation/:generation_id`, `/monitors`, `/monitors/:id`, `/monitors/:id/runs`, `/monitors/:id/runs/:run_id` and `/monitors/:id/events` are forwarded. Monitors are read-only: creating, updating, pausing, deleting and triggering them are not forwarded. Video Search (invite-only beta) and the Auto Search model routes (`/v1/chat/completions`, `/v1/messages`, `/v1/images/generations`, `/v1/videos`) are not forwarded either."
+      }
+    ],
+    "usage_notes": [
+      "Responses are `{\"code\": 0, \"msg\": \"success\", \"request_id\": \"...\", \"data\": {...}}`; errors carry a non-zero `code` (usually the HTTP status, six digits for monitor errors) and a `msg`.",
+      "Search Agent and grounded generation run in the background: start the task, then poll its `GET` route until `status` is final. Deep Research (`POST /v1/research`) always streams Server-Sent Events, and may stop after a plan that needs confirming; call it again with `plan_id` and `selections`, or set `skip_plan_confirm: true`.",
+      "Grounded generation results are signed download links on apt-multimodal-output.octen.ai. They need no key, are not proxied by the gateway, and expire 7 days after the task was created."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
