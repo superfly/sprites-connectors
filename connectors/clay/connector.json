@@ -88,8 +88,8 @@
   ],
   "messages": {
     "400": "Clay rejected the request (%{status}); check the body's message",
-    "402": "Clay search result limit or credits exhausted; see the message for which limit and when it resets",
-    "403": "This Clay key is not allowed to make this request, or the feature is not on your plan",
+    "402": "Clay search result limit reached; the message names the limit and, for period limits, when it resets",
+    "403": "Clay did not authorize this key for the request; check your workspace permissions and, for a custom function, that its API access is enabled",
     "404": "Not found in Clay; check the routine, run, search or table id",
     "409": "Clay could not start the run in its current state (%{status}); see the message",
     "422": "Clay could not validate the request; see the message",
