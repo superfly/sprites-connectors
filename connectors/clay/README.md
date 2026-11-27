@@ -58,13 +58,17 @@ Community submission (`owner: community`), not submitted by Clay.
   on enrichment. Search pages return at most 500 records and Clay documents
   no timeout parameter for them, so no example sets one.
 - Cost: `GET /credits/balance` consumes no credits per its reference; `/me`
-  runs no enrichment. Function runs spend the workspace's Clay credits for
-  the enrichments they run (the balance endpoint reports data credits and
-  actions); the API docs give no per-call price. Search results count toward
-  plan result limits (https://developers.clay.com/searches: Free 50 per
-  search and 100 per 30 days, paid 1,000,000 per 30 days, Enterprise
-  10,000,000), and exceeding one is HTTP 402. Clay's docs do not list a
-  credit charge for search itself.
+  runs no enrichment. Function runs spend the workspace's Clay data credits
+  and actions for the enrichment steps inside the function, the same as in
+  the app (https://university.clay.com/docs/clay-api-cli: "API and CLI calls
+  consume the same credits and actions as the equivalent work done
+  in-product"; https://university.clay.com/docs/functions); the balance
+  endpoint reports both. The API docs give no per-call price. Search
+  results count toward plan result limits
+  (https://developers.clay.com/searches: Free 50 per search and 100 per 30
+  days, paid 1,000,000 per 30 days, Enterprise 10,000,000), and exceeding
+  one is HTTP 402. Clay's docs do not list a credit charge for search
+  itself.
 - Errors are `{"message": "..."}` with the status as the category and no
   stable codes (https://developers.clay.com/public-api/errors): 400, 401,
   402 (search limits), 403, 404, 409 and 422 (state and validation), 429 and

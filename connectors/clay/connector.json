@@ -7,7 +7,7 @@
   "owner": "community",
   "base_url": "https://api.clay.com/public/v0",
   "description": "Search Clay's GTM database of people and companies and run Clay functions to enrich records",
-  "long_description": "Bring a Clay Public API key; the gateway keeps it off your Sprite and sends it in the `clay-api-key` header. Saving, replacing or testing the key reads the authenticated user and workspace (GET /me). A Sprite can then search Clay's database of people and companies with advanced queries, run Clay-managed and custom functions on up to 100 items or in batches and poll their results, read the workspace's credit balance, query workflow runs and, on Enterprise plans, query known Clay tables. Function runs spend your workspace's Clay credits, and search results count toward your plan's result limits. Audit logs, Audiences privacy deletion and the deprecated filters-mode search are not forwarded.",
+  "long_description": "Bring a Clay Public API key; the gateway keeps it off your Sprite and sends it in the `clay-api-key` header. Saving, replacing or testing the key reads the authenticated user and workspace (GET /me). A Sprite can then search Clay's database of people and companies with advanced queries, run Clay-managed and custom functions on up to 100 items or in batches and poll their results, read the workspace's credit balance, query workflow runs and, on Enterprise plans, query known Clay tables. Function runs spend your workspace's Clay data credits and actions for the enrichment steps they run, and search results count toward your plan's result limits. Audit logs, Audiences privacy deletion and the deprecated filters-mode search are not forwarded.",
   "website_url": "https://app.clay.com/workspaces/~/api-and-cli?tab=api-keys",
   "auth": {"header": "clay-api-key"},
   "allowed_paths": [
@@ -67,7 +67,7 @@
       "notes": ["A stateful iterator: call it again while `has_more` is true. Clay answers 402 when a per-request, per-search or period result limit is reached."]
     },
     {
-      "title": "Run a function on up to 100 items (spends Clay credits); replace ROUTINE_ID",
+      "title": "Run a function on up to 100 items (spends Clay data credits and actions); replace ROUTINE_ID",
       "method": "POST",
       "path": "/routines/ROUTINE_ID/run",
       "json": {"items": [{"id": "row-1", "inputs": {"domain": "clay.com"}}]},
@@ -109,7 +109,7 @@
     "notices": [
       {
         "title": "Billing",
-        "body": "Saving or testing the key reads `GET /me`, which returns your user and workspace and runs no enrichment. Reading `GET /credits/balance` consumes no credits. Running a function (`/routines/.../run` and batch runs) spends your workspace's Clay credits for the enrichments it performs. Search results count toward your plan's result limits (on the Free plan, 50 per search and 100 per 30 days), and Clay answers 402 when one is reached."
+        "body": "Saving or testing the key reads `GET /me`, which returns your user and workspace and runs no enrichment. Reading `GET /credits/balance` consumes no credits. Running a function (`/routines/.../run` and batch runs) spends your workspace's Clay data credits and actions for the enrichment steps inside the function, the same as running it in the Clay app. Search results count toward your plan's result limits (on the Free plan, 50 per search and 100 per 30 days), and Clay answers 402 when one is reached."
       },
       {
         "title": "Scope",
