@@ -1,0 +1,127 @@
+{
+  "$schema": "https://raw.githubusercontent.com/superfly/sprites-connectors/main/v1/schema.json",
+  "format_version": 1,
+  "name": "clay",
+  "display_name": "Clay",
+  "tier": "community",
+  "owner": "community",
+  "base_url": "https://api.clay.com/public/v0",
+  "description": "Search Clay's GTM database of people and companies and run Clay functions to enrich records",
+  "long_description": "Bring a Clay Public API key; the gateway keeps it off your Sprite and sends it in the `clay-api-key` header. Saving, replacing or testing the key reads the authenticated user and workspace (GET /me). A Sprite can then search Clay's database of people and companies with advanced queries, run Clay-managed and custom functions on up to 100 items or in batches and poll their results, read the workspace's credit balance, query workflow runs and, on Enterprise plans, query known Clay tables. Function runs spend your workspace's Clay credits, and search results count toward your plan's result limits. Audit logs, Audiences privacy deletion and the deprecated filters-mode search are not forwarded.",
+  "website_url": "https://app.clay.com/workspaces/~/api-and-cli?tab=api-keys",
+  "auth": {"header": "clay-api-key"},
+  "allowed_paths": [
+    {"methods": ["GET"], "pattern": "/me"},
+    {"methods": ["GET"], "pattern": "/credits/balance"},
+    {"methods": ["GET"], "pattern": "/search/query-mode/reference"},
+    {"methods": ["POST"], "pattern": "/search/query-mode"},
+    {"methods": ["POST"], "pattern": "/search/query-mode/:search_id/run"},
+    {"methods": ["POST"], "pattern": "/routines/:routine_id/run"},
+    {"methods": ["GET"], "pattern": "/routines/run/:routine_run_id/results"},
+    {"methods": ["POST"], "pattern": "/routines/:routine_id/run-batch/upload-url"},
+    {"methods": ["POST"], "pattern": "/routines/:routine_id/run-batch/start"},
+    {"methods": ["GET"], "pattern": "/routines/run-batch/:routine_run_id/results"},
+    {"methods": ["POST"], "pattern": "/tables/query"},
+    {"methods": ["POST"], "pattern": "/workflows/runs/query"},
+    {"methods": ["GET"], "pattern": "/workflows/runs/query/reference"}
+  ],
+  "path_param": "\\A[A-Za-z0-9:_-]+\\z",
+  "forward_response_headers": ["retry-after", "x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset"],
+  "probe": {
+    "method": "GET",
+    "path": "/me",
+    "label": "user and workspace",
+    "expect": [
+      ["user", "map"],
+      ["user.id", "text"],
+      ["workspace", "map"],
+      ["workspace.id", "text"],
+      ["message", "absent"]
+    ]
+  },
+  "examples": [
+    {
+      "title": "Show the key's user and workspace",
+      "path": "/me"
+    },
+    {
+      "title": "Read the workspace's credit balance (no credits)",
+      "path": "/credits/balance"
+    },
+    {
+      "title": "Read the search query reference for people fields",
+      "path": "/search/query-mode/reference?sections=grammar,examples,people-fields"
+    },
+    {
+      "title": "Create a people search (results count toward your plan's search limits)",
+      "method": "POST",
+      "path": "/search/query-mode",
+      "json": {"query": "select from people where experiences.any(is_current = true and job_title is_similar_to (\"Head of Sales\") and company.industry = \"Software Development\")"},
+      "notes": ["Returns a `search_id` and the detected `source_type`. Fetch the reference first to see the fields and grammar."]
+    },
+    {
+      "title": "Fetch the next page of a search; replace SEARCH_ID (results count toward your plan's search limits)",
+      "method": "POST",
+      "path": "/search/query-mode/SEARCH_ID/run",
+      "json": {"limit": 10},
+      "notes": ["A stateful iterator: call it again while `has_more` is true. Clay answers 402 when a per-request, per-search or period result limit is reached."]
+    },
+    {
+      "title": "Run a function on up to 100 items (spends Clay credits); replace ROUTINE_ID",
+      "method": "POST",
+      "path": "/routines/ROUTINE_ID/run",
+      "json": {"items": [{"id": "row-1", "inputs": {"domain": "clay.com"}}]},
+      "notes": ["Routine ids look like `function:t_abc123`. Returns 202 with a `routine_run_id`; the input names depend on the function."]
+    },
+    {
+      "title": "Poll a function run's results; replace ROUTINE_RUN_ID",
+      "path": "/routines/run/ROUTINE_RUN_ID/results?limit=20",
+      "notes": ["Answers 202 with progress counters while running and 200 with `data` when complete; pass `cursor` for the next page."]
+    },
+    {
+      "title": "Query an Enterprise table; replace TABLE_ID",
+      "method": "POST",
+      "path": "/tables/query",
+      "json": {"query": {"tables": [{"id": "TABLE_ID"}], "select": [{"field": "Domain", "as": "domain"}], "field_mode": "names"}, "limit": 20},
+      "notes": ["Tables are available on Clay Enterprise plans. The table id is in the Clay URL after `/tables/`."]
+    }
+  ],
+  "messages": {
+    "400": "Clay rejected the request (%{status}); check the body's message",
+    "402": "Clay search result limit or credits exhausted; see the message for which limit and when it resets",
+    "403": "This Clay key is not allowed to make this request, or the feature is not on your plan",
+    "404": "Not found in Clay; check the routine, run, search or table id",
+    "409": "Clay could not start the run in its current state (%{status}); see the message",
+    "422": "Clay could not validate the request; see the message",
+    "429": "Clay rate limit reached (300 requests a minute per workspace); wait for Retry-After and retry",
+    "provider_unreachable": "Could not reach Clay; retry later"
+  },
+  "discovery": {
+    "categories": ["data-enrichment", "search"],
+    "keywords": ["clay", "gtm", "enrichment", "people search", "company search", "leads", "prospecting", "sales", "work email", "firmographics"]
+  },
+  "icon_svg": {"file": "icon.svg"},
+  "icon_bg_class": "bg-neutral-500/20",
+  "presentation": {
+    "tagline": "Search Clay's people and company data and run Clay functions from a Sprite without putting your Clay key on it.",
+    "setup": "In Clay, open API and CLI, then API keys (app.clay.com/workspaces/~/api-and-cli?tab=api-keys), and create a key. Keys are tied to your Clay user and workspace access.",
+    "key_label": "API key",
+    "notices": [
+      {
+        "title": "Billing",
+        "body": "Saving or testing the key reads `GET /me`, which returns your user and workspace and runs no enrichment. Reading `GET /credits/balance` consumes no credits. Running a function (`/routines/.../run` and batch runs) spends your workspace's Clay credits for the enrichments it performs. Search results count toward your plan's result limits (on the Free plan, 50 per search and 100 per 30 days), and Clay answers 402 when one is reached."
+      },
+      {
+        "title": "Scope",
+        "body": "Only `GET /me`, `GET /credits/balance`, `GET /search/query-mode/reference`, `POST /search/query-mode`, `POST /search/query-mode/:search_id/run`, `POST /routines/:routine_id/run`, `GET /routines/run/:routine_run_id/results`, `POST /routines/:routine_id/run-batch/upload-url`, `POST /routines/:routine_id/run-batch/start`, `GET /routines/run-batch/:routine_run_id/results`, `POST /tables/query`, `POST /workflows/runs/query` and `GET /workflows/runs/query/reference` are forwarded. Workspace audit logs, Audiences privacy deletion and the deprecated filters-mode search are not. Clay limits each workspace to 300 requests a minute across all its keys."
+      }
+    ],
+    "usage_notes": [
+      "Routine runs are asynchronous: `POST /routines/:routine_id/run` answers 202 with a `routine_run_id`; poll `GET /routines/run/:routine_run_id/results` at a modest interval until it answers 200. A completed run can contain failed items; check each item's `status`.",
+      "Batch runs upload JSONL to the presigned `upload_url` that `POST /routines/:routine_id/run-batch/upload-url` returns. That URL is on a storage host, not through this gateway, and needs no Clay key: `PUT` the file there directly, then start the batch with the returned `file_id`.",
+      "Errors are `{\"message\": \"...\"}` with the HTTP status as the category; Clay sends no stable error codes. 429 carries `Retry-After` and, when available, `X-RateLimit-*` headers, which are passed back.",
+      "`POST /tables/query` needs a Clay Enterprise plan. Webhooks for run notifications are created with the Clay CLI; pass an existing `webhook_id` when starting a run."
+    ],
+    "mark_svg": {"file": "mark.svg"}
+  }
+}
